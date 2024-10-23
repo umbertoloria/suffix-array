@@ -4,6 +4,7 @@ use crate::ksliding::get_kmers;
 mod lyndon;
 mod jaccard;
 mod ksliding;
+mod debug;
 
 fn main() {
     /*
@@ -17,23 +18,41 @@ fn main() {
     */
 
     // JACCARD ON K-MERS
-    let src1 = "radiohead";
-    let src2 = "slipknot";
+    let mut bands = Vec::new();
+    bands.push("radiohead");
+    bands.push("slipknot");
+    bands.push("avengedsevenfold");
+    bands.push("systemofadown");
+    bands.push("threedaysgrace");
+    bands.push("breakingbenjamin");
+    bands.push("mrbungle");
+    bands.push("dreamtheater");
+    bands.push("porcupinetree");
+    bands.push("redhotchilipeppers");
+    bands.push("sum41");
+    bands.push("therecoveries");
     let k = 1; // Considering single letters for now.
 
-    let slides1 = get_kmers(src1, k);
-    let slides2 = get_kmers(src2, k);
-    // print_vec(&slides1);
-    // print_vec(&slides2);
+    for i in 0..bands.len() {
+        for j in i..bands.len() {
+            let src1 = &bands[i];
+            let src2 = &bands[j];
 
-    // It is better to remove duplicates in-place?
-    let unique_slides1 = vec_skip_duplicates(slides1);
-    let unique_slides2 = vec_skip_duplicates(slides2);
-    // print_vec(&unique_slides1);
-    // print_vec(&unique_slides2);
+            let slides1 = get_kmers(src1, k);
+            let slides2 = get_kmers(src2, k);
+            // print_vec(&slides1);
+            // print_vec(&slides2);
 
-    let calculated_jaccard_similarity = jaccard_similarity(&unique_slides1, &unique_slides2);
-    println!("{}", calculated_jaccard_similarity);
+            // It is better to remove duplicates in-place?
+            let unique_slides1 = vec_skip_duplicates(slides1);
+            let unique_slides2 = vec_skip_duplicates(slides2);
+            // print_vec(&unique_slides1);
+            // print_vec(&unique_slides2);
+
+            let calculated_jaccard_similarity = jaccard_similarity(&unique_slides1, &unique_slides2);
+            println!("Similarity between \"{}\" and \"{}\" is: {}", src1, src2, calculated_jaccard_similarity);
+        }
+    }
 }
 
 fn vec_skip_duplicates(vec: Vec<&str>) -> Vec<&str> {
@@ -52,12 +71,4 @@ fn vec_skip_duplicates(vec: Vec<&str>) -> Vec<&str> {
         }
     }
     result
-}
-
-fn print_vec(unique_slides1: &Vec<&str>) {
-    // For debugging purposes.
-    for x in unique_slides1 {
-        print!("{}, ", x);
-    }
-    println!();
 }
