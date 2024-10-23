@@ -1,10 +1,10 @@
-use crate::jaccard::jaccard_similarity;
-use crate::ksliding::get_kmers;
+use crate::jaccard::jaccard_similarity_via_kmers;
 
 mod lyndon;
 mod jaccard;
 mod ksliding;
 mod debug;
+mod vector;
 
 fn main() {
     /*
@@ -35,40 +35,11 @@ fn main() {
 
     for i in 0..bands.len() {
         for j in i..bands.len() {
-            let src1 = &bands[i];
-            let src2 = &bands[j];
+            let src1 = bands[i];
+            let src2 = bands[j];
 
-            let slides1 = get_kmers(src1, k);
-            let slides2 = get_kmers(src2, k);
-            // print_vec(&slides1);
-            // print_vec(&slides2);
-
-            // It is better to remove duplicates in-place?
-            let unique_slides1 = vec_skip_duplicates(slides1);
-            let unique_slides2 = vec_skip_duplicates(slides2);
-            // print_vec(&unique_slides1);
-            // print_vec(&unique_slides2);
-
-            let calculated_jaccard_similarity = jaccard_similarity(&unique_slides1, &unique_slides2);
+            let calculated_jaccard_similarity = jaccard_similarity_via_kmers(src1, src2, k);
             println!("Similarity between \"{}\" and \"{}\" is: {}", src1, src2, calculated_jaccard_similarity);
         }
     }
-}
-
-fn vec_skip_duplicates(vec: Vec<&str>) -> Vec<&str> {
-    let mut result = Vec::new();
-    let mut first_position;
-    for i in 0..vec.len() {
-        first_position = true;
-        for j in 0..i {
-            if vec[i] == vec[j] {
-                first_position = false;
-                break;
-            }
-        }
-        if first_position {
-            result.push(vec[i]);
-        }
-    }
-    result
 }
