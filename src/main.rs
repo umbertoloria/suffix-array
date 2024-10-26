@@ -1,10 +1,13 @@
+use crate::fasta::get_fasta_content;
 use crate::jaccard::jaccard_similarity_via_kmers;
+use std::time::Instant;
 
 mod lyndon;
 mod jaccard;
 mod ksliding;
 mod debug;
 mod vector;
+mod fasta;
 
 fn main() {
     /*
@@ -17,6 +20,7 @@ fn main() {
     }
     */
 
+    /*
     // JACCARD ON K-MERS
     let mut bands = Vec::new();
     bands.push("radiohead");
@@ -42,4 +46,22 @@ fn main() {
             println!("Similarity between \"{}\" and \"{}\" is: {}", src1, src2, calculated_jaccard_similarity);
         }
     }
+    */
+
+    // JACCARD ON K-MERS OF FILES
+    let filepath1 = "in/1.fasta";
+    let contents1_buf = get_fasta_content(filepath1);
+    let contents1 = contents1_buf.as_str();
+
+    let filepath2 = "in/2.fasta";
+    let contents2_buf = get_fasta_content(filepath2);
+    let contents2 = contents2_buf.as_str();
+
+    let before = Instant::now();
+    for k in 1..141 {
+        let calculated_jaccard_similarity = jaccard_similarity_via_kmers(contents1, contents2, k);
+        println!("Similarity k={} is: {}", k, calculated_jaccard_similarity);
+    }
+    let after = Instant::now();
+    println!("Total time: {}", (after - before).as_micros());
 }
