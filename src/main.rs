@@ -63,5 +63,5 @@ fn main() {
         println!("Similarity k={} is: {}", k, calculated_jaccard_similarity);
     }
     let after = Instant::now();
-    println!("Total time: {}", (after - before).as_micros());
+    println!("Total time: {}", (after - before).as_secs_f32());
 }

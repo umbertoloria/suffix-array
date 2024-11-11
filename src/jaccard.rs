@@ -1,8 +1,7 @@
-use crate::ksliding::get_kmers;
-use std::collections::HashSet;
+use crate::ksliding::{get_kmers, KmersSet};
 
-pub fn jaccard_similarity(a: &HashSet<&str>, b: &HashSet<&str>) -> f32 {
-    let intersection = a.intersection(b);
+pub fn jaccard_similarity(a: KmersSet, b: KmersSet) -> f32 {
+    let intersection = a.intersection(&b);
     let intersection_length = intersection.count();
     let union = a.len() + b.len() - intersection_length;
     intersection_length as f32 / union as f32
@@ -11,7 +10,7 @@ pub fn jaccard_similarity(a: &HashSet<&str>, b: &HashSet<&str>) -> f32 {
 pub fn jaccard_similarity_via_kmers(src1: &str, src2: &str, k: usize) -> f32 {
     let slides1 = get_kmers(src1, k);
     let slides2 = get_kmers(src2, k);
-    jaccard_similarity(&slides1, &slides2)
+    jaccard_similarity(slides1, slides2)
 }
 
 /*

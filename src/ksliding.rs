@@ -1,7 +1,10 @@
 use std::collections::HashSet;
 
-pub fn get_kmers(src: &str, k: usize) -> HashSet<&str> {
-    let mut kmers = HashSet::new();
+// pub type KmersSet<'a> = BTreeSet<&'a str>;
+pub type KmersSet<'a> = HashSet<&'a str>;
+
+pub fn get_kmers(src: &str, k: usize) -> KmersSet {
+    let mut kmers = KmersSet::new();
     let mut offset = 0;
     while offset + k <= src.len() {
         let kmer = &src[offset..offset + k];
