@@ -28,3 +28,27 @@ pub fn cfl_duval(word: &str) -> Vec<&[u8]> {
 
     res
 }
+
+/// ICFL
+pub fn icfl_get_failure_function(s: &[u8]) -> Vec<usize> {
+    let m = s.len();
+
+    let mut f = Vec::with_capacity(m);
+    for _ in 0..m { f.push(0); }
+
+    let mut i = 1;
+    let mut j = 0;
+    while i < m {
+        if s[j] == s[i] {
+            f[i] = j + 1;
+            i += 1;
+            j += 1;
+        } else if j > 0 {
+            j = f[j - 1];
+        } else {
+            f[i] = 0;
+            i += 1;
+        }
+    }
+    f
+}
