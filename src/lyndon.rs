@@ -1,15 +1,23 @@
 use std::i32;
 
-pub fn cfl_duval(word: &str) -> Vec<&[u8]> {
-    // NOTE: Works using bytes as chars.
+pub fn cfl(s: &str) -> Vec<String> {
+    // NOTE: Works using chars as bytes.
+    let factors = cfl_duval(s.as_bytes());
 
-    let mut res: Vec<&[u8]> = Vec::new();
+    let mut result = Vec::new();
+    for i in 0..factors.len() {
+        let factor_bytes = factors[i];
+        let factor = String::from_utf8(factor_bytes.to_vec()).unwrap();
+        result.push(factor);
+    }
 
-    let s = word.as_bytes();
+    result
+}
 
-    let n = word.len();
+pub fn cfl_duval(s: &[u8]) -> Vec<&[u8]> {
+    let mut res = Vec::new();
+    let n = s.len();
     let mut i = 0;
-
     while i < n {
         let mut j = i + 1;
         let mut k = i;
@@ -27,12 +35,24 @@ pub fn cfl_duval(word: &str) -> Vec<&[u8]> {
         res.push(new_factor_bytes);
         i += j - k;
     }
-
     res
 }
 
 /// ICFL
-pub fn icfl(w: &[u8]) -> Vec<Vec<u8>> {
+pub fn icfl(s: &str) -> Vec<String> {
+    // NOTE: Works using chars as bytes.
+    let factors = icfl_bytes(s.as_bytes());
+
+    let mut result = Vec::new();
+    for i in 0..factors.len() {
+        let factor_bytes = &factors[i];
+        let factor = String::from_utf8(factor_bytes.to_vec()).unwrap();
+        result.push(factor);
+    }
+
+    result
+}
+pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
     let (x, y) = icfl_find_prefix(w);
 
     // if x == w + '0' // Should be.
@@ -48,7 +68,7 @@ pub fn icfl(w: &[u8]) -> Vec<Vec<u8>> {
     // l = icfl(bre + y) // Should be.
     let mut bre_plus_y = bre.clone();
     bre_plus_y.extend(y);
-    let mut l = icfl(bre_plus_y.as_slice());
+    let mut l = icfl_bytes(bre_plus_y.as_slice());
     if l[0].len() > last.try_into().unwrap() { // |m1'| > |r|
         l.insert(0, p);
     } else {

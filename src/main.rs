@@ -1,6 +1,4 @@
-use crate::fasta::get_fasta_content;
-use crate::jaccard::jaccard_similarity_via_kmers;
-use std::time::Instant;
+use crate::main_factorization::main_factorization;
 
 mod lyndon;
 mod jaccard;
@@ -8,17 +6,12 @@ mod ksliding;
 mod debug;
 mod vector;
 mod fasta;
+mod main_factorization;
 
 fn main() {
-    /*
-    // LYNDON FACTORIZATION TEST
-    let src = "umberto";
-    let factors = lyndon::cfl_duval(src);
-    for factor_byte in factors {
-        let factor_str = String::from_utf8(factor_byte.to_vec()).unwrap();
-        println!("{}", factor_str);
-    }
-    */
+
+    // FACTORIZATIONS
+    main_factorization();
 
     /*
     // JACCARD ON K-MERS
@@ -48,6 +41,7 @@ fn main() {
     }
     */
 
+    /*
     // JACCARD ON K-MERS OF FILES
     let filepath1 = "in/1.fasta";
     let contents1_buf = get_fasta_content(filepath1);
@@ -64,4 +58,5 @@ fn main() {
     }
     let after = Instant::now();
     println!("Total time: {}", (after - before).as_secs_f32());
+    */
 }
