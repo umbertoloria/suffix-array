@@ -3,9 +3,9 @@ mod jaccard;
 mod ksliding;
 mod debug;
 mod vector;
-mod fasta;
 mod suites;
 mod factorization;
+mod files;
 
 fn main() {
 

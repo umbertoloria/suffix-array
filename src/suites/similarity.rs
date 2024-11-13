@@ -1,4 +1,4 @@
-use crate::fasta::get_fasta_content;
+use crate::files::fasta::get_fasta_content;
 use crate::jaccard::jaccard_similarity_via_kmers;
 use std::time::Instant;
 
