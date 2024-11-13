@@ -25,7 +25,7 @@ pub fn main_factorization() {
     println!();
 
     // ..WITH FILES
-    for index in 1..11 {
+    for index in 1..1553 {
         println!("Factorizing FASTA file: {}", index);
         print_kmers_from_fasta_to_file_number(index, "cfl");
         print_kmers_from_fasta_to_file_number(index, "icfl");
