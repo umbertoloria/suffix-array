@@ -1,4 +1,5 @@
-use crate::lyndon::{cfl, icfl};
+use crate::factorization::cfl::cfl;
+use crate::factorization::icfl::icfl;
 
 pub fn main_factorization() {
 
