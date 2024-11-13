@@ -32,6 +32,34 @@ pub fn cfl_duval(word: &str) -> Vec<&[u8]> {
 }
 
 /// ICFL
+pub fn icfl(w: &[u8]) -> Vec<Vec<u8>> {
+    let (x, y) = icfl_find_prefix(w);
+
+    // if x == w + '0' // Should be.
+    if x.len() == w.len() + 1 && x[w.len()] == '0'.try_into().unwrap() {
+        let mut i = 0;
+        while i < w.len() && x[i] == w[i] { i += 1; }
+        if i == w.len() {
+            return [w.to_vec()].to_vec();
+        }
+    }
+    let (p, bre, last) = icfl_find_bre(&x, &y);
+
+    // l = icfl(bre + y) // Should be.
+    let mut bre_plus_y = bre.clone();
+    bre_plus_y.extend(y);
+    let mut l = icfl(bre_plus_y.as_slice());
+    if l[0].len() > last.try_into().unwrap() { // |m1'| > |r|
+        l.insert(0, p);
+    } else {
+        // l[0] = p + l[0]; // Should be.
+        for i in 0..p.len() {
+            l[0].insert(0, p[p.len() - 1 - i]);
+        }
+    }
+    l
+}
+
 pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
     let n = w.len();
     if n == 1 {
