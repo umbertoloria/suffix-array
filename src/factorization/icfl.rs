@@ -13,6 +13,7 @@ pub fn icfl(s: &str) -> Vec<String> {
 
     result
 }
+
 pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
     let (x, y) = icfl_find_prefix(w);
 
@@ -148,5 +149,6 @@ pub fn icfl_get_failure_function(s: &[u8], s_inner_size: usize) -> Vec<usize> {
             i += 1;
         }
     }
+
     f
 }

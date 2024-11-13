@@ -12,5 +12,5 @@ fn main() {
     main_factorization();
 
     // SIMILARITY
-    main_similarity();
+    // main_similarity();
 }
