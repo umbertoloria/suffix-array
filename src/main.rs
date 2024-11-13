@@ -1,8 +1,8 @@
+use crate::suites::similarity::main_similarity;
 use suites::factorization::main_factorization;
+
 mod jaccard;
 mod ksliding;
-mod debug;
-mod vector;
 mod suites;
 mod factorization;
 mod files;
@@ -13,5 +13,5 @@ fn main() {
     main_factorization();
 
     // SIMILARITY
-    // main_similarity();
+    main_similarity();
 }
