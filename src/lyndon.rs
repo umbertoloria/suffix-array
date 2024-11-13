@@ -32,6 +32,43 @@ pub fn cfl_duval(word: &str) -> Vec<&[u8]> {
 }
 
 /// ICFL
+pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
+    let n = w.len();
+    if n == 1 {
+        let mut new_w = w.to_vec();
+        new_w.push('0'.try_into().unwrap());
+        // return (w + '0', '');
+        return (new_w, Vec::new());
+    }
+
+    let mut i = 0;
+    let mut j = 1;
+    while j < n - 1 && w[j] <= w[i] {
+        if w[j] < w[i] {
+            i = 0;
+        } else {
+            i += 1;
+        }
+        j += 1;
+    }
+
+    if j == n - 1 {
+        if w[j] <= w[i] {
+            let mut new_w = w.to_vec();
+            new_w.push('0'.try_into().unwrap());
+            // return (w + '0', '');
+            return (new_w, Vec::new());
+        }
+    }
+
+    let mut res1 = Vec::new();
+    for i in 0..j + 1 { res1.push(w[i]); }
+    let mut res2 = Vec::new();
+    for i in j + 1..w.len() { res2.push(w[i]); }
+    // return (w[:j+1], w[j+1:])
+    (res1, res2)
+}
+
 pub fn icfl_find_bre(x: &[u8], y: &[u8]) -> (Vec<u8>, Vec<u8>, i32) {
     // TODO: Improve conversion logics
     let mut w = Vec::with_capacity(x.len() + y.len());
