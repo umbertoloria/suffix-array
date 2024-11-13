@@ -1,4 +1,4 @@
-use crate::ksliding::{get_kmers, KmersSet};
+use crate::comparing::ksliding::{get_kmers, KmersSet};
 
 pub fn jaccard_similarity(a: KmersSet, b: KmersSet) -> f32 {
     let intersection = a.intersection(&b);

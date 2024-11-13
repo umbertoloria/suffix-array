@@ -1,5 +1,5 @@
 use crate::files::fasta::get_fasta_content;
-use crate::jaccard::jaccard_similarity_via_kmers;
+use crate::comparing::jaccard::jaccard_similarity_via_kmers;
 use std::time::Instant;
 
 pub fn main_similarity() {
