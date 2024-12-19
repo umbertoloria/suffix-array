@@ -1,9 +1,18 @@
 use std::collections::HashMap;
 
+// Local Suffixes and Rankings data structure
 pub struct LSandRankings {
     pub ls_list: Vec<String>,
     pub ls_rankings: Vec<Vec<usize>>,
+    pub count: usize,
 }
+impl LSandRankings {
+    pub fn get_s_and_ranking_by_index(&self, index: usize) -> (&String, &Vec<usize>) {
+        (&self.ls_list[index], &self.ls_rankings[index])
+    }
+}
+
+// Create data structure from ICFL factors
 pub fn get_local_suffixes_and_rankings_from_icfl_factors(factors: &Vec<String>) -> LSandRankings {
     // Factor offsets
     let mut factor_offsets = Vec::new();
@@ -62,5 +71,6 @@ pub fn get_local_suffixes_and_rankings_from_icfl_factors(factors: &Vec<String>) 
     LSandRankings {
         ls_list: ls_list.iter().map(|s| s.to_string()).collect(),
         ls_rankings,
+        count: ls_list.len(),
     }
 }
