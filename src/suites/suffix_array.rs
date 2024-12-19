@@ -1,10 +1,11 @@
 use crate::factorization::icfl::icfl;
 use std::collections::HashMap;
 
-pub fn main_suffix_array() {
-    let src = "aaabcaabcadcaabca";
-    let factors = icfl(src);
-
+struct LSandRankings {
+    ls_list: Vec<String>,
+    ls_rankings: Vec<Vec<usize>>,
+}
+pub fn get_local_suffixes_and_rankings_from_icfl_factors(factors: &Vec<String>) -> LSandRankings {
     // Factor offsets
     let mut factor_offsets = Vec::new();
     let mut offset = 0;
@@ -47,17 +48,33 @@ pub fn main_suffix_array() {
 
     // Finalizing "ls_list" and "ls_rankings"
     ls_list.sort();
-    let mut ls_rankings_list = Vec::new();
+    let mut ls_rankings = Vec::new();
     for s_index in 0..ls_list.len() {
         let s = ls_list[s_index];
-        let s_ranking = ls_rankings_map.get(s).unwrap();
-        ls_rankings_list.push(s_ranking);
+        let s_ranking = ls_rankings_map
+            .get(s)
+            .unwrap()
+            .iter()
+            .map(|x| x.clone())
+            .collect();
+        ls_rankings.push(s_ranking);
     }
+    LSandRankings {
+        ls_list: ls_list.iter().map(|s| s.to_string()).collect(),
+        ls_rankings,
+    }
+}
+
+pub fn main_suffix_array() {
+    let src = "aaabcaabcadcaabca";
+    let factors = icfl(src);
+
+    let ls_and_rankings = get_local_suffixes_and_rankings_from_icfl_factors(&factors);
 
     // Output
-    for s_index in 0..ls_list.len() {
-        let s = ls_list[s_index];
-        let s_ranking = ls_rankings_map.get(s).unwrap();
+    for s_index in 0..ls_and_rankings.ls_list.len() {
+        let s = &ls_and_rankings.ls_list[s_index];
+        let s_ranking = &ls_and_rankings.ls_rankings[s_index];
         println!("{s} -> {s_ranking:?}");
     }
 }
