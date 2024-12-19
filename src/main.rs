@@ -6,6 +6,7 @@ use crate::suites::similarity::main_similarity;
 mod comparing;
 mod factorization;
 mod files;
+mod suffix_array;
 mod suites;
 
 fn main() {
