@@ -15,10 +15,10 @@ fn main() {
     // main_suffix()
 
     // FILES GENERATION
-    main_generation();
+    // main_generation();
 
     // SUFFIX ARRAY
-    // main_suffix_array();
+    main_suffix_array();
 
     // FACTORIZATIONS
     // main_factorization();

@@ -1,12 +1,23 @@
 use crate::factorization::icfl::icfl;
+use crate::files::fasta::get_fasta_content;
 use crate::suffix_array::ls_and_rankings;
 use crate::suffix_array::prefix_tree::create_prefix_tree_from_ls_and_rankings;
 
 pub fn main_suffix_array() {
-    let src = "aaabcaabcadcaabca";
+    let src = get_fasta_content("generated/000.fasta".into());
+    let src_length = src.len();
 
     // Compute ICFL
-    let factors = icfl(src);
+    let factors = icfl(src.as_str());
+    // println!("{:?}", factors);
+
+    let chunk_size = 5;
+    println!("chunk_size={}", chunk_size);
+    let icfl_indexes = get_indexes_from_factors(&factors);
+    println!("ICFL_INDEXES={:?}", icfl_indexes);
+
+    let custom_indexes = get_custom_factors(icfl_indexes, chunk_size, src_length);
+    println!("CSTM_INDEXES={:?}", custom_indexes);
 
     // Local Suffixes and Rankings
     let ls_and_rankings =
@@ -19,4 +30,55 @@ pub fn main_suffix_array() {
     // Creating Prefix Tree
     let prefix_tree = create_prefix_tree_from_ls_and_rankings(&ls_and_rankings);
     prefix_tree.show_tree(0);
+}
+
+fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
+    let mut result = Vec::new();
+    let mut i = 0;
+    for factor in factors {
+        result.push(i);
+        i += factor.len();
+    }
+    result
+}
+
+fn get_custom_factors(icfl: Vec<usize>, chunk_size: usize, src_length: usize) -> Vec<usize> {
+    // From string "AAA|B|CAABCA|DCAABCA"
+    // Es. ICFL=[0, 3, 4, 10]
+    //  src_length = 17
+    //  chunk_size = 3
+    let mut result = Vec::new();
+    for i in 0..icfl.len() {
+        let cur_factor_index = icfl[i];
+        let next_factor_index = if i < icfl.len() - 1 {
+            icfl[i + 1]
+        } else {
+            src_length
+        };
+        let cur_factor_size = next_factor_index - cur_factor_index;
+        // Es. on the 2nd factor "B": cur_factor_index=3, next_factor_index=4, cur_factor_size=1
+        if cur_factor_size < chunk_size {
+            // Es. on the 2nd factor "B": no space to perform chunking
+            result.push(cur_factor_index);
+        } else {
+            let first_chunk_index_offset = cur_factor_size % chunk_size;
+            if first_chunk_index_offset > 0 {
+                // If factor was "DCAABCA" then we would have first_chunk_index_offset=1 (since
+                // "cur_factor_size"=7 and "chunk_size"=3). So the index of this factor is not a
+                // chunk, and it has to be added as factor "manually".
+                result.push(cur_factor_index);
+            } else {
+                // If factor was "CAABCA" then we would have first_chunk_index_offset=0 (since
+                // "cur_factor_size"=6 and "chunk_size"=3). So the index of this factor is also the
+                // index of a chunk, so it'll be considered in the while statement below.
+            }
+            let mut cur_chunk_index = cur_factor_index + first_chunk_index_offset;
+            while cur_chunk_index < next_factor_index {
+                result.push(cur_chunk_index);
+                cur_chunk_index += chunk_size;
+            }
+        }
+    }
+    // println!("ICFL_CUSTOM_FACTORS={:?}", res);
+    result
 }
