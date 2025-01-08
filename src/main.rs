@@ -1,7 +1,8 @@
-use crate::suites::suffix::main_suffix;
-use crate::suites::suffix_array::main_suffix_array;
+use suites::suffix::main_suffix;
+use suites::suffix_array::main_suffix_array;
 use suites::factorization::main_factorization;
-use crate::suites::similarity::main_similarity;
+use suites::similarity::main_similarity;
+use suites::generation::main_generation;
 
 mod comparing;
 mod factorization;
@@ -13,8 +14,11 @@ fn main() {
     // SUFFIX
     // main_suffix()
 
+    // FILES GENERATION
+    main_generation();
+
     // SUFFIX ARRAY
-    main_suffix_array();
+    // main_suffix_array();
 
     // FACTORIZATIONS
     // main_factorization();
