@@ -17,16 +17,27 @@ pub fn main_suffix_array() {
     let custom_indexes = get_custom_factors(&icfl_indexes, chunk_size, src_length);
     println!("CSTM_INDEXES={:?}", custom_indexes);
 
-    whole_process_of_creating_trees(icfl_indexes, custom_indexes, src_length, chunk_size);
+    let max_size = get_max_size(&icfl_indexes).expect("max_size is not valid");
+    let custom_max_size = get_max_size(&custom_indexes).expect("max_size is not valid");
+
+    println!("MAX_SIZE={:?}", max_size);
+    println!("CSTM_MAX_SIZE={:?}", custom_max_size);
+
+    // TODO: Optimize both functions and rename them (and variables)
+    let is_custom_vec = get_is_custom_vec(&icfl_indexes, src_length, chunk_size);
+    // println!("is_custom_vec={:?}", is_custom_vec);
+
+    let factor_list = get_factor_list(&icfl_indexes, src_length);
+    // println!("factor_list={:?}", factor_list);
 
     /*
     // Local Suffixes and Rankings
     let ls_and_rankings =
         ls_and_rankings::get_local_suffixes_and_rankings_from_icfl_factors(&factors);
-    /*for s_index in 0..ls_and_rankings.count {
+    for s_index in 0..ls_and_rankings.count {
         let (s, s_ranking) = ls_and_rankings.get_s_and_ranking_by_index(s_index);
         println!("{s} -> {s_ranking:?}");
-    }*/
+    }
 
     // Creating Prefix Tree
     let prefix_tree = create_prefix_tree_from_ls_and_rankings(&ls_and_rankings);
@@ -85,20 +96,6 @@ fn get_custom_factors(icfl: &Vec<usize>, chunk_size: usize, src_length: usize) -
     result
 }
 
-pub fn whole_process_of_creating_trees(
-    icfl_indexes: Vec<usize>,
-    custom_indexes: Vec<usize>,
-    src_length: usize,
-    chunk_size: usize,
-) {
-    // TODO: Optimize both functions and rename them (and variables)
-    let is_custom_vec = get_is_custom_vec(&icfl_indexes, src_length, chunk_size);
-    // println!("is_custom_vec={:?}", is_custom_vec);
-
-    let factor_list = get_factor_list(&icfl_indexes, src_length);
-    // println!("factor_list={:?}", factor_list);
-}
-
 pub fn get_is_custom_vec(
     icfl_indexes: &Vec<usize>,
     src_length: usize,
@@ -152,4 +149,27 @@ fn get_factor(icfl_indexes: &Vec<usize>, index: usize) -> usize {
         }
     }
     icfl_indexes.len() - 1
+}
+
+fn get_max_size(factor_indexes: &Vec<usize>) -> Option<usize> {
+    let mut result = None;
+    for i in 0..factor_indexes.len() - 1 {
+        let len = factor_indexes[i + 1] - factor_indexes[i];
+        if let Some(result_value) = result {
+            if result_value < len {
+                result = Some(len);
+            }
+        } else {
+            result = Some(len);
+        }
+    }
+    let len = factor_indexes[factor_indexes.len() - 1] - factor_indexes[factor_indexes.len() - 2];
+    if let Some(result_value) = result {
+        if result_value < len {
+            result = Some(len);
+        }
+    } else {
+        result = Some(len);
+    }
+    result
 }
