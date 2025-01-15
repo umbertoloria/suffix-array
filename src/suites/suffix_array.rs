@@ -91,10 +91,14 @@ pub fn whole_process_of_creating_trees(
     src_length: usize,
     chunk_size: usize,
 ) {
-    // TODO: Rename both function and variables
+    // TODO: Optimize both functions and rename them (and variables)
     let is_custom_vec = get_is_custom_vec(&icfl_indexes, src_length, chunk_size);
-    println!("is_custom_vec={:?}", is_custom_vec);
+    // println!("is_custom_vec={:?}", is_custom_vec);
+
+    let factor_list = get_factor_list(&icfl_indexes, src_length);
+    // println!("factor_list={:?}", factor_list);
 }
+
 pub fn get_is_custom_vec(
     icfl_indexes: &Vec<usize>,
     src_length: usize,
@@ -132,4 +136,20 @@ fn check_if_custom_index(
         }
     }
     true
+}
+
+fn get_factor_list(icfl_indexes: &Vec<usize>, src_length: usize) -> Vec<usize> {
+    let mut result = Vec::with_capacity(src_length);
+    for i in 0..src_length {
+        result.push(get_factor(icfl_indexes, i));
+    }
+    result
+}
+fn get_factor(icfl_indexes: &Vec<usize>, index: usize) -> usize {
+    for i in 0..icfl_indexes.len() - 1 {
+        if icfl_indexes[i] <= index && index < icfl_indexes[i + 1] {
+            return i;
+        }
+    }
+    icfl_indexes.len() - 1
 }
