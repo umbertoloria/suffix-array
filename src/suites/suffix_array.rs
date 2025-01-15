@@ -1,7 +1,5 @@
 use crate::factorization::icfl::icfl;
 use crate::files::fasta::get_fasta_content;
-use crate::suffix_array::ls_and_rankings;
-use crate::suffix_array::prefix_tree::create_prefix_tree_from_ls_and_rankings;
 
 pub fn main_suffix_array() {
     let src = get_fasta_content("generated/000.fasta".into());
@@ -16,9 +14,12 @@ pub fn main_suffix_array() {
     let icfl_indexes = get_indexes_from_factors(&factors);
     println!("ICFL_INDEXES={:?}", icfl_indexes);
 
-    let custom_indexes = get_custom_factors(icfl_indexes, chunk_size, src_length);
+    let custom_indexes = get_custom_factors(&icfl_indexes, chunk_size, src_length);
     println!("CSTM_INDEXES={:?}", custom_indexes);
 
+    whole_process_of_creating_trees(icfl_indexes, custom_indexes, src_length, chunk_size);
+
+    /*
     // Local Suffixes and Rankings
     let ls_and_rankings =
         ls_and_rankings::get_local_suffixes_and_rankings_from_icfl_factors(&factors);
@@ -30,6 +31,7 @@ pub fn main_suffix_array() {
     // Creating Prefix Tree
     let prefix_tree = create_prefix_tree_from_ls_and_rankings(&ls_and_rankings);
     prefix_tree.show_tree(0);
+    */
 }
 
 fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
@@ -42,7 +44,7 @@ fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
     result
 }
 
-fn get_custom_factors(icfl: Vec<usize>, chunk_size: usize, src_length: usize) -> Vec<usize> {
+fn get_custom_factors(icfl: &Vec<usize>, chunk_size: usize, src_length: usize) -> Vec<usize> {
     // From string "AAA|B|CAABCA|DCAABCA"
     // Es. ICFL=[0, 3, 4, 10]
     //  src_length = 17
@@ -81,4 +83,53 @@ fn get_custom_factors(icfl: Vec<usize>, chunk_size: usize, src_length: usize) ->
     }
     // println!("ICFL_CUSTOM_FACTORS={:?}", res);
     result
+}
+
+pub fn whole_process_of_creating_trees(
+    icfl_indexes: Vec<usize>,
+    custom_indexes: Vec<usize>,
+    src_length: usize,
+    chunk_size: usize,
+) {
+    // TODO: Rename both function and variables
+    let is_custom_vec = get_is_custom_vec(&icfl_indexes, src_length, chunk_size);
+    println!("is_custom_vec={:?}", is_custom_vec);
+}
+pub fn get_is_custom_vec(
+    icfl_indexes: &Vec<usize>,
+    src_length: usize,
+    chunk_size: usize,
+) -> Vec<usize> {
+    let mut result = Vec::with_capacity(src_length);
+    for i in 0..src_length {
+        result.push(
+            if check_if_custom_index(icfl_indexes, src_length, i, chunk_size) {
+                1
+            } else {
+                0
+            },
+        );
+    }
+    result
+}
+fn check_if_custom_index(
+    icfl_indexes: &Vec<usize>,
+    src_length: usize,
+    index: usize,
+    chunk_size: usize,
+) -> bool {
+    for i in 1..icfl_indexes.len() + 1 {
+        let prev_factor_index = icfl_indexes[i - 1];
+        let cur_factor_index = if i < icfl_indexes.len() {
+            icfl_indexes[i]
+        } else {
+            src_length
+        };
+        if prev_factor_index <= index && index < cur_factor_index {
+            if (cur_factor_index - index) <= chunk_size {
+                return false;
+            }
+        }
+    }
+    true
 }
