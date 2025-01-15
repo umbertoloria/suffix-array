@@ -1,3 +1,5 @@
+#![allow(warnings)]
+
 use suites::suffix::main_suffix;
 use suites::suffix_array::main_suffix_array;
 use suites::factorization::main_factorization;
