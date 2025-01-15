@@ -1,5 +1,6 @@
 use crate::factorization::icfl::icfl;
 use crate::files::fasta::get_fasta_content;
+use std::collections::HashMap;
 
 pub fn main_suffix_array() {
     let src = get_fasta_content("generated/000.fasta".into());
@@ -7,10 +8,11 @@ pub fn main_suffix_array() {
 
     // Compute ICFL
     let factors = icfl(src.as_str());
-    // println!("{:?}", factors);
+    println!("{:?}", factors);
 
     let chunk_size = 5;
     println!("chunk_size={}", chunk_size);
+    // TODO: Simplify algorithms by having string length as last item of these Factor Index vectors
     let icfl_indexes = get_indexes_from_factors(&factors);
     println!("ICFL_INDEXES={:?}", icfl_indexes);
 
@@ -19,9 +21,8 @@ pub fn main_suffix_array() {
 
     let max_size = get_max_size(&icfl_indexes).expect("max_size is not valid");
     let custom_max_size = get_max_size(&custom_indexes).expect("max_size is not valid");
-
-    println!("MAX_SIZE={:?}", max_size);
-    println!("CSTM_MAX_SIZE={:?}", custom_max_size);
+    // println!("MAX_SIZE={:?}", max_size);
+    // println!("CSTM_MAX_SIZE={:?}", custom_max_size);
 
     // TODO: Optimize both functions and rename them (and variables)
     let is_custom_vec = get_is_custom_vec(&icfl_indexes, src_length, chunk_size);
@@ -29,6 +30,31 @@ pub fn main_suffix_array() {
 
     let factor_list = get_factor_list(&icfl_indexes, src_length);
     // println!("factor_list={:?}", factor_list);
+
+    let mut root = PrefixTrie {
+        sons: HashMap::new(),
+    };
+    for suffix_length in 1..custom_max_size + 1 {
+        // Last factor
+        let cur_factor_index = custom_indexes[custom_indexes.len() - 1];
+        let cur_factor_length = src_length - cur_factor_index;
+        if cur_factor_length >= suffix_length {
+            let factor = &src[cur_factor_index..cur_factor_index + cur_factor_length];
+            let suffix = &factor[cur_factor_length - suffix_length..];
+            root.add_word(suffix.into());
+        }
+        // All factors from first to second-last
+        for j in 0..custom_indexes.len() - 1 {
+            let cur_factor_index = custom_indexes[j];
+            let cur_factor_length = custom_indexes[j + 1] - cur_factor_index;
+            if cur_factor_length >= suffix_length {
+                let factor = &src[cur_factor_index..cur_factor_index + cur_factor_length];
+                let suffix = &factor[cur_factor_length - suffix_length..];
+                root.add_word(suffix.into());
+            }
+        }
+    }
+    root.print(0, "".into());
 
     /*
     // Local Suffixes and Rankings
@@ -43,6 +69,53 @@ pub fn main_suffix_array() {
     let prefix_tree = create_prefix_tree_from_ls_and_rankings(&ls_and_rankings);
     prefix_tree.show_tree(0);
     */
+}
+pub struct PrefixTrie {
+    pub sons: HashMap<char, PrefixTrie>,
+}
+impl PrefixTrie {
+    pub fn add_word(&mut self, word: String) {
+        if word.len() < 1 {
+            return;
+        }
+        let (first_letter, rest) = separate_first_letter_from_rest(word.clone());
+        if !self.sons.contains_key(&first_letter) {
+            self.sons.insert(
+                first_letter,
+                PrefixTrie {
+                    sons: HashMap::new(),
+                },
+            );
+        }
+        if rest.len() > 0 {
+            self.sons.get_mut(&first_letter).unwrap().add_word(rest);
+        }
+    }
+    pub fn print(&self, tabs_offset: usize, prefix: String) {
+        /*if self.sons.len() == 1 {
+            let char_key = self.sons.keys().collect::<Vec<_>>()[0];
+            self.sons
+                .get(char_key)
+                .unwrap()
+                .print(tabs_offset, format!("{}{}", prefix, char_key));
+        } else {*/
+        println!(
+            "{}:{:2}: \"{}\"",
+            " ".repeat(tabs_offset),
+            tabs_offset,
+            prefix
+        );
+        for (char_key, node) in &self.sons {
+            node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
+        }
+        // }
+    }
+}
+fn separate_first_letter_from_rest(str: String) -> (char, String) {
+    let chars = str.chars();
+    let first_letter = chars.collect::<Vec<_>>();
+    let rest = (&str[1..]).to_string();
+    (first_letter[0], rest)
 }
 
 fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
