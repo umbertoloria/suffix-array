@@ -1,6 +1,6 @@
 use crate::factorization::icfl::icfl;
 use crate::files::fasta::get_fasta_content;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub fn main_suffix_array() {
     let src = get_fasta_content("generated/000.fasta".into());
@@ -19,8 +19,8 @@ pub fn main_suffix_array() {
     let custom_indexes = get_custom_factors(&icfl_indexes, chunk_size, src_length);
     println!("CSTM_INDEXES={:?}", custom_indexes);
 
-    let max_size = get_max_size(&icfl_indexes).expect("max_size is not valid");
-    let custom_max_size = get_max_size(&custom_indexes).expect("max_size is not valid");
+    let max_size = get_max_size(&icfl_indexes, src_length).expect("max_size is not valid");
+    let custom_max_size = get_max_size(&custom_indexes, src_length).expect("max_size is not valid");
     // println!("MAX_SIZE={:?}", max_size);
     // println!("CSTM_MAX_SIZE={:?}", custom_max_size);
 
@@ -32,7 +32,8 @@ pub fn main_suffix_array() {
     // println!("factor_list={:?}", factor_list);
 
     let mut root = PrefixTrie {
-        sons: HashMap::new(),
+        sons: BTreeMap::new(),
+        rankings: Vec::new(),
     };
     for suffix_length in 1..custom_max_size + 1 {
         // Last factor
@@ -40,8 +41,10 @@ pub fn main_suffix_array() {
         let cur_factor_length = src_length - cur_factor_index;
         if cur_factor_length >= suffix_length {
             let factor = &src[cur_factor_index..cur_factor_index + cur_factor_length];
-            let suffix = &factor[cur_factor_length - suffix_length..];
-            root.add_word(suffix.into());
+            let suffix_index = cur_factor_length - suffix_length;
+            let suffix = &factor[suffix_index..];
+            let ranking = cur_factor_index + suffix_index;
+            root.add_word(suffix.into(), ranking);
         }
         // All factors from first to second-last
         for j in 0..custom_indexes.len() - 1 {
@@ -49,8 +52,10 @@ pub fn main_suffix_array() {
             let cur_factor_length = custom_indexes[j + 1] - cur_factor_index;
             if cur_factor_length >= suffix_length {
                 let factor = &src[cur_factor_index..cur_factor_index + cur_factor_length];
-                let suffix = &factor[cur_factor_length - suffix_length..];
-                root.add_word(suffix.into());
+                let suffix_index = cur_factor_length - suffix_length;
+                let suffix = &factor[suffix_index..];
+                let ranking = cur_factor_index + suffix_index;
+                root.add_word(suffix.into(), ranking);
             }
         }
     }
@@ -71,10 +76,12 @@ pub fn main_suffix_array() {
     */
 }
 pub struct PrefixTrie {
-    pub sons: HashMap<char, PrefixTrie>,
+    // TODO: Try to use HashMap but keeping chars sorted
+    pub sons: BTreeMap<char, PrefixTrie>,
+    pub rankings: Vec<usize>,
 }
 impl PrefixTrie {
-    pub fn add_word(&mut self, word: String) {
+    pub fn add_word(&mut self, word: String, cur_factor_index: usize) {
         if word.len() < 1 {
             return;
         }
@@ -83,12 +90,22 @@ impl PrefixTrie {
             self.sons.insert(
                 first_letter,
                 PrefixTrie {
-                    sons: HashMap::new(),
+                    sons: BTreeMap::new(),
+                    rankings: Vec::new(),
                 },
             );
         }
         if rest.len() > 0 {
-            self.sons.get_mut(&first_letter).unwrap().add_word(rest);
+            self.sons
+                .get_mut(&first_letter)
+                .unwrap()
+                .add_word(rest, cur_factor_index);
+        } else {
+            self.sons
+                .get_mut(&first_letter)
+                .unwrap()
+                .rankings
+                .push(cur_factor_index);
         }
     }
     pub fn print(&self, tabs_offset: usize, prefix: String) {
@@ -100,10 +117,11 @@ impl PrefixTrie {
                 .print(tabs_offset, format!("{}{}", prefix, char_key));
         } else {*/
         println!(
-            "{}:{:2}: \"{}\"",
+            "{}:{:2}: \"{}\" {:?}",
             " ".repeat(tabs_offset),
             tabs_offset,
-            prefix
+            prefix,
+            self.rankings
         );
         for (char_key, node) in &self.sons {
             node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
@@ -224,7 +242,7 @@ fn get_factor(icfl_indexes: &Vec<usize>, index: usize) -> usize {
     icfl_indexes.len() - 1
 }
 
-fn get_max_size(factor_indexes: &Vec<usize>) -> Option<usize> {
+fn get_max_size(factor_indexes: &Vec<usize>, src_length: usize) -> Option<usize> {
     let mut result = None;
     for i in 0..factor_indexes.len() - 1 {
         let len = factor_indexes[i + 1] - factor_indexes[i];
@@ -236,7 +254,7 @@ fn get_max_size(factor_indexes: &Vec<usize>) -> Option<usize> {
             result = Some(len);
         }
     }
-    let len = factor_indexes[factor_indexes.len() - 1] - factor_indexes[factor_indexes.len() - 2];
+    let len = src_length - factor_indexes[factor_indexes.len() - 1];
     if let Some(result_value) = result {
         if result_value < len {
             result = Some(len);
