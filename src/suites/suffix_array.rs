@@ -61,6 +61,73 @@ pub fn main_suffix_array() {
     }
     root.print(0, "".into());
 
+    // Trying to extract the Suffix Array using this Prefix Trie
+    // First nodes
+    for (_, node) in &root.sons {
+        let mut i = 0;
+        // Children of the first nodes
+        for (_, children) in &node.sons {
+            let mut j = 0;
+            while i < node.rankings.len() && j < children.rankings.len() {
+                let x = node.rankings[i];
+                let y = children.rankings[j];
+
+                // Rules: begin
+                let mut result = 0;
+                if is_custom_vec[x] && is_custom_vec[x] {
+                    // Here we should compare strings...
+                } else if is_custom_vec[x] {
+                    if factor_list[x] <= factor_list[y] {
+                        if y >= icfl_indexes[icfl_indexes.len() - 1] {
+                            result = 1;
+                        } else {
+                            result = 0;
+                        }
+                    } else {
+                        // Here we should compare strings...
+                    }
+                } else if is_custom_vec[y] {
+                    if factor_list[y] <= factor_list[x] {
+                        if x >= icfl_indexes[icfl_indexes.len() - 1] {
+                            result = 0;
+                        } else {
+                            result = 1;
+                        }
+                    } else {
+                        // Here we should compare strings...
+                    }
+                } else if x >= icfl_indexes[icfl_indexes.len() - 1]
+                    && y >= icfl_indexes[icfl_indexes.len() - 1]
+                {
+                    result = 0;
+                } else if factor_list[x] == factor_list[y] {
+                    result = 1;
+                } else {
+                    if x >= icfl_indexes[icfl_indexes.len() - 1] {
+                        result = 0;
+                    } else if y >= icfl_indexes[icfl_indexes.len() - 1] {
+                        // Here we should compare strings...
+                    } else {
+                        if x > y {
+                            result = 1;
+                        } else {
+                            // Here we should compare strings...
+                        }
+                    }
+                }
+                // println!("x={} y={} result={}", x, y, result); // Output for validity checks
+                // Rules: end
+
+                if result == 0 {
+                    i += 1;
+                } else {
+                    // Otherwise, it's always like this right?
+                    j += 1;
+                }
+            }
+        }
+    }
+
     /*
     // Local Suffixes and Rankings
     let ls_and_rankings =
@@ -191,16 +258,15 @@ pub fn get_is_custom_vec(
     icfl_indexes: &Vec<usize>,
     src_length: usize,
     chunk_size: usize,
-) -> Vec<usize> {
+) -> Vec<bool> {
     let mut result = Vec::with_capacity(src_length);
     for i in 0..src_length {
-        result.push(
-            if check_if_custom_index(icfl_indexes, src_length, i, chunk_size) {
-                1
-            } else {
-                0
-            },
-        );
+        result.push(check_if_custom_index(
+            icfl_indexes,
+            src_length,
+            i,
+            chunk_size,
+        ));
     }
     result
 }
