@@ -4,10 +4,11 @@ use std::collections::BTreeMap;
 
 pub fn main_suffix_array() {
     let src = get_fasta_content("generated/000.fasta".into());
+    let src_str = src.as_str();
     let src_length = src.len();
 
     // Compute ICFL
-    let factors = icfl(src.as_str());
+    let factors = icfl(src_str);
 
     let chunk_size = 5;
     println!("chunk_size={}", chunk_size);
@@ -19,8 +20,7 @@ pub fn main_suffix_array() {
     let custom_indexes = get_custom_factors(&icfl_indexes, chunk_size, src_length);
     let custom_indexes_len = custom_indexes.len();
     let custom_indexes_last_index = custom_indexes_len - 1;
-    let custom_factors =
-        get_custom_factor_strings_from_custom_indexes(src.as_str(), &custom_indexes);
+    let custom_factors = get_custom_factor_strings_from_custom_indexes(src_str, &custom_indexes);
     println!("CSTM_INDEXES={:?}", custom_indexes);
     println!("CSTM FACTORS: {:?}", custom_factors);
 
@@ -44,11 +44,12 @@ pub fn main_suffix_array() {
         sons: BTreeMap::new(),
         rankings_canonical: Vec::new(),
         rankings_custom: Vec::new(),
+        rankings: Vec::new(),
+        suffix_len: 0,
     };
 
     // Prefix Trie Structure create
     for curr_suffix_length in 1..custom_max_size + 1 {
-        // Implementation of "compute_i_phase_alberello_custom_prefix_trie".
         let mut ordered_list_of_custom_factor_local_suffix_index = Vec::new();
         // Last Custom Factor
         let curr_custom_factor_len = src_length - custom_indexes[custom_indexes_last_index];
@@ -68,47 +69,45 @@ pub fn main_suffix_array() {
             }
         }
 
-        // println!("{curr_suffix_length}");
+        // Filling "rankings_canonical" or "rankings_custom".
         for custom_factor_local_suffix_index in &ordered_list_of_custom_factor_local_suffix_index {
             // Implementation of "add_in_custom_prefix_trie".
             let custom_factor_local_suffix_index = *custom_factor_local_suffix_index;
             let suffix = &src[custom_factor_local_suffix_index
                 ..custom_factor_local_suffix_index + curr_suffix_length];
-            // println!(" => {}", suffix);
-            let chars = suffix.clone().chars().collect::<Vec<_>>();
-
-
-            let mut current_suffix_len = 0;
+            let chars_suffix = suffix.chars().collect::<Vec<_>>();
 
             let mut app_node = &mut root;
-            while current_suffix_len < curr_suffix_length {
-                let cur_letter = chars[current_suffix_len];
-                // println!("tree height {current_suffix_len}, consulting the {cur_letter} letter");
 
-                if !(*app_node).sons.contains_key(&cur_letter) {
+            let mut i_chars_of_suffix = 0;
+            while i_chars_of_suffix < curr_suffix_length {
+                let curr_letter = chars_suffix[i_chars_of_suffix];
+
+                if !(*app_node).sons.contains_key(&curr_letter) {
                     (*app_node).sons.insert(
-                        cur_letter,
+                        curr_letter,
                         PrefixTrie {
                             sons: BTreeMap::new(),
                             rankings_canonical: Vec::new(),
                             rankings_custom: Vec::new(),
+                            rankings: Vec::new(),
+                            suffix_len: i_chars_of_suffix + 1,
                         },
                     );
                 }
-                app_node = app_node.sons.get_mut(&cur_letter).unwrap();
+                app_node = app_node.sons.get_mut(&curr_letter).unwrap();
 
-                current_suffix_len += 1;
+                i_chars_of_suffix += 1;
             }
+            // TODO: Here we could create an interesting wrapping among real "non-bridge" nodes
             if is_custom_vec[custom_factor_local_suffix_index] {
                 app_node
                     .rankings_custom
                     .push(custom_factor_local_suffix_index);
-                // println!("add in custom {custom_factor_local_suffix_index}\n");
             } else {
                 app_node
                     .rankings_canonical
                     .push(custom_factor_local_suffix_index);
-                // println!("add in canonical {custom_factor_local_suffix_index}\n");
             }
         }
 
@@ -138,6 +137,13 @@ pub fn main_suffix_array() {
         }
         */
     }
+
+    // Ordering rankings.
+    /*
+    println!("Before merge");
+    root.print(0, "".into());
+    */
+    root.merge_rankings_and_sort_recursive(src_str, src_length);
     root.print(0, "".into());
 
     /*
@@ -250,6 +256,8 @@ pub struct PrefixTrie {
     pub sons: BTreeMap<char, PrefixTrie>,
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
+    pub rankings: Vec<usize>,
+    pub suffix_len: usize,
 }
 impl PrefixTrie {
     /*
@@ -282,6 +290,59 @@ impl PrefixTrie {
         }
     }
     */
+    pub fn merge_rankings_and_sort_recursive(&mut self, src: &str, src_length: usize) {
+        // Single "rankings" list
+        for local_suffix_index in &self.rankings_canonical {
+            self.rankings.push(*local_suffix_index);
+        }
+        for local_suffix_index in &self.rankings_custom {
+            self.rankings.push(*local_suffix_index);
+        }
+
+        if self.rankings.len() > 1 {
+            // Sort global suffixes
+            struct StringAndIndex<'a> {
+                global_suffix: &'a str,
+                index: usize,
+            }
+            let mut list = Vec::new();
+            for ranking in &self.rankings {
+                let ranking = *ranking;
+                let global_suffix = &src[ranking..src_length];
+                list.push(StringAndIndex {
+                    global_suffix,
+                    index: ranking,
+                });
+            }
+
+            /*
+            println!("Before sorting...");
+            for item in &list {
+                println!(" > ({:3}) {}", item.index, item.global_suffix);
+            }
+            */
+            // TODO: Maybe sorting is sometimes avoidable
+            list.sort_by(|a, b| a.global_suffix.cmp(b.global_suffix));
+            /*
+            println!("After sorting...");
+            for item in &list {
+                println!(" > ({:3}) {}", item.index, item.global_suffix);
+            }
+            println!();
+            */
+
+            // Update list only if strings were actually sorted and moved.
+            self.rankings.clear();
+            for item in &list {
+                self.rankings.push(item.index);
+            }
+        }
+
+        // Recursive calls...
+        for (_, children) in &mut self.sons {
+            children.merge_rankings_and_sort_recursive(src, src_length);
+        }
+    }
     pub fn print(&self, tabs_offset: usize, prefix: String) {
         /*if self.sons.len() == 1 {
             let char_key = self.sons.keys().collect::<Vec<_>>()[0];
@@ -291,12 +352,15 @@ impl PrefixTrie {
                 .print(tabs_offset, format!("{}{}", prefix, char_key));
         } else {*/
         println!(
-            "{}:{:2}: \"{}\" {:?} {:?}",
+            "{}:{:2}: \"{}\" {}",
             " ".repeat(tabs_offset),
             tabs_offset,
             prefix,
-            self.rankings_canonical,
-            self.rankings_custom,
+            if self.rankings.is_empty() && self.suffix_len > 0 {
+                format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom)
+            } else {
+                format!("{:?}", self.rankings)
+            },
         );
         for (char_key, node) in &self.sons {
             node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
