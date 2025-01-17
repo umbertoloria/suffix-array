@@ -17,13 +17,16 @@ pub fn main_suffix_array() {
     println!("ICFL FACTORS: {:?}", factors);
 
     let custom_indexes = get_custom_factors(&icfl_indexes, chunk_size, src_length);
+    let custom_indexes_len = custom_indexes.len();
+    let custom_indexes_last_index = custom_indexes_len - 1;
     let custom_factors =
         get_custom_factor_strings_from_custom_indexes(src.as_str(), &custom_indexes);
     println!("CSTM_INDEXES={:?}", custom_indexes);
     println!("CSTM FACTORS: {:?}", custom_factors);
 
     let max_size = get_max_size(&icfl_indexes, src_length).expect("max_size is not valid");
-    let custom_max_size = get_max_size(&custom_indexes, src_length).expect("max_size is not valid");
+    let custom_max_size =
+        get_max_size(&custom_indexes, src_length).expect("custom_max_size is not valid");
     // println!("MAX_SIZE={:?}", max_size);
     // println!("CSTM_MAX_SIZE={:?}", custom_max_size);
 
@@ -39,9 +42,78 @@ pub fn main_suffix_array() {
 
     let mut root = PrefixTrie {
         sons: BTreeMap::new(),
-        rankings: Vec::new(),
+        rankings_canonical: Vec::new(),
+        rankings_custom: Vec::new(),
     };
-    for suffix_length in 1..custom_max_size + 1 {
+
+    // Prefix Trie Structure create
+    for curr_suffix_length in 1..custom_max_size + 1 {
+        // Implementation of "compute_i_phase_alberello_custom_prefix_trie".
+        let mut ordered_list_of_custom_factor_local_suffix_index = Vec::new();
+        // Last Custom Factor
+        let curr_custom_factor_len = src_length - custom_indexes[custom_indexes_last_index];
+        if curr_suffix_length <= curr_custom_factor_len {
+            let custom_factor_local_suffix_index = src_length - curr_suffix_length;
+            ordered_list_of_custom_factor_local_suffix_index.push(custom_factor_local_suffix_index);
+        }
+        // All Custom Factors from first to second-last
+        for i_custom_factor in 0..custom_indexes_len - 1 {
+            let curr_custom_factor_len =
+                custom_indexes[i_custom_factor + 1] - custom_indexes[i_custom_factor];
+            if curr_suffix_length <= curr_custom_factor_len {
+                let custom_factor_local_suffix_index =
+                    custom_indexes[i_custom_factor + 1] - curr_suffix_length;
+                ordered_list_of_custom_factor_local_suffix_index
+                    .push(custom_factor_local_suffix_index);
+            }
+        }
+
+        // println!("{curr_suffix_length}");
+        for custom_factor_local_suffix_index in &ordered_list_of_custom_factor_local_suffix_index {
+            // Implementation of "add_in_custom_prefix_trie".
+            let custom_factor_local_suffix_index = *custom_factor_local_suffix_index;
+            let suffix = &src[custom_factor_local_suffix_index
+                ..custom_factor_local_suffix_index + curr_suffix_length];
+            // println!(" => {}", suffix);
+            let chars = suffix.clone().chars().collect::<Vec<_>>();
+
+
+            let mut current_suffix_len = 0;
+
+            let mut app_node = &mut root;
+            while current_suffix_len < curr_suffix_length {
+                let cur_letter = chars[current_suffix_len];
+                // println!("tree height {current_suffix_len}, consulting the {cur_letter} letter");
+
+                if !(*app_node).sons.contains_key(&cur_letter) {
+                    (*app_node).sons.insert(
+                        cur_letter,
+                        PrefixTrie {
+                            sons: BTreeMap::new(),
+                            rankings_canonical: Vec::new(),
+                            rankings_custom: Vec::new(),
+                        },
+                    );
+                }
+                app_node = app_node.sons.get_mut(&cur_letter).unwrap();
+
+                current_suffix_len += 1;
+            }
+            if is_custom_vec[custom_factor_local_suffix_index] {
+                app_node
+                    .rankings_custom
+                    .push(custom_factor_local_suffix_index);
+                // println!("add in custom {custom_factor_local_suffix_index}\n");
+            } else {
+                app_node
+                    .rankings_canonical
+                    .push(custom_factor_local_suffix_index);
+                // println!("add in canonical {custom_factor_local_suffix_index}\n");
+            }
+        }
+
+        // println!();
+        /*
         // Last factor
         let cur_factor_index = custom_indexes[custom_indexes.len() - 1];
         let cur_factor_length = src_length - cur_factor_index;
@@ -64,9 +136,11 @@ pub fn main_suffix_array() {
                 root.add_word(suffix.into(), ranking);
             }
         }
+        */
     }
     root.print(0, "".into());
 
+    /*
     // Trying to extract the Suffix Array using this Prefix Trie
     // First nodes
     for (_, node) in &root.sons {
@@ -133,6 +207,7 @@ pub fn main_suffix_array() {
             }
         }
     }
+    */
 
     /*
     // Local Suffixes and Rankings
@@ -169,12 +244,15 @@ fn get_custom_factor_strings_from_custom_indexes(
     result
 }
 
+// Prefix Trie
 pub struct PrefixTrie {
     // TODO: Try to use HashMap but keeping chars sorted
     pub sons: BTreeMap<char, PrefixTrie>,
-    pub rankings: Vec<usize>,
+    pub rankings_canonical: Vec<usize>,
+    pub rankings_custom: Vec<usize>,
 }
 impl PrefixTrie {
+    /*
     pub fn add_word(&mut self, word: String, cur_factor_index: usize) {
         if word.len() < 1 {
             return;
@@ -185,7 +263,8 @@ impl PrefixTrie {
                 first_letter,
                 PrefixTrie {
                     sons: BTreeMap::new(),
-                    rankings: Vec::new(),
+                    rankings_canonical: Vec::new(),
+                    rankings_custom: Vec::new(),
                 },
             );
         }
@@ -202,6 +281,7 @@ impl PrefixTrie {
                 .push(cur_factor_index);
         }
     }
+    */
     pub fn print(&self, tabs_offset: usize, prefix: String) {
         /*if self.sons.len() == 1 {
             let char_key = self.sons.keys().collect::<Vec<_>>()[0];
@@ -211,11 +291,12 @@ impl PrefixTrie {
                 .print(tabs_offset, format!("{}{}", prefix, char_key));
         } else {*/
         println!(
-            "{}:{:2}: \"{}\" {:?}",
+            "{}:{:2}: \"{}\" {:?} {:?}",
             " ".repeat(tabs_offset),
             tabs_offset,
             prefix,
-            self.rankings
+            self.rankings_canonical,
+            self.rankings_custom,
         );
         for (char_key, node) in &self.sons {
             node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
@@ -223,12 +304,14 @@ impl PrefixTrie {
         // }
     }
 }
+/*
 fn separate_first_letter_from_rest(str: String) -> (char, String) {
     let chars = str.chars();
     let first_letter = chars.collect::<Vec<_>>();
     let rest = (&str[1..]).to_string();
     (first_letter[0], rest)
 }
+*/
 
 fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
     let mut result = Vec::new();
