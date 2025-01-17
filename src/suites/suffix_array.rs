@@ -8,16 +8,19 @@ pub fn main_suffix_array() {
 
     // Compute ICFL
     let factors = icfl(src.as_str());
-    println!("{:?}", factors);
 
     let chunk_size = 5;
     println!("chunk_size={}", chunk_size);
     // TODO: Simplify algorithms by having string length as last item of these Factor Index vectors
     let icfl_indexes = get_indexes_from_factors(&factors);
     println!("ICFL_INDEXES={:?}", icfl_indexes);
+    println!("ICFL FACTORS: {:?}", factors);
 
     let custom_indexes = get_custom_factors(&icfl_indexes, chunk_size, src_length);
+    let custom_factors =
+        get_custom_factor_strings_from_custom_indexes(src.as_str(), &custom_indexes);
     println!("CSTM_INDEXES={:?}", custom_indexes);
+    println!("CSTM FACTORS: {:?}", custom_factors);
 
     let max_size = get_max_size(&icfl_indexes, src_length).expect("max_size is not valid");
     let custom_max_size = get_max_size(&custom_indexes, src_length).expect("max_size is not valid");
@@ -25,11 +28,14 @@ pub fn main_suffix_array() {
     // println!("CSTM_MAX_SIZE={:?}", custom_max_size);
 
     // TODO: Optimize both functions and rename them (and variables)
+    // Factor List: [Source Char Index] => True if it's part of the last Custom Factor of an
+    //                                     ICFL Factor, so it's a Local Suffix
     let is_custom_vec = get_is_custom_vec(&icfl_indexes, src_length, chunk_size);
-    // println!("is_custom_vec={:?}", is_custom_vec);
+    println!("is_custom_vec={:?}", is_custom_vec);
 
+    // Factor List: [Source Char Index] => ICFL Factor Index of that
     let factor_list = get_factor_list(&icfl_indexes, src_length);
-    // println!("factor_list={:?}", factor_list);
+    println!("factor_list={:?}", factor_list);
 
     let mut root = PrefixTrie {
         sons: BTreeMap::new(),
@@ -142,6 +148,27 @@ pub fn main_suffix_array() {
     prefix_tree.show_tree(0);
     */
 }
+
+fn get_custom_factor_strings_from_custom_indexes(
+    src: &str,
+    custom_indexes: &Vec<usize>,
+) -> Vec<String> {
+    let mut result = Vec::with_capacity(custom_indexes.len());
+    let mut i = 0;
+    while i < custom_indexes.len() - 1 {
+        let cur_factor_index = custom_indexes[i];
+        let next_factor_index = custom_indexes[i + 1];
+        let slice = &src[cur_factor_index..next_factor_index];
+        result.push(slice.into());
+        i += 1;
+    }
+    let cur_factor_index = custom_indexes[i];
+    let next_factor_index = src.len();
+    let slice = &src[cur_factor_index..next_factor_index];
+    result.push(slice.into());
+    result
+}
+
 pub struct PrefixTrie {
     // TODO: Try to use HashMap but keeping chars sorted
     pub sons: BTreeMap<char, PrefixTrie>,
