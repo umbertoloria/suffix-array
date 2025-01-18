@@ -237,7 +237,7 @@ impl PrefixTrie {
             }
             if min_father.is_none() {
                 list = child_rankings.clone();
-                break;
+                continue;
             }
             let min_father = min_father.unwrap();
 
@@ -247,7 +247,7 @@ impl PrefixTrie {
             if cmp1_from_child < cmp2_from_father {
                 child.min_father = Some(min_father);
                 list = child_rankings.clone();
-                break;
+                continue;
             }
 
             let mut i = min_father;
