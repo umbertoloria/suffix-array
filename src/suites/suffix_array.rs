@@ -3,14 +3,14 @@ use crate::files::fasta::get_fasta_content;
 use std::collections::BTreeMap;
 
 pub fn main_suffix_array() {
-    let src = get_fasta_content("generated/000.fasta".into());
+    let src = get_fasta_content("generated/001.fasta".into());
     let src_str = src.as_str();
     let src_length = src.len();
 
     // Compute ICFL
     let factors = icfl(src_str);
 
-    let chunk_size = 5;
+    let chunk_size = 3;
     println!("chunk_size={}", chunk_size);
     // TODO: Simplify algorithms by having string length as last item of these Factor Index vectors
     let icfl_indexes = get_indexes_from_factors(&factors);
@@ -41,6 +41,7 @@ pub fn main_suffix_array() {
     println!("factor_list={:?}", factor_list);
 
     let mut root = PrefixTrie {
+        label: "\0".into(),
         sons: BTreeMap::new(),
         rankings_canonical: Vec::new(),
         rankings_custom: Vec::new(),
@@ -87,6 +88,7 @@ pub fn main_suffix_array() {
                     (*app_node).sons.insert(
                         curr_letter,
                         PrefixTrie {
+                            label: format!("{}{}", app_node.label, curr_letter),
                             sons: BTreeMap::new(),
                             rankings_canonical: Vec::new(),
                             rankings_custom: Vec::new(),
@@ -252,6 +254,7 @@ fn get_custom_factor_strings_from_custom_indexes(
 
 // Prefix Trie
 pub struct PrefixTrie {
+    pub label: String,
     // TODO: Try to use HashMap but keeping chars sorted
     pub sons: BTreeMap<char, PrefixTrie>,
     pub rankings_canonical: Vec<usize>,
@@ -352,10 +355,11 @@ impl PrefixTrie {
                 .print(tabs_offset, format!("{}{}", prefix, char_key));
         } else {*/
         println!(
-            "{}:{:2}: \"{}\" {}",
+            "{}|{:2}: \"{}\" {}",
             " ".repeat(tabs_offset),
             tabs_offset,
             prefix,
+            // self.label,
             if self.rankings.is_empty() && self.suffix_len > 0 {
                 format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom)
             } else {
