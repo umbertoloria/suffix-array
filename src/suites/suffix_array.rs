@@ -215,58 +215,117 @@ impl PrefixTrie {
         let father_rankings = &self.rankings;
 
         for (_, child) in &mut self.sons {
-            let mut list = Vec::new();
+            // println!("IN-PREFIX MERGE: update Child Rankings List");
+            // println!(" > Father: \"{}\" {:?}", self.label, self.rankings);
+            // println!(" > Child : \"{}\" {:?}", child.label, child.rankings);
 
-            let child_rankings = &mut child.rankings;
+            // Managing "bridge" nodes
+            let mut child_rankings = &mut child.rankings;
             if child_rankings.is_empty() {
-                // TODO: Should treat this node like a "bridge", skip for now
-                break;
+                // TODO: Solve bug of bridge nodes
+                continue;
+                /*
+                let mut list_of_rankings = Vec::new();
+                for (_, nephew) in &child.sons {
+                    let mut cloned_rankings = nephew.rankings.clone();
+                    // Variable "cloned_rankings" will be wiped after the "append".
+                    list_of_rankings.append(&mut cloned_rankings);
+                }
+                &child_rankings.append(&mut list_of_rankings);
+                if child_rankings.is_empty() {
+                    // Should never happen...
+                    exit(0x0100);
+                }
+                */
             }
+            let child_rankings = child_rankings;
 
-            let child_offset = child.suffix_len;
+            // First Child Suffix create (for the next comparisons...)
+            let curr_suffix_size = child.suffix_len;
+            // TODO: Safe slice like with "cmp2_from_father"?
+            let cmp1_from_child = &src[child_rankings[0]..child_rankings[0] + curr_suffix_size];
+            // println!(" > first child suffix=\"{cmp1_from_child}\"");
+
+            // Calculating MIN-FATHER
+            // This is an index from father rankings that tells from what element the following
+            // statement holds:
+            // Child First Suffix <= Father Suffix
             let mut min_father = None;
-
+            // println!(" > calculating MIN-FATHER");
             for i in 0..father_rankings.len() {
-                let cmp1_from_child = &src[child_rankings[0]..child_rankings[0] + child_offset];
-                let cmp2_from_father = &src
-                    [father_rankings[i]..usize::min(father_rankings[i] + child_offset, src.len())];
+                let cmp2_from_father = &src[father_rankings[i]
+                    ..usize::min(father_rankings[i] + curr_suffix_size, src.len())];
+                // println!(
+                //     "   > curr [i={}, ranking={}] father suffix=\"{}\", is it >= our first child suffix?",
+                //     i, father_rankings[i], cmp2_from_father
+                // );
                 if cmp1_from_child <= cmp2_from_father {
+                    // println!("       > yes it is => updated min_father={i}");
                     min_father = Some(i);
                     break;
                 }
             }
+            // println!("   > MIN-FATHER={:?}", min_father);
             if min_father.is_none() {
-                list = child_rankings.clone();
+                // println!();
                 continue;
             }
             let min_father = min_father.unwrap();
+            child.min_father = Some(min_father);
 
-            let cmp1_from_child = &src[child_rankings[0]..child_rankings[0] + child_offset];
+            // Calculating MAX-FATHER
+            // This is an index from father rankings (starting from MIN-FATHER) that tells from what
+            // element the following statement holds:
+            // Child First Suffix < Father Suffix
+            // This means that the elements from MIN-FATHER incl. to MAX-FATHER excl. should be
+            // compared two-by-two with all Child Suffixes, in order to update Child Suffixes List.
+            // println!(" > calculating MAX-FATHER");
+            // println!("   > first child suffix=\"{cmp1_from_child}\"");
+            // println!(" > first compare to see if MAX-FATHER should be -1 or if there are items =");
+            // println!(
+            //     "   > father_ranking[{}]: {}",
+            //     min_father, father_rankings[min_father]
+            // );
             let cmp2_from_father =
-                &src[father_rankings[min_father]..father_rankings[min_father] + child_offset];
+                &src[father_rankings[min_father]..father_rankings[min_father] + curr_suffix_size];
+            // println!(
+            //     "   > curr [i=MIN-FATHER={}] father suffix=\"{}\", is it > our first child suffix?",
+            //     min_father, cmp2_from_father
+            // );
             if cmp1_from_child < cmp2_from_father {
-                child.min_father = Some(min_father);
-                list = child_rankings.clone();
+                // This means there are no Father Suffixes starting from MIN-FATHER incl. that are
+                // equal to the First Child Suffix, to MIN-FATHER=-1.
+                // println!("       > yes it is => setting MAX-FATHER=None()\n");
                 continue;
             }
-
+            // Ok, if we are here it means that there is at least one Father Suffix that is equals
+            // to the First Child Suffix. So we're looking for the first (if there is) Father Suffix
+            // that is greater that the First Child Suffix.
             let mut i = min_father;
             while i < father_rankings.len() {
-                let cmp1_from_child = &src[child_rankings[0]..child_rankings[0] + child_offset];
-                let cmp2_from_father = &src[father_rankings[i]..father_rankings[i] + child_offset];
+                let cmp2_from_father =
+                    &src[father_rankings[i]..father_rankings[i] + curr_suffix_size];
+                // println!(
+                //     "   > curr [i={}] father suffix=\"{}\", is it > our first child suffix?",
+                //     i, cmp2_from_father
+                // );
                 if cmp1_from_child != cmp2_from_father {
+                    // println!("       > yes it is => found what we needed");
                     break;
                 }
                 i += 1;
             }
             let max_father = i;
-
-            child.min_father = Some(min_father);
+            // println!("       > setting MAX-FATHER={:?}", max_father);
             child.max_father = Some(max_father);
 
-            // TODO: Pre-allocate "list"
-
-            let mut i = min_father;
+            // Update CHILD RANKINGS
+            // Here we compare two-by-two the Suffix Window between:
+            // * MIN-FATHER incl. to MAX-FATHER excl., and
+            // * the entire Child Suffixes List.
+            let mut overwrite_child_rankings = Vec::new();
+            // TODO: Preallocate to "(max_father-min_father)+1+child.size()" (legacy code...)
+            i = min_father;
             let mut j = 0;
             while i < max_father && j < child_rankings.len() {
                 let x = father_rankings[i];
@@ -274,30 +333,34 @@ impl PrefixTrie {
                 let result_rules = Self::rules(
                     x,
                     y,
-                    child_offset,
+                    curr_suffix_size,
                     src,
                     &icfl_indexes,
                     &is_custom_vec,
                     &factor_list,
                 );
                 if !result_rules {
-                    list.push(father_rankings[i]);
+                    overwrite_child_rankings.push(father_rankings[i]);
                     i += 1;
                 } else {
-                    list.push(child_rankings[j]);
+                    overwrite_child_rankings.push(child_rankings[j]);
                     j += 1;
                 }
             }
+            // Then we put in list the remaining Child Suffixes...
             while j < child_rankings.len() {
-                list.push(child_rankings[j]);
+                overwrite_child_rankings.push(child_rankings[j]);
                 j += 1;
             }
+            // ...and then we put in list the remaining Father Suffixes until MAX-FATHER (excl.).
             while i < max_father {
-                list.push(father_rankings[i]);
+                overwrite_child_rankings.push(father_rankings[i]);
                 i += 1;
             }
+
             child_rankings.clear();
-            child_rankings.append(&mut list);
+            child_rankings.append(&mut overwrite_child_rankings);
+            // println!("Updated Child Rankings List = {:?}", child_rankings);
         }
 
         // Recursive calls...
@@ -394,8 +457,8 @@ impl PrefixTrie {
                 .print(tabs_offset, format!("{}{}", prefix, char_key));
         } else {*/
         println!(
-            "{}|{:2}: \"{}\" {}, min={}, max={}",
-            " ".repeat(tabs_offset),
+            "{}|{:2}: \"{}\" {}, min= {}, MAX= {}",
+            "\t".repeat(tabs_offset),
             tabs_offset,
             prefix,
             // self.label,
