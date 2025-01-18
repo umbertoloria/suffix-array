@@ -47,6 +47,8 @@ pub fn main_suffix_array() {
         rankings_custom: Vec::new(),
         rankings: Vec::new(),
         suffix_len: 0,
+        min_father: None,
+        max_father: None,
     };
 
     // Prefix Trie Structure create
@@ -94,6 +96,8 @@ pub fn main_suffix_array() {
                             rankings_custom: Vec::new(),
                             rankings: Vec::new(),
                             suffix_len: i_chars_of_suffix + 1,
+                            min_father: None,
+                            max_father: None,
                         },
                     );
                 }
@@ -112,32 +116,6 @@ pub fn main_suffix_array() {
                     .push(custom_factor_local_suffix_index);
             }
         }
-
-        // println!();
-        /*
-        // Last factor
-        let cur_factor_index = custom_indexes[custom_indexes.len() - 1];
-        let cur_factor_length = src_length - cur_factor_index;
-        if cur_factor_length >= suffix_length {
-            let factor = &src[cur_factor_index..cur_factor_index + cur_factor_length];
-            let suffix_index = cur_factor_length - suffix_length;
-            let suffix = &factor[suffix_index..];
-            let ranking = cur_factor_index + suffix_index;
-            root.add_word(suffix.into(), ranking);
-        }
-        // All factors from first to second-last
-        for j in 0..custom_indexes.len() - 1 {
-            let cur_factor_index = custom_indexes[j];
-            let cur_factor_length = custom_indexes[j + 1] - cur_factor_index;
-            if cur_factor_length >= suffix_length {
-                let factor = &src[cur_factor_index..cur_factor_index + cur_factor_length];
-                let suffix_index = cur_factor_length - suffix_length;
-                let suffix = &factor[suffix_index..];
-                let ranking = cur_factor_index + suffix_index;
-                root.add_word(suffix.into(), ranking);
-            }
-        }
-        */
     }
 
     // Ordering rankings.
@@ -146,90 +124,12 @@ pub fn main_suffix_array() {
     root.print(0, "".into());
     */
     root.merge_rankings_and_sort_recursive(src_str, src_length);
+    // println!("Before in_prefix");
+    // root.print(0, "".into());
+
+    // In Prefix Merge: bit vector
+    root.in_prefix_merge_bit_vector(src_str, &icfl_indexes, &is_custom_vec, &factor_list);
     root.print(0, "".into());
-
-    /*
-    // Trying to extract the Suffix Array using this Prefix Trie
-    // First nodes
-    for (_, node) in &root.sons {
-        let mut i = 0;
-        // Children of the first nodes
-        for (_, children) in &node.sons {
-            let mut j = 0;
-            while i < node.rankings.len() && j < children.rankings.len() {
-                let x = node.rankings[i];
-                let y = children.rankings[j];
-
-                // Rules: begin
-                let mut result = 0;
-                if is_custom_vec[x] && is_custom_vec[x] {
-                    // Here we should compare strings...
-                } else if is_custom_vec[x] {
-                    if factor_list[x] <= factor_list[y] {
-                        if y >= icfl_indexes[icfl_indexes.len() - 1] {
-                            result = 1;
-                        } else {
-                            result = 0;
-                        }
-                    } else {
-                        // Here we should compare strings...
-                    }
-                } else if is_custom_vec[y] {
-                    if factor_list[y] <= factor_list[x] {
-                        if x >= icfl_indexes[icfl_indexes.len() - 1] {
-                            result = 0;
-                        } else {
-                            result = 1;
-                        }
-                    } else {
-                        // Here we should compare strings...
-                    }
-                } else if x >= icfl_indexes[icfl_indexes.len() - 1]
-                    && y >= icfl_indexes[icfl_indexes.len() - 1]
-                {
-                    result = 0;
-                } else if factor_list[x] == factor_list[y] {
-                    result = 1;
-                } else {
-                    if x >= icfl_indexes[icfl_indexes.len() - 1] {
-                        result = 0;
-                    } else if y >= icfl_indexes[icfl_indexes.len() - 1] {
-                        // Here we should compare strings...
-                    } else {
-                        if x > y {
-                            result = 1;
-                        } else {
-                            // Here we should compare strings...
-                        }
-                    }
-                }
-                // println!("x={} y={} result={}", x, y, result); // Output for validity checks
-                // Rules: end
-
-                if result == 0 {
-                    i += 1;
-                } else {
-                    // Otherwise, it's always like this right?
-                    j += 1;
-                }
-            }
-        }
-    }
-    */
-
-    /*
-    // Local Suffixes and Rankings
-    let ls_and_rankings =
-        ls_and_rankings::get_local_suffixes_and_rankings_from_icfl_factors(&factors);
-    for s_index in 0..ls_and_rankings.count {
-        let (s, s_ranking) = ls_and_rankings.get_s_and_ranking_by_index(s_index);
-        println!("{s} -> {s_ranking:?}");
-    }
-
-    // Creating Prefix Tree
-    let prefix_tree = create_prefix_tree_from_ls_and_rankings(&ls_and_rankings);
-    prefix_tree.show_tree(0);
-    */
 }
 
 fn get_custom_factor_strings_from_custom_indexes(
@@ -261,38 +161,10 @@ pub struct PrefixTrie {
     pub rankings_custom: Vec<usize>,
     pub rankings: Vec<usize>,
     pub suffix_len: usize,
+    pub min_father: Option<usize>,
+    pub max_father: Option<usize>,
 }
 impl PrefixTrie {
-    /*
-    pub fn add_word(&mut self, word: String, cur_factor_index: usize) {
-        if word.len() < 1 {
-            return;
-        }
-        let (first_letter, rest) = separate_first_letter_from_rest(word.clone());
-        if !self.sons.contains_key(&first_letter) {
-            self.sons.insert(
-                first_letter,
-                PrefixTrie {
-                    sons: BTreeMap::new(),
-                    rankings_canonical: Vec::new(),
-                    rankings_custom: Vec::new(),
-                },
-            );
-        }
-        if rest.len() > 0 {
-            self.sons
-                .get_mut(&first_letter)
-                .unwrap()
-                .add_word(rest, cur_factor_index);
-        } else {
-            self.sons
-                .get_mut(&first_letter)
-                .unwrap()
-                .rankings
-                .push(cur_factor_index);
-        }
-    }
-    */
     pub fn merge_rankings_and_sort_recursive(&mut self, src: &str, src_length: usize) {
         // Single "rankings" list
         for local_suffix_index in &self.rankings_canonical {
@@ -318,21 +190,8 @@ impl PrefixTrie {
                 });
             }
 
-            /*
-            println!("Before sorting...");
-            for item in &list {
-                println!(" > ({:3}) {}", item.index, item.global_suffix);
-            }
-            */
             // TODO: Maybe sorting is sometimes avoidable
             list.sort_by(|a, b| a.global_suffix.cmp(b.global_suffix));
-            /*
-            println!("After sorting...");
-            for item in &list {
-                println!(" > ({:3}) {}", item.index, item.global_suffix);
-            }
-            println!();
-            */
 
             // Update list only if strings were actually sorted and moved.
             self.rankings.clear();
@@ -346,6 +205,186 @@ impl PrefixTrie {
             children.merge_rankings_and_sort_recursive(src, src_length);
         }
     }
+    pub fn in_prefix_merge_bit_vector(
+        &mut self,
+        src: &str,
+        icfl_indexes: &Vec<usize>,
+        is_custom_vec: &Vec<bool>,
+        factor_list: &Vec<usize>,
+    ) {
+        let father_rankings = &self.rankings;
+
+        for (_, child) in &mut self.sons {
+            let mut list = Vec::new();
+
+            let child_rankings = &mut child.rankings;
+            if child_rankings.is_empty() {
+                // TODO: Should treat this node like a "bridge", skip for now
+                break;
+            }
+
+            let child_offset = child.suffix_len;
+            let mut min_father = None;
+
+            for i in 0..father_rankings.len() {
+                let cmp1_from_child = &src[child_rankings[0]..child_rankings[0] + child_offset];
+                let cmp2_from_father = &src
+                    [father_rankings[i]..usize::min(father_rankings[i] + child_offset, src.len())];
+                if cmp1_from_child <= cmp2_from_father {
+                    min_father = Some(i);
+                    break;
+                }
+            }
+            if min_father.is_none() {
+                list = child_rankings.clone();
+                break;
+            }
+            let min_father = min_father.unwrap();
+
+            let cmp1_from_child = &src[child_rankings[0]..child_rankings[0] + child_offset];
+            let cmp2_from_father =
+                &src[father_rankings[min_father]..father_rankings[min_father] + child_offset];
+            if cmp1_from_child < cmp2_from_father {
+                child.min_father = Some(min_father);
+                list = child_rankings.clone();
+                break;
+            }
+
+            let mut i = min_father;
+            while i < father_rankings.len() {
+                let cmp1_from_child = &src[child_rankings[0]..child_rankings[0] + child_offset];
+                let cmp2_from_father = &src[father_rankings[i]..father_rankings[i] + child_offset];
+                if cmp1_from_child != cmp2_from_father {
+                    break;
+                }
+                i += 1;
+            }
+            let max_father = i;
+
+            child.min_father = Some(min_father);
+            child.max_father = Some(max_father);
+
+            // TODO: Pre-allocate "list"
+
+            let mut i = min_father;
+            let mut j = 0;
+            while i < max_father && j < child_rankings.len() {
+                let x = father_rankings[i];
+                let y = child_rankings[j];
+                let result_rules = Self::rules(
+                    x,
+                    y,
+                    child_offset,
+                    src,
+                    &icfl_indexes,
+                    &is_custom_vec,
+                    &factor_list,
+                );
+                if !result_rules {
+                    list.push(father_rankings[i]);
+                    i += 1;
+                } else {
+                    list.push(child_rankings[j]);
+                    j += 1;
+                }
+            }
+            while j < child_rankings.len() {
+                list.push(child_rankings[j]);
+                j += 1;
+            }
+            while i < max_father {
+                list.push(father_rankings[i]);
+                i += 1;
+            }
+            child_rankings.clear();
+            child_rankings.append(&mut list);
+        }
+
+        // Recursive calls...
+        for (_, child) in &mut self.sons {
+            child.in_prefix_merge_bit_vector(src, icfl_indexes, is_custom_vec, factor_list);
+        }
+    }
+    fn rules(
+        x: usize,
+        y: usize,
+        child_offset: usize,
+        src: &str,
+        icfl_list: &Vec<usize>,
+        is_custom_vec: &Vec<bool>,
+        factor_list: &Vec<usize>,
+    ) -> bool {
+        let icfl_list_size = icfl_list.len();
+        if is_custom_vec[x] && is_custom_vec[y] {
+            let cmp1 = &src[y + child_offset..];
+            let cmp2 = &src[x + child_offset..];
+            if cmp1 < cmp2 {
+                true
+            } else {
+                false
+            }
+        } else if is_custom_vec[x] {
+            if factor_list[x] <= factor_list[y] {
+                if y >= icfl_list[icfl_list_size - 1] {
+                    true
+                } else {
+                    false
+                }
+            } else {
+                let cmp1 = &src[y + child_offset..];
+                let cmp2 = &src[x + child_offset..];
+                if cmp1 < cmp2 {
+                    true
+                } else {
+                    false
+                }
+            }
+        } else if is_custom_vec[y] {
+            if factor_list[y] <= factor_list[x] {
+                if x >= icfl_list[icfl_list_size - 1] {
+                    false
+                } else {
+                    true
+                }
+            } else {
+                let cmp1 = &src[y + child_offset..];
+                let cmp2 = &src[x + child_offset..];
+                if cmp1 < cmp2 {
+                    true
+                } else {
+                    false
+                }
+            }
+        } else if x >= icfl_list[icfl_list_size - 1] && y >= icfl_list[icfl_list_size - 1] {
+            false
+        } else if factor_list[x] == factor_list[y] {
+            true
+        } else {
+            if x >= icfl_list[icfl_list_size - 1] {
+                false
+            } else if y >= icfl_list[icfl_list_size - 1] {
+                let cmp1 = &src[y + child_offset..];
+                let cmp2 = &src[x + child_offset..];
+                if cmp1 < cmp2 {
+                    true
+                } else {
+                    false
+                }
+            } else {
+                if x > y {
+                    true
+                } else {
+                    let cmp1 = &src[y + child_offset..];
+                    let cmp2 = &src[x + child_offset..];
+                    if cmp1 < cmp2 {
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
+        }
+    }
     pub fn print(&self, tabs_offset: usize, prefix: String) {
         /*if self.sons.len() == 1 {
             let char_key = self.sons.keys().collect::<Vec<_>>()[0];
@@ -355,7 +394,7 @@ impl PrefixTrie {
                 .print(tabs_offset, format!("{}{}", prefix, char_key));
         } else {*/
         println!(
-            "{}|{:2}: \"{}\" {}",
+            "{}|{:2}: \"{}\" {}, min={}, max={}",
             " ".repeat(tabs_offset),
             tabs_offset,
             prefix,
@@ -365,6 +404,16 @@ impl PrefixTrie {
             } else {
                 format!("{:?}", self.rankings)
             },
+            if let Some(min_father) = self.min_father {
+                min_father as i16
+            } else {
+                -1
+            },
+            if let Some(max_father) = self.max_father {
+                max_father as i16
+            } else {
+                -1
+            },
         );
         for (char_key, node) in &self.sons {
             node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
@@ -372,14 +421,6 @@ impl PrefixTrie {
         // }
     }
 }
-/*
-fn separate_first_letter_from_rest(str: String) -> (char, String) {
-    let chars = str.chars();
-    let first_letter = chars.collect::<Vec<_>>();
-    let rest = (&str[1..]).to_string();
-    (first_letter[0], rest)
-}
-*/
 
 fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
     let mut result = Vec::new();
