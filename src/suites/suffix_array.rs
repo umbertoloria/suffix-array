@@ -205,7 +205,7 @@ impl PrefixTrie {
             children.merge_rankings_and_sort_recursive(src, src_length);
         }
     }
-    pub fn in_prefix_merge_bit_vector(
+    pub fn in_prefix_merge_upon_father_node(
         &mut self,
         src: &str,
         icfl_indexes: &Vec<usize>,
@@ -213,7 +213,6 @@ impl PrefixTrie {
         factor_list: &Vec<usize>,
     ) {
         let father_rankings = &self.rankings;
-
         for (_, child) in &mut self.sons {
             // println!("IN-PREFIX MERGE: update Child Rankings List");
             // println!(" > Father: \"{}\" {:?}", self.label, self.rankings);
@@ -362,7 +361,15 @@ impl PrefixTrie {
             child_rankings.append(&mut overwrite_child_rankings);
             // println!("Updated Child Rankings List = {:?}", child_rankings);
         }
-
+    }
+    pub fn in_prefix_merge_bit_vector(
+        &mut self,
+        src: &str,
+        icfl_indexes: &Vec<usize>,
+        is_custom_vec: &Vec<bool>,
+        factor_list: &Vec<usize>,
+    ) {
+        self.in_prefix_merge_upon_father_node(src, icfl_indexes, is_custom_vec, factor_list);
         // Recursive calls...
         for (_, child) in &mut self.sons {
             child.in_prefix_merge_bit_vector(src, icfl_indexes, is_custom_vec, factor_list);
