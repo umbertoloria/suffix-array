@@ -1,4 +1,97 @@
+use crate::suffix_array::chunking::get_max_size;
 use std::collections::BTreeMap;
+
+pub fn create_prefix_trie(
+    src: &str,
+    src_length: usize,
+    custom_indexes: &Vec<usize>,
+    is_custom_vec: &Vec<bool>,
+) -> PrefixTrie {
+    let custom_max_size =
+        get_max_size(&custom_indexes, src_length).expect("custom_max_size is not valid");
+
+    let mut root = PrefixTrie {
+        label: "\0".into(),
+        sons: BTreeMap::new(),
+        rankings_canonical: Vec::new(),
+        rankings_custom: Vec::new(),
+        rankings: Vec::new(),
+        suffix_len: 0,
+        min_father: None,
+        max_father: None,
+    };
+
+    let custom_indexes_len = custom_indexes.len();
+    let custom_indexes_last_index = custom_indexes_len - 1;
+
+    for curr_suffix_length in 1..custom_max_size + 1 {
+        let mut ordered_list_of_custom_factor_local_suffix_index = Vec::new();
+        // Last Custom Factor
+        let curr_custom_factor_len = src_length - custom_indexes[custom_indexes_last_index];
+        if curr_suffix_length <= curr_custom_factor_len {
+            let custom_factor_local_suffix_index = src_length - curr_suffix_length;
+            ordered_list_of_custom_factor_local_suffix_index.push(custom_factor_local_suffix_index);
+        }
+        // All Custom Factors from first to second-last
+        for i_custom_factor in 0..custom_indexes_len - 1 {
+            let curr_custom_factor_len =
+                custom_indexes[i_custom_factor + 1] - custom_indexes[i_custom_factor];
+            if curr_suffix_length <= curr_custom_factor_len {
+                let custom_factor_local_suffix_index =
+                    custom_indexes[i_custom_factor + 1] - curr_suffix_length;
+                ordered_list_of_custom_factor_local_suffix_index
+                    .push(custom_factor_local_suffix_index);
+            }
+        }
+
+        // Filling "rankings_canonical" or "rankings_custom".
+        for custom_factor_local_suffix_index in &ordered_list_of_custom_factor_local_suffix_index {
+            // Implementation of "add_in_custom_prefix_trie".
+            let custom_factor_local_suffix_index = *custom_factor_local_suffix_index;
+            let suffix = &src[custom_factor_local_suffix_index
+                ..custom_factor_local_suffix_index + curr_suffix_length];
+            let chars_suffix = suffix.chars().collect::<Vec<_>>();
+
+            let mut app_node = &mut root;
+
+            let mut i_chars_of_suffix = 0;
+            while i_chars_of_suffix < curr_suffix_length {
+                let curr_letter = chars_suffix[i_chars_of_suffix];
+
+                if !(*app_node).sons.contains_key(&curr_letter) {
+                    (*app_node).sons.insert(
+                        curr_letter,
+                        PrefixTrie {
+                            label: format!("{}{}", app_node.label, curr_letter),
+                            sons: BTreeMap::new(),
+                            rankings_canonical: Vec::new(),
+                            rankings_custom: Vec::new(),
+                            rankings: Vec::new(),
+                            suffix_len: i_chars_of_suffix + 1,
+                            min_father: None,
+                            max_father: None,
+                        },
+                    );
+                }
+                app_node = app_node.sons.get_mut(&curr_letter).unwrap();
+
+                i_chars_of_suffix += 1;
+            }
+            // TODO: Here we could create an interesting wrapping among real "non-bridge" nodes
+            if is_custom_vec[custom_factor_local_suffix_index] {
+                app_node
+                    .rankings_custom
+                    .push(custom_factor_local_suffix_index);
+            } else {
+                app_node
+                    .rankings_canonical
+                    .push(custom_factor_local_suffix_index);
+            }
+        }
+    }
+
+    root
+}
 
 pub struct PrefixTrie {
     pub label: String,
@@ -12,18 +105,6 @@ pub struct PrefixTrie {
     pub max_father: Option<usize>,
 }
 impl PrefixTrie {
-    pub fn new() -> Self {
-        Self {
-            label: "\0".into(),
-            sons: BTreeMap::new(),
-            rankings_canonical: Vec::new(),
-            rankings_custom: Vec::new(),
-            rankings: Vec::new(),
-            suffix_len: 0,
-            min_father: None,
-            max_father: None,
-        }
-    }
     pub fn merge_rankings_and_sort_recursive(&mut self, src: &str, src_length: usize) {
         // Single "rankings" list
         for local_suffix_index in &self.rankings_canonical {
