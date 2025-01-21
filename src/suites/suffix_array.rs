@@ -12,7 +12,7 @@ pub fn main_suffix_array() {
     let src_str = src.as_str();
     let src_length = src.len();
     println!("STRING={}", src_str);
-    compute_classic_suffix_array(src_str);
+    // let suffix_array = compute_classic_suffix_array(src_str);
 
     // Compute ICFL
     let factors = icfl(src_str);
@@ -55,7 +55,7 @@ pub fn main_suffix_array() {
     root.merge_rankings_and_sort_recursive(src_str, &mut wbsa, 0);
     println!("WANNA BE SUFFIX ARRAY: {:?}", &wbsa);
 
-    println!("Before in_prefix");
+    println!("Before SHRINK");
     root.print_with_wbsa(0, "".into(), &wbsa);
 
     // In Prefix Merge: bit vector
@@ -63,15 +63,25 @@ pub fn main_suffix_array() {
     root.print(0, "".into());*/
 
     root.shrink_bottom_up(&mut wbsa);
+
+    println!("After SHRINK");
+    root.print_with_wbsa(0, "".into(), &wbsa);
+
+    // println!("{:?}", suffix_array);
 }
 
-fn compute_classic_suffix_array(src: &str) {
+fn compute_classic_suffix_array(src: &str) -> Vec<usize> {
     let mut suffix_array = Vec::new();
     for i in 0..src.len() {
         suffix_array.push((i, &src[i..]));
     }
     sort_pair_vector_of_indexed_strings(&mut suffix_array);
-    for (index, suffix) in suffix_array {
+    for (index, suffix) in &suffix_array {
         println!(" > SUFFIX_ARRAY [{:3}] = {}", index, suffix);
     }
+    let mut suffix_array_indexes = Vec::new();
+    for &(index, _) in &suffix_array {
+        suffix_array_indexes.push(index);
+    }
+    suffix_array_indexes
 }

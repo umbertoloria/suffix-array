@@ -337,12 +337,13 @@ impl PrefixTrie {
         }
         if self.sons.is_empty() {
             self.shrunk = true;
-            let rankings = &wbsa[self.wbsa_p..self.wbsa_q];
+            /*let rankings = &wbsa[self.wbsa_p..self.wbsa_q];
             println!(
                 "SHRINK THE LEAF \"{}\" => {:?} (from {} to {})",
                 self.label, rankings, self.wbsa_p, self.wbsa_q
-            );
+            );*/
         } else {
+            // Shrink sons
             for (_, son) in &mut self.sons {
                 son.shrink_bottom_up(wbsa);
             }
@@ -351,6 +352,27 @@ impl PrefixTrie {
                 "SHRINK MERGING SONS OF \"{}\": from {} to {} (extended to {})",
                 self.label, self.wbsa_p, self.wbsa_q, max_wbsa_q
             );
+
+            // Merge and Sort current Rankings
+            if self.suffix_len > 0 {
+                if self.wbsa_p == self.wbsa_q {
+                    // This is a "bridge" node, to we take the Rankings or the son in order.
+
+                    // TODO: Demonstrate this
+                    self.wbsa_q = max_wbsa_q;
+                    self.sons.clear();
+                    println!(" > \"bridge\" node {} fused with sons", self.label);
+                } else {
+                    if self.sons.len() == 1 {
+                        // TODO: Write the code for "1" son
+                    } else {
+                        // TODO: Extend the code for "1" son to "n" sons
+                    }
+                    for (_, son) in &mut self.sons {
+                        println!(" > merge {} with {}", self.label, son.label);
+                    }
+                }
+            }
         }
     }
     fn get_max_wbsa_q(&self) -> usize {
