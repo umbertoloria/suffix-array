@@ -62,7 +62,7 @@ pub fn main_suffix_array() {
     /*root.in_prefix_merge_bit_vector(src_str, &icfl_indexes, &is_custom_vec, &factor_list);
     root.print(0, "".into());*/
 
-    root.shrink_bottom_up();
+    root.shrink_bottom_up(&mut wbsa);
 }
 
 fn compute_classic_suffix_array(src: &str) {

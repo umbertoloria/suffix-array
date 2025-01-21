@@ -13,13 +13,14 @@ pub fn create_prefix_trie(
 
     let mut root = PrefixTrie {
         label: "\0".into(),
+        suffix_len: 0,
         sons: BTreeMap::new(),
         rankings_canonical: Vec::new(),
         rankings_custom: Vec::new(),
         // rankings: Vec::new(),
         wbsa_p: 0,
         wbsa_q: 0,
-        suffix_len: 0,
+        shrunk: false,
         min_father: None,
         max_father: None,
     };
@@ -69,13 +70,14 @@ pub fn create_prefix_trie(
                         curr_letter,
                         PrefixTrie {
                             label: format!("{}{}", curr_node.label, curr_letter),
+                            suffix_len: i_chars_of_suffix + 1,
                             sons: BTreeMap::new(),
                             rankings_canonical: Vec::new(),
                             rankings_custom: Vec::new(),
                             // rankings: Vec::new(),
                             wbsa_p: 0,
                             wbsa_q: 0,
-                            suffix_len: i_chars_of_suffix + 1,
+                            shrunk: false,
                             min_father: None,
                             max_father: None,
                         },
@@ -103,6 +105,7 @@ pub fn create_prefix_trie(
 
 pub struct PrefixTrie {
     pub label: String,
+    pub suffix_len: usize,
     // TODO: Try to use HashMap but keeping chars sorted
     pub sons: BTreeMap<char, PrefixTrie>,
     pub rankings_canonical: Vec<usize>,
@@ -110,7 +113,7 @@ pub struct PrefixTrie {
     // pub rankings: Vec<usize>,
     pub wbsa_p: usize, // Incl.
     pub wbsa_q: usize, // Excl.
-    pub suffix_len: usize,
+    pub shrunk: bool,
     pub min_father: Option<usize>,
     pub max_father: Option<usize>,
 }
@@ -328,16 +331,35 @@ impl PrefixTrie {
             child.in_prefix_merge_bit_vector(src, icfl_indexes, is_custom_vec, factor_list);
         }
     }*/
-    pub fn shrink_bottom_up(&mut self) {
+    pub fn shrink_bottom_up(&mut self, wbsa: &mut Vec<usize>) {
+        if self.shrunk {
+            return;
+        }
         if self.sons.is_empty() {
-            println!("SHRINK THE LEAF \"{}\"", self.label);
+            self.shrunk = true;
+            let rankings = &wbsa[self.wbsa_p..self.wbsa_q];
+            println!(
+                "SHRINK THE LEAF \"{}\" => {:?} (from {} to {})",
+                self.label, rankings, self.wbsa_p, self.wbsa_q
+            );
         } else {
             for (_, son) in &mut self.sons {
-                son.shrink_bottom_up();
+                son.shrink_bottom_up(wbsa);
             }
-            if self.wbsa_p < self.wbsa_q {
-                println!("SHRINK MERGING SONS OF \"{}\"", self.label,);
-            }
+            let max_wbsa_q = self.get_max_wbsa_q();
+            println!(
+                "SHRINK MERGING SONS OF \"{}\": from {} to {} (extended to {})",
+                self.label, self.wbsa_p, self.wbsa_q, max_wbsa_q
+            );
+        }
+    }
+    fn get_max_wbsa_q(&self) -> usize {
+        if self.sons.is_empty() {
+            self.wbsa_q
+        } else {
+            let sons = &self.sons.values().collect::<Vec<_>>();
+            let last_son = sons[sons.len() - 1];
+            last_son.get_max_wbsa_q()
         }
     }
     fn rules(
