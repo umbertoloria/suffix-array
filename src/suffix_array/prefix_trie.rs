@@ -131,7 +131,7 @@ impl PrefixTrie {
         }
 
         let mut p = wbsa_start_from_index;
-
+        self.wbsa_p = p;
         if !new_rankings.is_empty() {
             // TODO: Maybe sorting is sometimes avoidable
             sort_pair_vector_of_indexed_strings(&mut new_rankings);
@@ -141,13 +141,12 @@ impl PrefixTrie {
                 self.rankings.push(index);
             }
             for &ranking in &self.rankings {*/
-            self.wbsa_p = p;
             for (index, _) in new_rankings {
                 wbsa[p] = index;
                 p += 1;
             }
-            self.wbsa_q = p;
         }
+        self.wbsa_q = p;
 
         // Recursive calls...
         for (_, son) in &mut self.sons {
@@ -462,22 +461,13 @@ impl PrefixTrie {
         } else {*/
         let rankings = &wbsa[self.wbsa_p..self.wbsa_q];
         println!(
-            "{}|{:2}: \"{}\" {}, min= {}, MAX= {}",
+            "{}\"{}\" {}   [{}..{})",
             "\t".repeat(tabs_offset),
-            tabs_offset,
             prefix,
             // self.label,
             format!("{:?}", rankings),
-            if let Some(min_father) = self.min_father {
-                min_father as i16
-            } else {
-                -1
-            },
-            if let Some(max_father) = self.max_father {
-                max_father as i16
-            } else {
-                -1
-            },
+            self.wbsa_p,
+            self.wbsa_q,
         );
         for (char_key, node) in &self.sons {
             node.print_with_wbsa(tabs_offset + 1, format!("{}{}", prefix, char_key), wbsa);
