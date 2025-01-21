@@ -56,7 +56,7 @@ pub fn main_suffix_array() {
     println!("WANNA BE SUFFIX ARRAY: {:?}", &wbsa);
 
     println!("Before in_prefix");
-    root.print(0, "".into());
+    root.print_with_wbsa(0, "".into(), &wbsa);
 
     // In Prefix Merge: bit vector
     /*root.in_prefix_merge_bit_vector(src_str, &icfl_indexes, &is_custom_vec, &factor_list);

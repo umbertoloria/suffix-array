@@ -16,7 +16,9 @@ pub fn create_prefix_trie(
         sons: BTreeMap::new(),
         rankings_canonical: Vec::new(),
         rankings_custom: Vec::new(),
-        rankings: Vec::new(),
+        // rankings: Vec::new(),
+        wbsa_p: 0,
+        wbsa_q: 0,
         suffix_len: 0,
         min_father: None,
         max_father: None,
@@ -70,7 +72,9 @@ pub fn create_prefix_trie(
                             sons: BTreeMap::new(),
                             rankings_canonical: Vec::new(),
                             rankings_custom: Vec::new(),
-                            rankings: Vec::new(),
+                            // rankings: Vec::new(),
+                            wbsa_p: 0,
+                            wbsa_q: 0,
                             suffix_len: i_chars_of_suffix + 1,
                             min_father: None,
                             max_father: None,
@@ -103,7 +107,9 @@ pub struct PrefixTrie {
     pub sons: BTreeMap<char, PrefixTrie>,
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
-    pub rankings: Vec<usize>,
+    // pub rankings: Vec<usize>,
+    pub wbsa_p: usize, // Incl.
+    pub wbsa_q: usize, // Excl.
     pub suffix_len: usize,
     pub min_father: Option<usize>,
     pub max_father: Option<usize>,
@@ -130,14 +136,17 @@ impl PrefixTrie {
             // TODO: Maybe sorting is sometimes avoidable
             sort_pair_vector_of_indexed_strings(&mut new_rankings);
             // Update list only if strings were actually sorted and moved.
-            self.rankings.clear();
+            /*self.rankings.clear();
             for (index, _) in new_rankings {
                 self.rankings.push(index);
             }
-            for &ranking in &self.rankings {
-                wbsa[p] = ranking;
+            for &ranking in &self.rankings {*/
+            self.wbsa_p = p;
+            for (index, _) in new_rankings {
+                wbsa[p] = index;
                 p += 1;
             }
+            self.wbsa_q = p;
         }
 
         // Recursive calls...
@@ -148,7 +157,7 @@ impl PrefixTrie {
 
         p
     }
-    pub fn in_prefix_merge_upon_father_node(
+    /*pub fn in_prefix_merge_upon_father_node(
         &mut self,
         src: &str,
         icfl_indexes: &Vec<usize>,
@@ -319,7 +328,7 @@ impl PrefixTrie {
         for (_, child) in &mut self.sons {
             child.in_prefix_merge_bit_vector(src, icfl_indexes, is_custom_vec, factor_list);
         }
-    }
+    }*/
     fn rules(
         x: usize,
         y: usize,
@@ -414,11 +423,7 @@ impl PrefixTrie {
             tabs_offset,
             prefix,
             // self.label,
-            if self.rankings.is_empty() && self.suffix_len > 0 {
-                format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom)
-            } else {
-                format!("{:?}", self.rankings)
-            },
+            format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom),
             if let Some(min_father) = self.min_father {
                 min_father as i16
             } else {
@@ -432,6 +437,38 @@ impl PrefixTrie {
         );
         for (char_key, node) in &self.sons {
             node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
+        }
+        // }
+    }
+    pub fn print_with_wbsa(&self, tabs_offset: usize, prefix: String, wbsa: &Vec<usize>) {
+        /*if self.sons.len() == 1 {
+            let char_key = self.sons.keys().collect::<Vec<_>>()[0];
+            self.sons
+                .get(char_key)
+                .unwrap()
+                .print(tabs_offset, format!("{}{}", prefix, char_key));
+        } else {*/
+        let rankings = &wbsa[self.wbsa_p..self.wbsa_q];
+        println!(
+            "{}|{:2}: \"{}\" {}, min= {}, MAX= {}",
+            "\t".repeat(tabs_offset),
+            tabs_offset,
+            prefix,
+            // self.label,
+            format!("{:?}", rankings),
+            if let Some(min_father) = self.min_father {
+                min_father as i16
+            } else {
+                -1
+            },
+            if let Some(max_father) = self.max_father {
+                max_father as i16
+            } else {
+                -1
+            },
+        );
+        for (char_key, node) in &self.sons {
+            node.print_with_wbsa(tabs_offset + 1, format!("{}{}", prefix, char_key), wbsa);
         }
         // }
     }
