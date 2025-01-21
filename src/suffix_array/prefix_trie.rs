@@ -111,21 +111,15 @@ pub struct PrefixTrie {
 impl PrefixTrie {
     pub fn merge_rankings_and_sort_recursive(&mut self, src: &str) {
         // Single "rankings" list
+        let mut new_rankings = Vec::new();
         for local_suffix_index in &self.rankings_canonical {
-            self.rankings.push(*local_suffix_index);
+            new_rankings.push((*local_suffix_index, &src[*local_suffix_index..]));
         }
         for local_suffix_index in &self.rankings_custom {
-            self.rankings.push(*local_suffix_index);
+            new_rankings.push((*local_suffix_index, &src[*local_suffix_index..]));
         }
 
-        if self.rankings.len() > 1 {
-            // Sort global suffixes
-            let mut new_rankings = Vec::new();
-            for ranking in &self.rankings {
-                let ranking = *ranking;
-                let global_suffix = &src[ranking..];
-                new_rankings.push((ranking, global_suffix));
-            }
+        if new_rankings.len() > 1 {
             // TODO: Maybe sorting is sometimes avoidable
             sort_pair_vector_of_indexed_strings(&mut new_rankings);
             // Update list only if strings were actually sorted and moved.
