@@ -329,6 +329,18 @@ impl PrefixTrie {
             child.in_prefix_merge_bit_vector(src, icfl_indexes, is_custom_vec, factor_list);
         }
     }*/
+    pub fn shrink_bottom_up(&mut self) {
+        if self.sons.is_empty() {
+            println!("SHRINK THE LEAF \"{}\"", self.label);
+        } else {
+            for (_, son) in &mut self.sons {
+                son.shrink_bottom_up();
+            }
+            if self.wbsa_p < self.wbsa_q {
+                println!("SHRINK MERGING SONS OF \"{}\"", self.label,);
+            }
+        }
+    }
     fn rules(
         x: usize,
         y: usize,
