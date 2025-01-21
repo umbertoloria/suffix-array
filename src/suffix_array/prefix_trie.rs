@@ -1,4 +1,5 @@
 use crate::suffix_array::chunking::get_max_size;
+use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::collections::BTreeMap;
 
 pub fn create_prefix_trie(
@@ -119,27 +120,18 @@ impl PrefixTrie {
 
         if self.rankings.len() > 1 {
             // Sort global suffixes
-            struct StringAndIndex<'a> {
-                global_suffix: &'a str,
-                index: usize,
-            }
-            let mut list = Vec::new();
+            let mut new_rankings = Vec::new();
             for ranking in &self.rankings {
                 let ranking = *ranking;
                 let global_suffix = &src[ranking..];
-                list.push(StringAndIndex {
-                    global_suffix,
-                    index: ranking,
-                });
+                new_rankings.push((ranking, global_suffix));
             }
-
             // TODO: Maybe sorting is sometimes avoidable
-            list.sort_by(|a, b| a.global_suffix.cmp(b.global_suffix));
-
+            sort_pair_vector_of_indexed_strings(&mut new_rankings);
             // Update list only if strings were actually sorted and moved.
             self.rankings.clear();
-            for item in &list {
-                self.rankings.push(item.index);
+            for (index, _) in new_rankings {
+                self.rankings.push(index);
             }
         }
 
