@@ -109,17 +109,24 @@ pub struct PrefixTrie {
     pub max_father: Option<usize>,
 }
 impl PrefixTrie {
-    pub fn merge_rankings_and_sort_recursive(&mut self, src: &str) {
+    pub fn merge_rankings_and_sort_recursive(
+        &mut self,
+        src: &str,
+        wbsa: &mut Vec<usize>,
+        wbsa_start_from_index: usize,
+    ) -> usize {
         // Single "rankings" list
         let mut new_rankings = Vec::new();
-        for local_suffix_index in &self.rankings_canonical {
-            new_rankings.push((*local_suffix_index, &src[*local_suffix_index..]));
+        for &local_suffix_index in &self.rankings_canonical {
+            new_rankings.push((local_suffix_index, &src[local_suffix_index..]));
         }
-        for local_suffix_index in &self.rankings_custom {
-            new_rankings.push((*local_suffix_index, &src[*local_suffix_index..]));
+        for &local_suffix_index in &self.rankings_custom {
+            new_rankings.push((local_suffix_index, &src[local_suffix_index..]));
         }
 
-        if new_rankings.len() > 1 {
+        let mut p = wbsa_start_from_index;
+
+        if !new_rankings.is_empty() {
             // TODO: Maybe sorting is sometimes avoidable
             sort_pair_vector_of_indexed_strings(&mut new_rankings);
             // Update list only if strings were actually sorted and moved.
@@ -127,12 +134,19 @@ impl PrefixTrie {
             for (index, _) in new_rankings {
                 self.rankings.push(index);
             }
+            for &ranking in &self.rankings {
+                wbsa[p] = ranking;
+                p += 1;
+            }
         }
 
         // Recursive calls...
-        for (_, children) in &mut self.sons {
-            children.merge_rankings_and_sort_recursive(src);
+        for (_, son) in &mut self.sons {
+            let new_p = son.merge_rankings_and_sort_recursive(src, wbsa, p);
+            p = new_p;
         }
+
+        p
     }
     pub fn in_prefix_merge_upon_father_node(
         &mut self,

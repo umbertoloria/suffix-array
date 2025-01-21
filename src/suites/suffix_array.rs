@@ -51,7 +51,9 @@ pub fn main_suffix_array() {
     root.print(0, "".into());
 
     // Merge Rankings (Canonical and Custom)
-    root.merge_rankings_and_sort_recursive(src_str);
+    let mut wbsa = (0..src_length).collect::<Vec<_>>();
+    root.merge_rankings_and_sort_recursive(src_str, &mut wbsa, 0);
+    println!("WANNA BE SUFFIX ARRAY: {:?}", &wbsa);
 
     println!("Before in_prefix");
     root.print(0, "".into());
