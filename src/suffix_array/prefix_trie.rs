@@ -108,7 +108,7 @@ pub struct PrefixTrie {
     pub max_father: Option<usize>,
 }
 impl PrefixTrie {
-    pub fn merge_rankings_and_sort_recursive(&mut self, src: &str, src_length: usize) {
+    pub fn merge_rankings_and_sort_recursive(&mut self, src: &str) {
         // Single "rankings" list
         for local_suffix_index in &self.rankings_canonical {
             self.rankings.push(*local_suffix_index);
@@ -126,7 +126,7 @@ impl PrefixTrie {
             let mut list = Vec::new();
             for ranking in &self.rankings {
                 let ranking = *ranking;
-                let global_suffix = &src[ranking..src_length];
+                let global_suffix = &src[ranking..];
                 list.push(StringAndIndex {
                     global_suffix,
                     index: ranking,
@@ -145,7 +145,7 @@ impl PrefixTrie {
 
         // Recursive calls...
         for (_, children) in &mut self.sons {
-            children.merge_rankings_and_sort_recursive(src, src_length);
+            children.merge_rankings_and_sort_recursive(src);
         }
     }
     pub fn in_prefix_merge_upon_father_node(

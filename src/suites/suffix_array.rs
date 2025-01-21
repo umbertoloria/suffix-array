@@ -5,6 +5,7 @@ use crate::suffix_array::chunking::{
     get_indexes_from_factors, get_is_custom_vec,
 };
 use crate::suffix_array::prefix_trie::create_prefix_trie;
+use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 
 pub fn main_suffix_array() {
     let src = get_fasta_content("generated/001.fasta".into());
@@ -48,7 +49,10 @@ pub fn main_suffix_array() {
     // Ordering rankings.
     println!("Before merge");
     root.print(0, "".into());
-    root.merge_rankings_and_sort_recursive(src_str, src_length);
+
+    // Merge Rankings (Canonical and Custom)
+    root.merge_rankings_and_sort_recursive(src_str);
+
     println!("Before in_prefix");
     root.print(0, "".into());
 
@@ -62,10 +66,8 @@ fn compute_classic_suffix_array(src: &str) {
     for i in 0..src.len() {
         suffix_array.push((i, &src[i..]));
     }
-    suffix_array.sort_by(|a, b| a.1.cmp(b.1));
-
-    // println!("SUFFIX ARRAY={:?}", suffix_array);
+    sort_pair_vector_of_indexed_strings(&mut suffix_array);
     for (index, suffix) in suffix_array {
-        println!(" > SUFFIX_ARRAY[{}]={:?}", index, suffix);
+        println!(" > SUFFIX_ARRAY [{:3}] = {}", index, suffix);
     }
 }
