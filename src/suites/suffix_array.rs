@@ -10,6 +10,8 @@ pub fn main_suffix_array() {
     let src = get_fasta_content("generated/001.fasta".into());
     let src_str = src.as_str();
     let src_length = src.len();
+    println!("STRING={}", src_str);
+    compute_classic_suffix_array(src_str);
 
     // Compute ICFL
     let factors = icfl(src_str);
@@ -44,13 +46,26 @@ pub fn main_suffix_array() {
     let mut root = create_prefix_trie(&src, src_length, &custom_indexes, &is_custom_vec);
 
     // Ordering rankings.
-    // println!("Before merge");
-    // root.print(0, "".into());
+    println!("Before merge");
+    root.print(0, "".into());
     root.merge_rankings_and_sort_recursive(src_str, src_length);
-    // println!("Before in_prefix");
-    // root.print(0, "".into());
+    println!("Before in_prefix");
+    root.print(0, "".into());
 
     // In Prefix Merge: bit vector
-    root.in_prefix_merge_bit_vector(src_str, &icfl_indexes, &is_custom_vec, &factor_list);
-    root.print(0, "".into());
+    /*root.in_prefix_merge_bit_vector(src_str, &icfl_indexes, &is_custom_vec, &factor_list);
+    root.print(0, "".into());*/
+}
+
+fn compute_classic_suffix_array(src: &str) {
+    let mut suffix_array = Vec::new();
+    for i in 0..src.len() {
+        suffix_array.push((i, &src[i..]));
+    }
+    suffix_array.sort_by(|a, b| a.1.cmp(b.1));
+
+    // println!("SUFFIX ARRAY={:?}", suffix_array);
+    for (index, suffix) in suffix_array {
+        println!(" > SUFFIX_ARRAY[{}]={:?}", index, suffix);
+    }
 }
