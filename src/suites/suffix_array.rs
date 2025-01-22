@@ -73,21 +73,21 @@ pub fn main_suffix_array() {
     // CLASSIC SUFFIX ARRAY
     println!();
     let classic_suffix_array_computation = compute_classic_suffix_array(src_str, false);
-    let suffix_array = classic_suffix_array_computation.suffix_array;
+    let classic_suffix_array = classic_suffix_array_computation.suffix_array;
     println!("CLASSIC SUFFIX ARRAY CALCULATION");
     println!(
         " > Duration: {} seconds",
         classic_suffix_array_computation.duration.as_secs_f64()
     );
-    // println!(" > Suffix Array: {:?}", suffix_array);
+    // println!(" > Suffix Array: {:?}", classic_suffix_array);
 
     // VERIFICATION
-    if wbsa.len() != suffix_array.len() {
+    if wbsa.len() != classic_suffix_array.len() {
         println!("Wanna Be Suffix Array is insufficient in size");
     } else {
         let mut i = 0;
-        while i < suffix_array.len() {
-            let sa_item = suffix_array[i];
+        while i < classic_suffix_array.len() {
+            let sa_item = classic_suffix_array[i];
             let wbsa_item = wbsa[i];
             if wbsa_item != sa_item {
                 println!("Wanna Be Suffix Array is insufficient: element [{}] should be \"{}\" but is \"{}\"", i, sa_item, wbsa_item);
@@ -95,19 +95,22 @@ pub fn main_suffix_array() {
             }
             i += 1;
         }
-        if i == suffix_array.len() {
+        if i == classic_suffix_array.len() {
             println!("Wanna Be Suffix Array is PERFECT :)");
         }
     }
 }
 
 // CLASSIC SUFFIX ARRAY
-struct SuffixArrayCalculationOutput<'a> {
+struct ClassicSuffixArrayComputationResults<'a> {
     suffix_array: Vec<usize>,
     suffix_array_pairs: Vec<(usize, &'a str)>,
     duration: Duration,
 }
-fn compute_classic_suffix_array(src: &str, print_elements: bool) -> SuffixArrayCalculationOutput {
+fn compute_classic_suffix_array(
+    src: &str,
+    debug_verbose: bool,
+) -> ClassicSuffixArrayComputationResults {
     let before = Instant::now();
 
     let mut suffix_array_pairs = Vec::new();
@@ -124,7 +127,7 @@ fn compute_classic_suffix_array(src: &str, print_elements: bool) -> SuffixArrayC
     }
     let after = Instant::now();
 
-    if print_elements {
+    if debug_verbose {
         for (index, suffix) in &suffix_array_pairs {
             println!(" > SUFFIX_ARRAY [{:3}] = {}", index, suffix);
         }
@@ -132,7 +135,7 @@ fn compute_classic_suffix_array(src: &str, print_elements: bool) -> SuffixArrayC
 
     // println!("Total time: {}", duration.as_secs_f32());
 
-    SuffixArrayCalculationOutput {
+    ClassicSuffixArrayComputationResults {
         suffix_array: suffix_array_indexes,
         suffix_array_pairs,
         duration: after - before,
