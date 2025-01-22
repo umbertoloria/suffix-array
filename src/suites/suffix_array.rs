@@ -12,7 +12,7 @@ pub fn main_suffix_array() {
     let src_str = src.as_str();
     let src_length = src.len();
     println!("STRING={}", src_str);
-    // let suffix_array = compute_classic_suffix_array(src_str);
+    let suffix_array = compute_classic_suffix_array(src_str);
 
     // Compute ICFL
     let factors = icfl(src_str);
@@ -73,7 +73,7 @@ pub fn main_suffix_array() {
     println!("After SHRINK");
     root.print_with_wbsa(0, "".into(), &wbsa);
 
-    // println!("{:?}", suffix_array);
+    println!("{:?}", suffix_array);
 }
 
 fn compute_classic_suffix_array(src: &str) -> Vec<usize> {
