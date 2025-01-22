@@ -11,8 +11,7 @@ pub fn main_suffix_array() {
     let src = get_fasta_content("generated/001.fasta".into());
     let src_str = src.as_str();
     let src_length = src.len();
-    println!("STRING={}", src_str);
-    let suffix_array = compute_classic_suffix_array(src_str);
+    // println!("STRING={}", src_str);
 
     // Compute ICFL
     let factors = icfl(src_str);
@@ -58,10 +57,6 @@ pub fn main_suffix_array() {
     println!("Before SHRINK");
     root.print_with_wbsa(0, "".into(), &wbsa);
 
-    // In Prefix Merge: bit vector
-    /*root.in_prefix_merge_bit_vector(src_str, &icfl_indexes, &is_custom_vec, &factor_list);
-    root.print(0, "".into());*/
-
     root.shrink_bottom_up(
         &mut wbsa,
         src_str,
@@ -72,18 +67,41 @@ pub fn main_suffix_array() {
 
     println!("After SHRINK");
     root.print_with_wbsa(0, "".into(), &wbsa);
+    println!("{:?}", wbsa);
 
+    let suffix_array = compute_classic_suffix_array(src_str, false);
     println!("{:?}", suffix_array);
+
+    // FINAL CHECKER
+    if wbsa.len() != suffix_array.len() {
+        println!("Wanna Be Suffix Array is insufficient in size");
+    } else {
+        let mut i = 0;
+        while i < suffix_array.len() {
+            let sa_item = suffix_array[i];
+            let wbsa_item = wbsa[i];
+            if wbsa_item != sa_item {
+                println!("Wanna Be Suffix Array is insufficient: element [{}] should be \"{}\" but is \"{}\"", i, sa_item, wbsa_item);
+                break;
+            }
+            i += 1;
+        }
+        if i == suffix_array.len() {
+            println!("Wanna Be Suffix Array is PERFECT :)");
+        }
+    }
 }
 
-fn compute_classic_suffix_array(src: &str) -> Vec<usize> {
+fn compute_classic_suffix_array(src: &str, print_elements: bool) -> Vec<usize> {
     let mut suffix_array = Vec::new();
     for i in 0..src.len() {
         suffix_array.push((i, &src[i..]));
     }
     sort_pair_vector_of_indexed_strings(&mut suffix_array);
-    for (index, suffix) in &suffix_array {
-        println!(" > SUFFIX_ARRAY [{:3}] = {}", index, suffix);
+    if print_elements {
+        for (index, suffix) in &suffix_array {
+            println!(" > SUFFIX_ARRAY [{:3}] = {}", index, suffix);
+        }
     }
     let mut suffix_array_indexes = Vec::new();
     for &(index, _) in &suffix_array {
