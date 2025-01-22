@@ -6,6 +6,7 @@ use crate::suffix_array::chunking::{
 };
 use crate::suffix_array::prefix_trie::create_prefix_trie;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
+use std::time::{Duration, Instant};
 
 pub fn main_suffix_array() {
     let src = get_fasta_content("generated/001.fasta".into());
@@ -69,10 +70,18 @@ pub fn main_suffix_array() {
     root.print_with_wbsa(0, "".into(), &wbsa);
     println!("{:?}", wbsa);
 
-    let suffix_array = compute_classic_suffix_array(src_str, false);
-    println!("{:?}", suffix_array);
+    // CLASSIC SUFFIX ARRAY
+    println!();
+    let classic_suffix_array_computation = compute_classic_suffix_array(src_str, false);
+    let suffix_array = classic_suffix_array_computation.suffix_array;
+    println!("CLASSIC SUFFIX ARRAY CALCULATION");
+    println!(
+        " > Duration: {} seconds",
+        classic_suffix_array_computation.duration.as_secs_f64()
+    );
+    // println!(" > Suffix Array: {:?}", suffix_array);
 
-    // FINAL CHECKER
+    // VERIFICATION
     if wbsa.len() != suffix_array.len() {
         println!("Wanna Be Suffix Array is insufficient in size");
     } else {
@@ -92,20 +101,40 @@ pub fn main_suffix_array() {
     }
 }
 
-fn compute_classic_suffix_array(src: &str, print_elements: bool) -> Vec<usize> {
-    let mut suffix_array = Vec::new();
+// CLASSIC SUFFIX ARRAY
+struct SuffixArrayCalculationOutput<'a> {
+    suffix_array: Vec<usize>,
+    suffix_array_pairs: Vec<(usize, &'a str)>,
+    duration: Duration,
+}
+fn compute_classic_suffix_array(src: &str, print_elements: bool) -> SuffixArrayCalculationOutput {
+    let before = Instant::now();
+
+    let mut suffix_array_pairs = Vec::new();
+    // Create array of global suffixes
     for i in 0..src.len() {
-        suffix_array.push((i, &src[i..]));
+        suffix_array_pairs.push((i, &src[i..]));
     }
-    sort_pair_vector_of_indexed_strings(&mut suffix_array);
+    // Create sort by comparing global suffixes
+    sort_pair_vector_of_indexed_strings(&mut suffix_array_pairs);
+    // Extracting only indexes of previous array of pairs
+    let mut suffix_array_indexes = Vec::new();
+    for &(index, _) in &suffix_array_pairs {
+        suffix_array_indexes.push(index);
+    }
+    let after = Instant::now();
+
     if print_elements {
-        for (index, suffix) in &suffix_array {
+        for (index, suffix) in &suffix_array_pairs {
             println!(" > SUFFIX_ARRAY [{:3}] = {}", index, suffix);
         }
     }
-    let mut suffix_array_indexes = Vec::new();
-    for &(index, _) in &suffix_array {
-        suffix_array_indexes.push(index);
+
+    // println!("Total time: {}", duration.as_secs_f32());
+
+    SuffixArrayCalculationOutput {
+        suffix_array: suffix_array_indexes,
+        suffix_array_pairs,
+        duration: after - before,
     }
-    suffix_array_indexes
 }
