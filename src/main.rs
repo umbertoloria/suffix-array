@@ -1,10 +1,10 @@
 #![allow(warnings)]
 
+use suites::factorization::main_factorization;
+use suites::generation::main_generation;
+use suites::similarity::main_similarity;
 use suites::suffix::main_suffix;
 use suites::suffix_array::main_suffix_array;
-use suites::factorization::main_factorization;
-use suites::similarity::main_similarity;
-use suites::generation::main_generation;
 
 mod comparing;
 mod factorization;
@@ -13,8 +13,10 @@ mod suffix_array;
 mod suites;
 
 fn main() {
+    // TODO: Control this main with CLI Interface with Arguments
+
     // SUFFIX
-    // main_suffix()
+    // main_suffix();
 
     // FILES GENERATION
     // main_generation();

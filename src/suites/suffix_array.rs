@@ -9,6 +9,7 @@ use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::time::{Duration, Instant};
 
 pub fn main_suffix_array() {
+    // READING FILE
     let src = get_fasta_content("generated/001.fasta".into());
     let src_str = src.as_str();
     // println!("STRING={}", src_str);

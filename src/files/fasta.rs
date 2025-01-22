@@ -21,6 +21,7 @@ pub fn get_fasta_content(filepath: &str) -> String {
 
 pub fn save_fasta_with_content(filepath: String, whole_line: String) {
     let n = 70;
+    // TODO: Impossible to save huge amounts of data with this approach...
     let mut content = whole_line
         .chars()
         .enumerate()
