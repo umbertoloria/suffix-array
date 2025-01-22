@@ -1,6 +1,5 @@
-use std::fs;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 
 pub fn get_fasta_content(filepath: &str) -> String {
     let file =
@@ -20,18 +19,37 @@ pub fn get_fasta_content(filepath: &str) -> String {
 }
 
 pub fn save_fasta_with_content(filepath: String, whole_line: String) {
-    let n = 70;
-    // TODO: Impossible to save huge amounts of data with this approach...
-    let mut content = whole_line
-        .chars()
-        .enumerate()
-        .fold(String::new(), |acc, (i, c)| {
-            if i != 0 && i % n == 0 {
-                format!("{}\n{}", acc, c)
+    let max_chars_in_line = 70;
+
+    let string_length = whole_line.len();
+
+    let mut f = File::create(filepath).expect("Unable to create file");
+    f.write(format!(">GENERATED, with {} chars\n", string_length).as_bytes())
+        .expect("Unable to write first line");
+
+    let mut chars = whole_line.chars();
+
+    let mut i = 0;
+    while i < string_length {
+        // Write one line at a time
+        let mut curr_line = String::new();
+        while let Some(curr_char) = chars.next() {
+            curr_line.push(curr_char);
+            if curr_line.len() < max_chars_in_line {
+                // Ok.
             } else {
-                format!("{}{}", acc, c)
+                break;
             }
-        });
-    content = format!(">GENERATED\n{}\n", content);
-    fs::write(filepath, content).expect("Unable to write FASTA file");
+        }
+        i += curr_line.len();
+        curr_line.push('\n');
+        f.write(curr_line.as_bytes()).expect("Unable to write line");
+        if curr_line.len() < max_chars_in_line {
+            // No more chars.
+            break;
+        } else {
+            // There are many chars to come.
+        }
+        println!(" > Written chars {}/{}", i, string_length);
+    }
 }

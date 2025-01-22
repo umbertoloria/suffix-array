@@ -4,7 +4,7 @@ use rand::prelude::*;
 const GENETIC_ALPHABET: [char; 4] = ['A', 'C', 'G', 'T'];
 
 pub fn main_generation() {
-    let mut num_length = 70_000;
+    let mut num_length = 700_000;
 
     let max_chars_per_iteration = 100_000;
     let num_lines_max = num_length / max_chars_per_iteration;
@@ -31,7 +31,7 @@ pub fn main_generation() {
     }
     println!("Generated, now it's time to save...");
 
-    let filepath = "generated/002.fasta";
+    let filepath = "generated/002_700.fasta";
     save_fasta_with_content(filepath.into(), output);
 
     println!("OK!");

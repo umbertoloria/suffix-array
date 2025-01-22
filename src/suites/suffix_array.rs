@@ -10,12 +10,12 @@ use std::time::{Duration, Instant};
 
 pub fn main_suffix_array() {
     // READING FILE
-    let src = get_fasta_content("generated/001.fasta".into());
+    let src = get_fasta_content("generated/002_7000.fasta".into());
     let src_str = src.as_str();
     // println!("STRING={}", src_str);
 
     // INNOVATIVE SUFFIX ARRAY
-    let innovative_suffix_array_computation = compute_innovative_suffix_array(src_str, false);
+    let innovative_suffix_array_computation = compute_innovative_suffix_array(src_str, 5, false);
     let wbsa = innovative_suffix_array_computation.suffix_array;
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     println!(
@@ -41,17 +41,20 @@ pub fn main_suffix_array() {
         println!("Wanna Be Suffix Array is insufficient in size");
     } else {
         let mut i = 0;
+        let mut success = true;
         while i < classic_suffix_array.len() {
             let sa_item = classic_suffix_array[i];
             let wbsa_item = wbsa[i];
             if wbsa_item != sa_item {
                 println!("Wanna Be Suffix Array is insufficient: element [{}] should be \"{}\" but is \"{}\"", i, sa_item, wbsa_item);
-                break;
+                success = false;
             }
             i += 1;
         }
-        if i == classic_suffix_array.len() {
+        if success {
             println!("Wanna Be Suffix Array is PERFECT :)");
+        } else {
+            println!("Wanna Be Suffix Array is WRONG!!! :(");
         }
     }
 }
@@ -104,6 +107,7 @@ struct InnovativeSuffixArrayComputationResults {
 }
 fn compute_innovative_suffix_array(
     str: &str,
+    chunk_size: usize,
     debug_verbose: bool,
 ) -> InnovativeSuffixArrayComputationResults {
     let before = Instant::now();
@@ -113,7 +117,6 @@ fn compute_innovative_suffix_array(
     // Compute ICFL
     let factors = icfl(str);
 
-    let chunk_size = 3;
     // TODO: Simplify algorithms by having string length as last item of these Factor Index vectors
     let icfl_indexes = get_indexes_from_factors(&factors);
     let custom_indexes = get_custom_factors(&icfl_indexes, chunk_size, src_length);
