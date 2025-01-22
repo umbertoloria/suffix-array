@@ -62,7 +62,13 @@ pub fn main_suffix_array() {
     /*root.in_prefix_merge_bit_vector(src_str, &icfl_indexes, &is_custom_vec, &factor_list);
     root.print(0, "".into());*/
 
-    root.shrink_bottom_up(&mut wbsa);
+    root.shrink_bottom_up(
+        &mut wbsa,
+        src_str,
+        &icfl_indexes,
+        &is_custom_vec,
+        &factor_list,
+    );
 
     println!("After SHRINK");
     root.print_with_wbsa(0, "".into(), &wbsa);
