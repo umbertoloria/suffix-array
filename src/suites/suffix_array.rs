@@ -10,17 +10,17 @@ use std::time::{Duration, Instant};
 
 pub fn main_suffix_array() {
     // READING FILE
-    let src = get_fasta_content("generated/002_7000.fasta".into());
+    let src = get_fasta_content("generated/001.fasta".into());
     let src_str = src.as_str();
     // println!("STRING={}", src_str);
 
     // INNOVATIVE SUFFIX ARRAY
-    let innovative_suffix_array_computation = compute_innovative_suffix_array(src_str, 5, false);
+    let innovative_suffix_array_computation = compute_innovative_suffix_array(src_str, 7, true);
     let wbsa = innovative_suffix_array_computation.suffix_array;
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     println!(
-        " > Duration: {} seconds",
-        innovative_suffix_array_computation.duration.as_secs_f64()
+        " > Duration: {:10} micros",
+        innovative_suffix_array_computation.duration.as_micros()
     );
     // println!(" > Suffix Array: {:?}", wbsa);
 
@@ -30,8 +30,8 @@ pub fn main_suffix_array() {
     let classic_suffix_array = classic_suffix_array_computation.suffix_array;
     println!("CLASSIC SUFFIX ARRAY CALCULATION");
     println!(
-        " > Duration: {} seconds",
-        classic_suffix_array_computation.duration.as_secs_f64()
+        " > Duration: {:10} micros",
+        classic_suffix_array_computation.duration.as_micros()
     );
     // println!(" > Suffix Array: {:?}", classic_suffix_array);
 

@@ -205,8 +205,12 @@ impl PrefixTrie {
 
                     // Pre-dimensioning the auxiliary memory for new Node's Rankings calculation
                     let mut children_rankings_count = 0;
+                    // let mut max_child_suffix_len = 0;
                     for son in sons {
                         children_rankings_count += son.wbsa_q - son.wbsa_p;
+                        /*if max_child_suffix_len < son.suffix_len {
+                            max_child_suffix_len = son.suffix_len;
+                        }*/
                     }
                     let mut result = Vec::with_capacity(
                         // Father Rankings count
@@ -221,6 +225,8 @@ impl PrefixTrie {
                         // possible) and putting first the ones that are < Child Suffix.
                         let child_suffix_len = son.suffix_len;
                         let child_ls = &src[wbsa[son.wbsa_p]..wbsa[son.wbsa_p] + child_suffix_len];
+                        /*let child_ls = &src[wbsa[son.wbsa_p]
+                        ..usize::min(wbsa[son.wbsa_p] + child_suffix_len, src.len())];*/
                         /*println!(
                             " > merge father={} {:?} with child={} {:?}",
                             self.label,
@@ -229,6 +235,7 @@ impl PrefixTrie {
                             &wbsa[son.wbsa_p..son.wbsa_q],
                         );*/
 
+                        // println!("   > phase 1: first father's smaller than child");
                         while i_father_index < self.wbsa_q {
                             let curr_father_ls_index = wbsa[i_father_index];
                             let curr_father_ls = &src[curr_father_ls_index
@@ -237,6 +244,7 @@ impl PrefixTrie {
                             // Comparing strings.
                             if curr_father_ls < child_ls {
                                 result.push(curr_father_ls_index);
+                                // println!("   > father ls index {curr_father_ls_index} added first");
                                 i_father_index += 1;
                             } else {
                                 // Found a Father Suffix that is >= Child Suffix.
@@ -256,6 +264,7 @@ impl PrefixTrie {
                         // Curr. Father Suffixes that are equal to Curr. Child Suffix, and lose the
                         // possibility to use "RULES".
 
+                        // println!("   > phase 2: window for comparing using \"RULES\"");
                         let mut max_i_father_index = i_father_index;
                         while max_i_father_index < self.wbsa_q {
                             let curr_father_ls_index = wbsa[max_i_father_index];
@@ -270,6 +279,7 @@ impl PrefixTrie {
                                 max_i_father_index += 1;
                             }
                         }
+                        // println!("     > [{}, {})", i_father_index, max_i_father_index);
 
                         // Ok, now we can use "RULES" for all items between "i_father_index" (incl.)
                         // and "max_i_father_index" (excl.).
@@ -277,6 +287,9 @@ impl PrefixTrie {
                         while i_father_index < max_i_father_index && j_child_index < son.wbsa_q {
                             let curr_father_ls_index = wbsa[i_father_index];
                             let curr_child_ls_index = wbsa[j_child_index];
+                            // FIXME: The value "child_suffix_len" should be the same as what were
+                            //  saved in its Native Node. Shrinking should preserve that
+                            //  Child Suffix Length, otherwise there's a bug :(
                             let result_rules = Self::rules(
                                 curr_father_ls_index,
                                 curr_child_ls_index,
@@ -287,15 +300,28 @@ impl PrefixTrie {
                                 &factor_list,
                             );
                             if !result_rules {
+                                /*println!(
+                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
+                                    &src
+                                        [curr_father_ls_index..curr_father_ls_index + child_suffix_len], curr_father_ls_index, &src
+                                            [curr_child_ls_index..curr_child_ls_index + child_suffix_len], curr_child_ls_index, child_suffix_len
+                                );*/
                                 result.push(curr_father_ls_index);
                                 i_father_index += 1;
                             } else {
+                                /*println!(
+                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: son wins",
+                                    &src
+                                        [curr_father_ls_index..curr_father_ls_index + child_suffix_len], curr_father_ls_index, &src
+                                        [curr_child_ls_index..curr_child_ls_index + child_suffix_len], curr_child_ls_index, child_suffix_len
+                                );*/
                                 result.push(curr_child_ls_index);
                                 j_child_index += 1;
                             }
                         }
                         // Ok, we first take all Child Suffixes left, then continue to insert all
                         // Father Suffixes left.
+                        // println!("   > phase 3: then the last father's");
                         while j_child_index < son.wbsa_q {
                             result.push(wbsa[j_child_index]);
                             j_child_index += 1;
@@ -314,6 +340,7 @@ impl PrefixTrie {
                         wbsa[i_father_index] = result_item;
                         i_father_index += 1;
                     }
+                    // self.suffix_len = max_child_suffix_len;
                     self.shrunk = true;
 
                     self.sons.clear();
