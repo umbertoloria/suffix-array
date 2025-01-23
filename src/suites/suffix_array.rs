@@ -19,8 +19,12 @@ pub fn main_suffix_array() {
     let wbsa = innovative_suffix_array_computation.suffix_array;
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     println!(
-        " > Duration: {:10} micros",
+        " > Duration: {:15} micros",
         innovative_suffix_array_computation.duration.as_micros()
+    );
+    println!(
+        " > Duration: {:15.3} seconds",
+        innovative_suffix_array_computation.duration.as_secs_f64()
     );
     // println!(" > Suffix Array: {:?}", wbsa);
 
@@ -30,8 +34,12 @@ pub fn main_suffix_array() {
     let classic_suffix_array = classic_suffix_array_computation.suffix_array;
     println!("CLASSIC SUFFIX ARRAY CALCULATION");
     println!(
-        " > Duration: {:10} micros",
+        " > Duration: {:15} micros",
         classic_suffix_array_computation.duration.as_micros()
+    );
+    println!(
+        " > Duration: {:15.3} seconds",
+        classic_suffix_array_computation.duration.as_secs_f64()
     );
     // println!(" > Suffix Array: {:?}", classic_suffix_array);
 
