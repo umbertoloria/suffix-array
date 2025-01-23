@@ -109,6 +109,87 @@ pub struct PrefixTrie {
     pub shrunk: bool,
 }
 impl PrefixTrie {
+    // Getters
+    fn get_buff_index_left(&self) -> usize {
+        self.wbsa_p
+    }
+    fn get_buff_index_right_excl(&self) -> usize {
+        self.wbsa_q
+    }
+    fn get_rankings_count(&self) -> usize {
+        self.get_buff_index_right_excl() - self.get_buff_index_left()
+    }
+    fn get_max_buff_index_right_excl_from_righted_child(&self) -> usize {
+        if self.sons.is_empty() {
+            self.get_buff_index_right_excl()
+        } else {
+            let sons = &self.sons.values().collect::<Vec<_>>();
+            let last_son = sons[sons.len() - 1];
+            last_son.get_max_buff_index_right_excl_from_righted_child()
+        }
+    }
+    fn get_first_ls_index(&self, wbsa: &Vec<usize>) -> usize {
+        wbsa[self.get_buff_index_left()]
+    }
+    fn get_rankings<'a>(&self, wbsa: &'a Vec<usize>) -> &'a [usize] {
+        &wbsa[self.get_buff_index_left()..self.get_buff_index_right_excl()]
+    }
+    fn get_string_from_first_ranking_with_length<'a>(
+        &self,
+        wbsa: &Vec<usize>,
+        str: &'a str,
+        string_length: usize,
+    ) -> &'a str {
+        let child_ls_index = self.get_first_ls_index(wbsa);
+        &str[child_ls_index..child_ls_index + string_length]
+    }
+
+    // Prints
+    pub fn print(&self, tabs_offset: usize, prefix: String) {
+        /*if self.sons.len() == 1 {
+            let char_key = self.sons.keys().collect::<Vec<_>>()[0];
+            self.sons
+                .get(char_key)
+                .unwrap()
+                .print(tabs_offset, format!("{}{}", prefix, char_key));
+        } else {*/
+        println!(
+            "{}|{:2}: \"{}\" {}",
+            "\t".repeat(tabs_offset),
+            tabs_offset,
+            prefix,
+            // self.label,
+            format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom),
+        );
+        for (char_key, node) in &self.sons {
+            node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
+        }
+        // }
+    }
+    pub fn print_with_wbsa(&self, tabs_offset: usize, prefix: String, wbsa: &Vec<usize>) {
+        /*if self.sons.len() == 1 {
+            let char_key = self.sons.keys().collect::<Vec<_>>()[0];
+            self.sons
+                .get(char_key)
+                .unwrap()
+                .print(tabs_offset, format!("{}{}", prefix, char_key));
+        } else {*/
+        println!(
+            "{}\"{}\" {:?}   [{}..{})",
+            "\t".repeat(tabs_offset),
+            prefix,
+            // self.label,
+            self.get_rankings(wbsa),
+            self.get_buff_index_left(),
+            self.get_buff_index_right_excl(),
+        );
+        for (char_key, node) in &self.sons {
+            node.print_with_wbsa(tabs_offset + 1, format!("{}{}", prefix, char_key), wbsa);
+        }
+        // }
+    }
+
+    // Tree transformation
     pub fn merge_rankings_and_sort_recursive(
         &mut self,
         src: &str,
@@ -160,27 +241,32 @@ impl PrefixTrie {
             self.shrunk = true;
             /*println!(
                 "SHRINK THE LEAF \"{}\" => {:?} (from {} to {})",
-                self.label, &wbsa[self.wbsa_p..self.wbsa_q], self.wbsa_p, self.wbsa_q
+                self.label,
+                self.get_rankings(wbsa),
+                self.get_buff_index_left(),
+                self.get_buff_index_right_excl()
             );*/
         } else {
             // Shrink sons
             for (_, son) in &mut self.sons {
                 son.shrink_bottom_up(wbsa, src, icfl_indexes, is_custom_vec, factor_list);
             }
-            let max_wbsa_q = self.get_max_wbsa_q();
             /*println!(
                 "SHRINK MERGING SONS OF \"{}\": from {} to {} (extended to {})",
-                self.label, self.wbsa_p, self.wbsa_q, max_wbsa_q
+                self.label,
+                self.get_buff_index_left(),
+                self.get_buff_index_right_excl(),
+                self.get_max_last_excl_wbsa_index_from_last_child()
             );*/
 
             if self.suffix_len > 0 {
                 // Merge and Sort current Rankings
 
-                if self.has_no_rankings() {
+                if self.get_rankings_count() == 0 {
                     // This is a "bridge" node, to we take the Rankings or the son in order.
 
                     // TODO: Demonstrate this
-                    self.wbsa_q = max_wbsa_q;
+                    self.wbsa_q = self.get_max_buff_index_right_excl_from_righted_child();
                     self.shrunk = true;
 
                     self.sons.clear();
@@ -197,24 +283,28 @@ impl PrefixTrie {
                     let mut result =
                         Vec::with_capacity(self.get_rankings_count() + children_rankings_count);
 
-                    let mut i_father_index = self.wbsa_p;
+                    let mut i_father_index = self.get_buff_index_left();
                     for son in sons {
                         // Start by comparing Father Suffixes (using the length of this son, if
                         // possible) and putting first the ones that are < Child Suffix.
                         let child_suffix_len = son.suffix_len;
-                        let child_ls = &src[wbsa[son.wbsa_p]..wbsa[son.wbsa_p] + child_suffix_len];
+                        let child_ls = son.get_string_from_first_ranking_with_length(
+                            wbsa,
+                            src,
+                            child_suffix_len,
+                        );
                         /*let child_ls = &src[wbsa[son.wbsa_p]
                         ..usize::min(wbsa[son.wbsa_p] + child_suffix_len, src.len())];*/
                         /*println!(
                             " > merge father={} {:?} with child={} {:?}",
                             self.label,
-                            &wbsa[self.wbsa_p..self.wbsa_q],
+                            self.get_rankings(wbsa),
                             son.label,
-                            &wbsa[son.wbsa_p..son.wbsa_q],
+                            son.get_rankings(wbsa),
                         );*/
 
                         // println!("   > phase 1: first father's smaller than child");
-                        while i_father_index < self.wbsa_q {
+                        while i_father_index < self.get_buff_index_right_excl() {
                             let curr_father_ls_index = wbsa[i_father_index];
                             let curr_father_ls = &src[curr_father_ls_index
                                 ..usize::min(curr_father_ls_index + child_suffix_len, src.len())];
@@ -222,7 +312,10 @@ impl PrefixTrie {
                             // Comparing strings.
                             if curr_father_ls < child_ls {
                                 result.push(curr_father_ls_index);
-                                // println!("   > father ls index {curr_father_ls_index} added first");
+                                /*println!(
+                                    "   > father ls index {} added first",
+                                    curr_father_ls_index
+                                );*/
                                 i_father_index += 1;
                             } else {
                                 // Found a Father Suffix that is >= Child Suffix.
@@ -244,7 +337,7 @@ impl PrefixTrie {
 
                         // println!("   > phase 2: window for comparing using \"RULES\"");
                         let mut max_i_father_index = i_father_index;
-                        while max_i_father_index < self.wbsa_q {
+                        while max_i_father_index < self.get_buff_index_right_excl() {
                             let curr_father_ls_index = wbsa[max_i_father_index];
                             let curr_father_ls = &src[curr_father_ls_index
                                 ..usize::min(curr_father_ls_index + child_suffix_len, src.len())];
@@ -261,8 +354,10 @@ impl PrefixTrie {
 
                         // Ok, now we can use "RULES" for all items between "i_father_index" (incl.)
                         // and "max_i_father_index" (excl.).
-                        let mut j_child_index = son.wbsa_p;
-                        while i_father_index < max_i_father_index && j_child_index < son.wbsa_q {
+                        let mut j_child_index = son.get_buff_index_left();
+                        while i_father_index < max_i_father_index
+                            && j_child_index < son.get_buff_index_right_excl()
+                        {
                             let curr_father_ls_index = wbsa[i_father_index];
                             let curr_child_ls_index = wbsa[j_child_index];
                             // FIXME: The value "child_suffix_len" should be the same as what were
@@ -300,20 +395,20 @@ impl PrefixTrie {
                         // Ok, we first take all Child Suffixes left, then continue to insert all
                         // Father Suffixes left.
                         // println!("   > phase 3: then the last father's");
-                        while j_child_index < son.wbsa_q {
+                        while j_child_index < son.get_buff_index_right_excl() {
                             result.push(wbsa[j_child_index]);
                             j_child_index += 1;
                         }
                     }
                     // Ok, we now insert all Father Suffixes left.
-                    while i_father_index < self.wbsa_q {
+                    while i_father_index < self.get_buff_index_right_excl() {
                         result.push(wbsa[i_father_index]);
                         i_father_index += 1;
                     }
 
                     // Here we finally apply "result" data into the "Wanna Be Suffix Array" :)
                     self.wbsa_q = self.wbsa_p + result.len();
-                    i_father_index = self.wbsa_p;
+                    i_father_index = self.get_buff_index_left();
                     for result_item in result {
                         wbsa[i_father_index] = result_item;
                         i_father_index += 1;
@@ -321,30 +416,12 @@ impl PrefixTrie {
                     self.shrunk = true;
 
                     self.sons.clear();
-                    /*println!(
-                        "   > done with result={:?}",
-                        &wbsa[self.wbsa_p..self.wbsa_q]
-                    );*/
+                    // println!("   > done with result={:?}", self.get_rankings(wbsa));
                 }
             } else {
                 // This is the Root Node. Useless to merge First Level Children since the
                 // "Wanna Be Suffix Array" is already fully computed :)
             }
-        }
-    }
-    fn get_rankings_count(&self) -> usize {
-        self.wbsa_q - self.wbsa_p
-    }
-    fn has_no_rankings(&self) -> bool {
-        self.get_rankings_count() == 0
-    }
-    fn get_max_wbsa_q(&self) -> usize {
-        if self.sons.is_empty() {
-            self.wbsa_q
-        } else {
-            let sons = &self.sons.values().collect::<Vec<_>>();
-            let last_son = sons[sons.len() - 1];
-            last_son.get_max_wbsa_q()
         }
     }
     fn rules(
@@ -426,49 +503,5 @@ impl PrefixTrie {
                 }
             }
         }
-    }
-    pub fn print(&self, tabs_offset: usize, prefix: String) {
-        /*if self.sons.len() == 1 {
-            let char_key = self.sons.keys().collect::<Vec<_>>()[0];
-            self.sons
-                .get(char_key)
-                .unwrap()
-                .print(tabs_offset, format!("{}{}", prefix, char_key));
-        } else {*/
-        println!(
-            "{}|{:2}: \"{}\" {}",
-            "\t".repeat(tabs_offset),
-            tabs_offset,
-            prefix,
-            // self.label,
-            format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom),
-        );
-        for (char_key, node) in &self.sons {
-            node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
-        }
-        // }
-    }
-    pub fn print_with_wbsa(&self, tabs_offset: usize, prefix: String, wbsa: &Vec<usize>) {
-        /*if self.sons.len() == 1 {
-            let char_key = self.sons.keys().collect::<Vec<_>>()[0];
-            self.sons
-                .get(char_key)
-                .unwrap()
-                .print(tabs_offset, format!("{}{}", prefix, char_key));
-        } else {*/
-        let rankings = &wbsa[self.wbsa_p..self.wbsa_q];
-        println!(
-            "{}\"{}\" {}   [{}..{})",
-            "\t".repeat(tabs_offset),
-            prefix,
-            // self.label,
-            format!("{:?}", rankings),
-            self.wbsa_p,
-            self.wbsa_q,
-        );
-        for (char_key, node) in &self.sons {
-            node.print_with_wbsa(tabs_offset + 1, format!("{}{}", prefix, char_key), wbsa);
-        }
-        // }
     }
 }
