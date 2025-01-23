@@ -17,12 +17,9 @@ pub fn create_prefix_trie(
         sons: BTreeMap::new(),
         rankings_canonical: Vec::new(),
         rankings_custom: Vec::new(),
-        // rankings: Vec::new(),
         wbsa_p: 0,
         wbsa_q: 0,
         shrunk: false,
-        min_father: None,
-        max_father: None,
     };
 
     let custom_indexes_len = custom_indexes.len();
@@ -74,12 +71,9 @@ pub fn create_prefix_trie(
                             sons: BTreeMap::new(),
                             rankings_canonical: Vec::new(),
                             rankings_custom: Vec::new(),
-                            // rankings: Vec::new(),
                             wbsa_p: 0,
                             wbsa_q: 0,
                             shrunk: false,
-                            min_father: None,
-                            max_father: None,
                         },
                     );
                 }
@@ -110,12 +104,9 @@ pub struct PrefixTrie {
     pub sons: BTreeMap<char, PrefixTrie>,
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
-    // pub rankings: Vec<usize>,
     pub wbsa_p: usize, // Incl.
     pub wbsa_q: usize, // Excl.
     pub shrunk: bool,
-    pub min_father: Option<usize>,
-    pub max_father: Option<usize>,
 }
 impl PrefixTrie {
     pub fn merge_rankings_and_sort_recursive(
@@ -139,11 +130,6 @@ impl PrefixTrie {
             // TODO: Maybe sorting is sometimes avoidable
             sort_pair_vector_of_indexed_strings(&mut new_rankings);
             // Update list only if strings were actually sorted and moved.
-            /*self.rankings.clear();
-            for (index, _) in new_rankings {
-                self.rankings.push(index);
-            }
-            for &ranking in &self.rankings {*/
             for (index, _) in new_rankings {
                 wbsa[p] = index;
                 p += 1;
@@ -190,7 +176,7 @@ impl PrefixTrie {
             if self.suffix_len > 0 {
                 // Merge and Sort current Rankings
 
-                if self.wbsa_p == self.wbsa_q {
+                if self.has_no_rankings() {
                     // This is a "bridge" node, to we take the Rankings or the son in order.
 
                     // TODO: Demonstrate this
@@ -205,19 +191,11 @@ impl PrefixTrie {
 
                     // Pre-dimensioning the auxiliary memory for new Node's Rankings calculation
                     let mut children_rankings_count = 0;
-                    // let mut max_child_suffix_len = 0;
                     for son in sons {
-                        children_rankings_count += son.wbsa_q - son.wbsa_p;
-                        /*if max_child_suffix_len < son.suffix_len {
-                            max_child_suffix_len = son.suffix_len;
-                        }*/
+                        children_rankings_count += son.get_rankings_count();
                     }
-                    let mut result = Vec::with_capacity(
-                        // Father Rankings count
-                        (self.wbsa_q - self.wbsa_p)
-                        // Children Rankings count
-                        + children_rankings_count,
-                    );
+                    let mut result =
+                        Vec::with_capacity(self.get_rankings_count() + children_rankings_count);
 
                     let mut i_father_index = self.wbsa_p;
                     for son in sons {
@@ -340,7 +318,6 @@ impl PrefixTrie {
                         wbsa[i_father_index] = result_item;
                         i_father_index += 1;
                     }
-                    // self.suffix_len = max_child_suffix_len;
                     self.shrunk = true;
 
                     self.sons.clear();
@@ -354,6 +331,12 @@ impl PrefixTrie {
                 // "Wanna Be Suffix Array" is already fully computed :)
             }
         }
+    }
+    fn get_rankings_count(&self) -> usize {
+        self.wbsa_q - self.wbsa_p
+    }
+    fn has_no_rankings(&self) -> bool {
+        self.get_rankings_count() == 0
     }
     fn get_max_wbsa_q(&self) -> usize {
         if self.sons.is_empty() {
@@ -453,22 +436,12 @@ impl PrefixTrie {
                 .print(tabs_offset, format!("{}{}", prefix, char_key));
         } else {*/
         println!(
-            "{}|{:2}: \"{}\" {}, min= {}, MAX= {}",
+            "{}|{:2}: \"{}\" {}",
             "\t".repeat(tabs_offset),
             tabs_offset,
             prefix,
             // self.label,
             format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom),
-            if let Some(min_father) = self.min_father {
-                min_father as i16
-            } else {
-                -1
-            },
-            if let Some(max_father) = self.max_father {
-                max_father as i16
-            } else {
-                -1
-            },
         );
         for (char_key, node) in &self.sons {
             node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
