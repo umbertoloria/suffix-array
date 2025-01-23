@@ -246,182 +246,179 @@ impl PrefixTrie {
                 self.get_buff_index_left(),
                 self.get_buff_index_right_excl()
             );*/
-        } else {
-            // Shrink sons
-            for (_, son) in &mut self.sons {
-                son.shrink_bottom_up(wbsa, src, icfl_indexes, is_custom_vec, factor_list);
-            }
-            /*println!(
-                "SHRINK MERGING SONS OF \"{}\": from {} to {} (extended to {})",
-                self.label,
-                self.get_buff_index_left(),
-                self.get_buff_index_right_excl(),
-                self.get_max_last_excl_wbsa_index_from_last_child()
-            );*/
+            return;
+        }
+        // Shrink sons
+        for (_, son) in &mut self.sons {
+            son.shrink_bottom_up(wbsa, src, icfl_indexes, is_custom_vec, factor_list);
+        }
+        /*println!(
+            "SHRINK MERGING SONS OF \"{}\": from {} to {} (extended to {})",
+            self.label,
+            self.get_buff_index_left(),
+            self.get_buff_index_right_excl(),
+            self.get_max_last_excl_wbsa_index_from_last_child()
+        );*/
 
-            if self.suffix_len > 0 {
-                // Merge and Sort current Rankings
+        if self.suffix_len > 0 {
+            // Merge and Sort current Rankings
 
-                if self.get_rankings_count() == 0 {
-                    // This is a "bridge" node, to we take the Rankings or the son in order.
+            if self.get_rankings_count() == 0 {
+                // This is a "bridge" node, to we take the Rankings or the son in order.
 
-                    // TODO: Demonstrate this
-                    self.wbsa_q = self.get_max_buff_index_right_excl_from_righted_child();
-                    self.shrunk = true;
+                // TODO: Demonstrate this
+                self.wbsa_q = self.get_max_buff_index_right_excl_from_righted_child();
+                self.shrunk = true;
 
-                    self.sons.clear();
+                self.sons.clear();
 
-                    // println!(" > \"bridge\" node {} fused with sons", self.label);
-                } else {
-                    let sons = &self.sons.values().collect::<Vec<_>>();
+                // println!(" > \"bridge\" node {} fused with sons", self.label);
+            } else {
+                let sons = &self.sons.values().collect::<Vec<_>>();
 
-                    // Pre-dimensioning the auxiliary memory for new Node's Rankings calculation
-                    let mut children_rankings_count = 0;
-                    for son in sons {
-                        children_rankings_count += son.get_rankings_count();
+                // Pre-dimensioning the auxiliary memory for new Node's Rankings calculation
+                let mut children_rankings_count = 0;
+                for son in sons {
+                    children_rankings_count += son.get_rankings_count();
+                }
+                let mut result =
+                    Vec::with_capacity(self.get_rankings_count() + children_rankings_count);
+
+                let mut i_father_index = self.get_buff_index_left();
+                for son in sons {
+                    // Start by comparing Father Suffixes (using the length of this son, if
+                    // possible) and putting first the ones that are < Child Suffix.
+                    let child_suffix_len = son.suffix_len;
+                    let child_ls =
+                        son.get_string_from_first_ranking_with_length(wbsa, src, child_suffix_len);
+                    /*let child_ls = &src[wbsa[son.wbsa_p]
+                    ..usize::min(wbsa[son.wbsa_p] + child_suffix_len, src.len())];*/
+                    /*println!(
+                        " > merge father={} {:?} with child={} {:?}",
+                        self.label,
+                        self.get_rankings(wbsa),
+                        son.label,
+                        son.get_rankings(wbsa),
+                    );*/
+
+                    // println!("   > phase 1: first father's smaller than child");
+                    while i_father_index < self.get_buff_index_right_excl() {
+                        let curr_father_ls_index = wbsa[i_father_index];
+                        let curr_father_ls = &src[curr_father_ls_index
+                            ..usize::min(curr_father_ls_index + child_suffix_len, src.len())];
+
+                        // Comparing strings.
+                        if curr_father_ls < child_ls {
+                            result.push(curr_father_ls_index);
+                            /*println!(
+                                "   > father ls index {} added first",
+                                curr_father_ls_index
+                            );*/
+                            i_father_index += 1;
+                        } else {
+                            // Found a Father Suffix that is >= Child Suffix.
+                            break;
+                        }
                     }
-                    let mut result =
-                        Vec::with_capacity(self.get_rankings_count() + children_rankings_count);
 
-                    let mut i_father_index = self.get_buff_index_left();
-                    for son in sons {
-                        // Start by comparing Father Suffixes (using the length of this son, if
-                        // possible) and putting first the ones that are < Child Suffix.
-                        let child_suffix_len = son.suffix_len;
-                        let child_ls = son.get_string_from_first_ranking_with_length(
-                            wbsa,
-                            src,
+                    // From now, for all Father Suffixes that we'll encounter will always hold:
+                    //  -> Curr. Father Suffix >= Curr. Child Suffix
+                    // We'll use "RULES" to manage comparisons between pairs that are "equal".
+                    // This means that the real differences are only beyond these suffixes, so
+                    // considering them as Global Suffixes and not Local Suffixes.
+
+                    // These comparisons using "RULES" are only valid until:
+                    //  -> Curr. Father Suffix == Curr. Child Suffix
+                    // Let's find out the max index, after which we no longer have
+                    // Curr. Father Suffixes that are equal to Curr. Child Suffix, and lose the
+                    // possibility to use "RULES".
+
+                    // println!("   > phase 2: window for comparing using \"RULES\"");
+                    let mut max_i_father_index = i_father_index;
+                    while max_i_father_index < self.get_buff_index_right_excl() {
+                        let curr_father_ls_index = wbsa[max_i_father_index];
+                        let curr_father_ls = &src[curr_father_ls_index
+                            ..usize::min(curr_father_ls_index + child_suffix_len, src.len())];
+
+                        // Comparing strings.
+                        if curr_father_ls > child_ls {
+                            // Found Father Suffix that is > Curr. Child Suffix.
+                            break;
+                        } else {
+                            max_i_father_index += 1;
+                        }
+                    }
+                    // println!("     > [{}, {})", i_father_index, max_i_father_index);
+
+                    // Ok, now we can use "RULES" for all items between "i_father_index" (incl.)
+                    // and "max_i_father_index" (excl.).
+                    let mut j_child_index = son.get_buff_index_left();
+                    while i_father_index < max_i_father_index
+                        && j_child_index < son.get_buff_index_right_excl()
+                    {
+                        let curr_father_ls_index = wbsa[i_father_index];
+                        let curr_child_ls_index = wbsa[j_child_index];
+                        // FIXME: The value "child_suffix_len" should be the same as what were
+                        //  saved in its Native Node. Shrinking should preserve that
+                        //  Child Suffix Length, otherwise there's a bug :(
+                        let result_rules = Self::rules(
+                            curr_father_ls_index,
+                            curr_child_ls_index,
                             child_suffix_len,
+                            src,
+                            &icfl_indexes,
+                            &is_custom_vec,
+                            &factor_list,
                         );
-                        /*let child_ls = &src[wbsa[son.wbsa_p]
-                        ..usize::min(wbsa[son.wbsa_p] + child_suffix_len, src.len())];*/
-                        /*println!(
-                            " > merge father={} {:?} with child={} {:?}",
-                            self.label,
-                            self.get_rankings(wbsa),
-                            son.label,
-                            son.get_rankings(wbsa),
-                        );*/
-
-                        // println!("   > phase 1: first father's smaller than child");
-                        while i_father_index < self.get_buff_index_right_excl() {
-                            let curr_father_ls_index = wbsa[i_father_index];
-                            let curr_father_ls = &src[curr_father_ls_index
-                                ..usize::min(curr_father_ls_index + child_suffix_len, src.len())];
-
-                            // Comparing strings.
-                            if curr_father_ls < child_ls {
-                                result.push(curr_father_ls_index);
-                                /*println!(
-                                    "   > father ls index {} added first",
-                                    curr_father_ls_index
-                                );*/
-                                i_father_index += 1;
-                            } else {
-                                // Found a Father Suffix that is >= Child Suffix.
-                                break;
-                            }
-                        }
-
-                        // From now, for all Father Suffixes that we'll encounter will always hold:
-                        //  -> Curr. Father Suffix >= Curr. Child Suffix
-                        // We'll use "RULES" to manage comparisons between pairs that are "equal".
-                        // This means that the real differences are only beyond these suffixes, so
-                        // considering them as Global Suffixes and not Local Suffixes.
-
-                        // These comparisons using "RULES" are only valid until:
-                        //  -> Curr. Father Suffix == Curr. Child Suffix
-                        // Let's find out the max index, after which we no longer have
-                        // Curr. Father Suffixes that are equal to Curr. Child Suffix, and lose the
-                        // possibility to use "RULES".
-
-                        // println!("   > phase 2: window for comparing using \"RULES\"");
-                        let mut max_i_father_index = i_father_index;
-                        while max_i_father_index < self.get_buff_index_right_excl() {
-                            let curr_father_ls_index = wbsa[max_i_father_index];
-                            let curr_father_ls = &src[curr_father_ls_index
-                                ..usize::min(curr_father_ls_index + child_suffix_len, src.len())];
-
-                            // Comparing strings.
-                            if curr_father_ls > child_ls {
-                                // Found Father Suffix that is > Curr. Child Suffix.
-                                break;
-                            } else {
-                                max_i_father_index += 1;
-                            }
-                        }
-                        // println!("     > [{}, {})", i_father_index, max_i_father_index);
-
-                        // Ok, now we can use "RULES" for all items between "i_father_index" (incl.)
-                        // and "max_i_father_index" (excl.).
-                        let mut j_child_index = son.get_buff_index_left();
-                        while i_father_index < max_i_father_index
-                            && j_child_index < son.get_buff_index_right_excl()
-                        {
-                            let curr_father_ls_index = wbsa[i_father_index];
-                            let curr_child_ls_index = wbsa[j_child_index];
-                            // FIXME: The value "child_suffix_len" should be the same as what were
-                            //  saved in its Native Node. Shrinking should preserve that
-                            //  Child Suffix Length, otherwise there's a bug :(
-                            let result_rules = Self::rules(
-                                curr_father_ls_index,
-                                curr_child_ls_index,
-                                child_suffix_len,
-                                src,
-                                &icfl_indexes,
-                                &is_custom_vec,
-                                &factor_list,
-                            );
-                            if !result_rules {
-                                /*println!(
-                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
-                                    &src
-                                        [curr_father_ls_index..curr_father_ls_index + child_suffix_len], curr_father_ls_index, &src
-                                            [curr_child_ls_index..curr_child_ls_index + child_suffix_len], curr_child_ls_index, child_suffix_len
-                                );*/
-                                result.push(curr_father_ls_index);
-                                i_father_index += 1;
-                            } else {
-                                /*println!(
-                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: son wins",
-                                    &src
-                                        [curr_father_ls_index..curr_father_ls_index + child_suffix_len], curr_father_ls_index, &src
+                        if !result_rules {
+                            /*println!(
+                                "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
+                                &src
+                                    [curr_father_ls_index..curr_father_ls_index + child_suffix_len], curr_father_ls_index, &src
                                         [curr_child_ls_index..curr_child_ls_index + child_suffix_len], curr_child_ls_index, child_suffix_len
-                                );*/
-                                result.push(curr_child_ls_index);
-                                j_child_index += 1;
-                            }
-                        }
-                        // Ok, we first take all Child Suffixes left, then continue to insert all
-                        // Father Suffixes left.
-                        // println!("   > phase 3: then the last father's");
-                        while j_child_index < son.get_buff_index_right_excl() {
-                            result.push(wbsa[j_child_index]);
+                            );*/
+                            result.push(curr_father_ls_index);
+                            i_father_index += 1;
+                        } else {
+                            /*println!(
+                                "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: son wins",
+                                &src
+                                    [curr_father_ls_index..curr_father_ls_index + child_suffix_len], curr_father_ls_index, &src
+                                    [curr_child_ls_index..curr_child_ls_index + child_suffix_len], curr_child_ls_index, child_suffix_len
+                            );*/
+                            result.push(curr_child_ls_index);
                             j_child_index += 1;
                         }
                     }
-                    // Ok, we now insert all Father Suffixes left.
-                    while i_father_index < self.get_buff_index_right_excl() {
-                        result.push(wbsa[i_father_index]);
-                        i_father_index += 1;
+                    // Ok, we first take all Child Suffixes left, then continue to insert all
+                    // Father Suffixes left.
+                    // println!("   > phase 3: then the last father's");
+                    while j_child_index < son.get_buff_index_right_excl() {
+                        result.push(wbsa[j_child_index]);
+                        j_child_index += 1;
                     }
-
-                    // Here we finally apply "result" data into the "Wanna Be Suffix Array" :)
-                    self.wbsa_q = self.wbsa_p + result.len();
-                    i_father_index = self.get_buff_index_left();
-                    for result_item in result {
-                        wbsa[i_father_index] = result_item;
-                        i_father_index += 1;
-                    }
-                    self.shrunk = true;
-
-                    self.sons.clear();
-                    // println!("   > done with result={:?}", self.get_rankings(wbsa));
                 }
-            } else {
-                // This is the Root Node. Useless to merge First Level Children since the
-                // "Wanna Be Suffix Array" is already fully computed :)
+                // Ok, we now insert all Father Suffixes left.
+                while i_father_index < self.get_buff_index_right_excl() {
+                    result.push(wbsa[i_father_index]);
+                    i_father_index += 1;
+                }
+
+                // Here we finally apply "result" data into the "Wanna Be Suffix Array" :)
+                self.wbsa_q = self.wbsa_p + result.len();
+                i_father_index = self.get_buff_index_left();
+                for result_item in result {
+                    wbsa[i_father_index] = result_item;
+                    i_father_index += 1;
+                }
+                self.shrunk = true;
+
+                self.sons.clear();
+                // println!("   > done with result={:?}", self.get_rankings(wbsa));
             }
+        } else {
+            // This is the Root Node. Useless to merge First Level Children since the
+            // "Wanna Be Suffix Array" is already fully computed :)
         }
     }
     fn rules(
