@@ -27,7 +27,7 @@ pub fn main_suffix_array() {
         " > Duration: {:15.3} seconds",
         innovative_suffix_array_computation.duration.as_secs_f64()
     );
-    // println!(" > Suffix Array: {:?}", wbsa);
+    println!(" > Suffix Array: {:?}", wbsa);
 
     // CLASSIC SUFFIX ARRAY
     println!();
@@ -42,7 +42,7 @@ pub fn main_suffix_array() {
         " > Duration: {:15.3} seconds",
         classic_suffix_array_computation.duration.as_secs_f64()
     );
-    // println!(" > Suffix Array: {:?}", classic_suffix_array);
+    println!(" > Suffix Array: {:?}", classic_suffix_array);
 
     // VERIFICATION
     println!();
@@ -190,7 +190,14 @@ fn compute_innovative_suffix_array(
         _ => {}
     }
 
-    root.in_prefix_merge(str, &mut wbsa, &mut depths);
+    root.in_prefix_merge(
+        str,
+        &mut wbsa,
+        &mut depths,
+        &icfl_indexes,
+        &is_custom_vec,
+        &factor_list,
+    );
 
     /*root.shrink_bottom_up(&mut wbsa, &mut depths, str, &icfl_indexes, &is_custom_vec, &factor_list);
     match debug_mode {
@@ -201,6 +208,11 @@ fn compute_innovative_suffix_array(
         }
         _ => {}
     }*/
+
+    println!("After IN_PREFIX_MERGE");
+    root.print_with_wbsa(0, "".into(), &wbsa);
+
+    root.dump_onto_wbsa(&mut wbsa);
 
     let after = Instant::now();
 
