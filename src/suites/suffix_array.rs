@@ -15,7 +15,8 @@ pub fn main_suffix_array() {
     // println!("STRING={}", src_str);
 
     // INNOVATIVE SUFFIX ARRAY
-    let innovative_suffix_array_computation = compute_innovative_suffix_array(src_str, 7, true);
+    let innovative_suffix_array_computation =
+        compute_innovative_suffix_array(src_str, 7, DebugMode::Overview);
     let wbsa = innovative_suffix_array_computation.suffix_array;
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     println!(
@@ -109,6 +110,11 @@ fn compute_classic_suffix_array(
 }
 
 // INNOVATIVE SUFFIX ARRAY
+enum DebugMode {
+    Silent,
+    Overview,
+    Verbose,
+}
 struct InnovativeSuffixArrayComputationResults {
     suffix_array: Vec<usize>,
     duration: Duration,
@@ -116,7 +122,7 @@ struct InnovativeSuffixArrayComputationResults {
 fn compute_innovative_suffix_array(
     str: &str,
     chunk_size: usize,
-    debug_verbose: bool,
+    debug_mode: DebugMode,
 ) -> InnovativeSuffixArrayComputationResults {
     let before = Instant::now();
 
@@ -138,39 +144,59 @@ fn compute_innovative_suffix_array(
     // Factor List: [Source Char Index] => ICFL Factor Index of that
     let factor_list = get_factor_list(&icfl_indexes, src_length);
 
-    if debug_verbose {
-        println!("chunk_size={}", chunk_size);
-        println!("ICFL_INDEXES={:?}", icfl_indexes);
-        println!("ICFL FACTORS: {:?}", factors);
-        println!("CSTM_INDEXES={:?}", custom_indexes);
-        println!("CSTM FACTORS: {:?}", custom_factors);
-        println!("is_custom_vec={:?}", is_custom_vec);
-        println!("factor_list={:?}", factor_list);
+    match debug_mode {
+        DebugMode::Overview | DebugMode::Verbose => {
+            /*println!("chunk_size={}", chunk_size);
+            println!("ICFL_INDEXES={:?}", icfl_indexes);
+            println!("ICFL FACTORS: {:?}", factors);
+            println!("CSTM_INDEXES={:?}", custom_indexes);
+            println!("CSTM FACTORS: {:?}", custom_factors);
+            println!("is_custom_vec={:?}", is_custom_vec);
+            println!("factor_list={:?}", factor_list);*/
+            print_for_human_like_debug(
+                str,
+                src_length,
+                &icfl_indexes,
+                &custom_indexes,
+                &factor_list,
+                &is_custom_vec,
+            );
+        }
+        _ => {}
     }
 
     // Prefix Trie Structure create
     let mut root = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
 
-    if debug_verbose {
-        println!("Before merge");
-        root.print(0, "".into());
+    match debug_mode {
+        DebugMode::Verbose => {
+            println!("Before merge");
+            root.print(0, "".into());
+        }
+        _ => {}
     }
 
     // Merge Rankings (Canonical and Custom)
     let mut wbsa = (0..src_length).collect::<Vec<_>>();
     root.merge_rankings_and_sort_recursive(str, &mut wbsa, 0);
 
-    if debug_verbose {
-        println!("Before SHRINK");
-        root.print_with_wbsa(0, "".into(), &wbsa);
+    match debug_mode {
+        DebugMode::Verbose => {
+            println!("Before SHRINK");
+            root.print_with_wbsa(0, "".into(), &wbsa);
+        }
+        _ => {}
     }
 
     root.shrink_bottom_up(&mut wbsa, str, &icfl_indexes, &is_custom_vec, &factor_list);
 
-    if debug_verbose {
-        println!("After SHRINK");
-        root.print_with_wbsa(0, "".into(), &wbsa);
-        println!("{:?}", wbsa);
+    match debug_mode {
+        DebugMode::Verbose => {
+            println!("After SHRINK");
+            root.print_with_wbsa(0, "".into(), &wbsa);
+            println!("{:?}", wbsa);
+        }
+        _ => {}
     }
 
     let after = Instant::now();
@@ -181,4 +207,52 @@ fn compute_innovative_suffix_array(
         suffix_array: wbsa,
         duration: after - before,
     }
+}
+fn print_for_human_like_debug(
+    src: &str,
+    src_length: usize,
+    icfl_indexes: &Vec<usize>,
+    custom_indexes: &Vec<usize>,
+    factor_list: &Vec<usize>,
+    is_custom_vec: &Vec<bool>,
+) {
+    // CHAR INDEXES
+    for i in 0..src_length {
+        print!(" {:2} ", i);
+    }
+    println!();
+    // CHARS
+    for i in 0..src_length {
+        print!("  {} ", &src[i..i + 1]);
+    }
+    println!();
+    // ICFL FACTORS
+    for i in 0..src_length {
+        print!(" {:2} ", factor_list[i]);
+    }
+    println!("   <= ICFL FACTORS {:?}", icfl_indexes);
+    let mut i = 0;
+
+    print_indexes_list(&icfl_indexes, src_length);
+    println!("<= ICFL FACTORS {:?}", icfl_indexes);
+    print_indexes_list(&custom_indexes, src_length);
+    println!("<= CUSTOM FACTORS {:?}", custom_indexes);
+
+    i = 0;
+    while i < src_length {
+        print!("  {} ", if is_custom_vec[i] { "1" } else { " " });
+        i += 1;
+    }
+    println!("   <= IS IN CUSTOM FACTOR");
+}
+fn print_indexes_list(indexes_list: &Vec<usize>, src_length: usize) {
+    let mut iter = &mut indexes_list.iter();
+    iter.next(); // Skipping the first because it's always "0".
+    let mut last = 0;
+    print!("|");
+    while let Some(&custom_factor_index) = iter.next() {
+        print!("{}|", " ".repeat((custom_factor_index - last) * 4 - 1));
+        last = custom_factor_index;
+    }
+    print!("{}|  ", " ".repeat((src_length - last) * 4 - 1));
 }
