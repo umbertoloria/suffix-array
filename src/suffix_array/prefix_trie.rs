@@ -367,7 +367,7 @@ impl PrefixTrie {
                 // FIXME: The value "child_suffix_len" should be the same as what were
                 //  saved in its Native Node. Shrinking should preserve that
                 //  Child Suffix Length, otherwise there's a bug :(
-                let result_rules = Self::rules(
+                let result_rules = Self::rules_safe(
                     curr_father_ls_index,
                     curr_child_ls_index,
                     child_suffix_len,
@@ -501,5 +501,42 @@ impl PrefixTrie {
                 }
             }
         }
+    }
+    fn rules_safe(
+        x: usize,
+        y: usize,
+        child_offset: usize,
+        src: &str,
+        icfl_list: &Vec<usize>,
+        is_custom_vec: &Vec<bool>,
+        factor_list: &Vec<usize>,
+    ) -> bool {
+        let cmp1_father = &src[x + child_offset..];
+        let cmp2_child = &src[y + child_offset..];
+        let mut oracle;
+        if cmp1_father < cmp2_child {
+            oracle = false; // Father first.
+        } else {
+            oracle = true; // Child first.
+        }
+        let given = Self::rules(
+            x,
+            y,
+            child_offset,
+            src,
+            icfl_list,
+            is_custom_vec,
+            factor_list,
+        );
+
+        // Debug only.
+        /*if given != oracle {
+            println!(" RULES: x={x:2}, y={y:2}, offset={child_offset} => {oracle}, BUT GIVEN WRONG!");
+        } else {
+            println!(" RULES: x={x:2}, y={y:2}, offset={child_offset} => {oracle}");
+        }
+
+        oracle*/
+        given
     }
 }
