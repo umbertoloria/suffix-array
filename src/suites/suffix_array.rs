@@ -181,7 +181,7 @@ fn compute_innovative_suffix_array(
     root.merge_rankings_and_sort_recursive(str, &mut wbsa, 0);
 
     match debug_mode {
-        DebugMode::Verbose => {
+        DebugMode::Overview => {
             println!("Before SHRINK");
             root.print_with_wbsa(0, "".into(), &wbsa);
         }
@@ -191,7 +191,7 @@ fn compute_innovative_suffix_array(
     root.shrink_bottom_up(&mut wbsa, str, &icfl_indexes, &is_custom_vec, &factor_list);
 
     match debug_mode {
-        DebugMode::Verbose => {
+        DebugMode::Overview => {
             println!("After SHRINK");
             root.print_with_wbsa(0, "".into(), &wbsa);
             println!("{:?}", wbsa);

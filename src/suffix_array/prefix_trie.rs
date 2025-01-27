@@ -302,15 +302,15 @@ impl PrefixTrie {
                 son.get_string_from_first_ranking_with_length(wbsa, src, child_suffix_len);
             /*let child_ls =
             &src[wbsa[son.wbsa_p]..usize::min(wbsa[son.wbsa_p] + child_suffix_len, src.len())];*/
-            /*println!(
+            println!(
                 " > merge father={} {:?} with child={} {:?}",
                 self.label,
                 self.get_rankings(wbsa),
                 son.label,
                 son.get_rankings(wbsa),
-            );*/
+            );
 
-            // println!("   > phase 1: first father's smaller than child");
+            println!("   > phase 1: first father's smaller than child");
             while i_father_index < self.get_buff_index_right_excl() {
                 let curr_father_ls_index = wbsa[i_father_index];
                 let curr_father_ls = &src[curr_father_ls_index
@@ -319,7 +319,7 @@ impl PrefixTrie {
                 // Comparing strings.
                 if curr_father_ls < child_ls {
                     result.push(curr_father_ls_index);
-                    // println!("   > father ls index {} added first", curr_father_ls_index);
+                    println!("   > father ls index {} added first", curr_father_ls_index);
                     i_father_index += 1;
                 } else {
                     // Found a Father Suffix that is >= Child Suffix.
@@ -339,7 +339,7 @@ impl PrefixTrie {
             // Curr. Father Suffixes that are equal to Curr. Child Suffix, and lose the
             // possibility to use "RULES".
 
-            // println!("   > phase 2: window for comparing using \"RULES\"");
+            println!("   > phase 2: window for comparing using \"RULES\"");
             let mut max_i_father_index = i_father_index;
             while max_i_father_index < self.get_buff_index_right_excl() {
                 let curr_father_ls_index = wbsa[max_i_father_index];
@@ -352,9 +352,10 @@ impl PrefixTrie {
                     break;
                 } else {
                     max_i_father_index += 1;
+                    println!("     > incr. MAX_FATHER, comp. fail: {curr_father_ls} > {child_ls}");
                 }
             }
-            // println!("     > [{}, {})", i_father_index, max_i_father_index);
+            println!("     > [{}, {})", i_father_index, max_i_father_index);
 
             // Ok, now we can use "RULES" for all items between "i_father_index" (incl.)
             // and "max_i_father_index" (excl.).
@@ -377,28 +378,28 @@ impl PrefixTrie {
                     &factor_list,
                 );
                 if !result_rules {
-                    /*println!(
+                    println!(
                         "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
                         &src
                             [curr_father_ls_index..curr_father_ls_index + child_suffix_len], curr_father_ls_index, &src
                                 [curr_child_ls_index..curr_child_ls_index + child_suffix_len], curr_child_ls_index, child_suffix_len
-                    );*/
+                    );
                     result.push(curr_father_ls_index);
                     i_father_index += 1;
                 } else {
-                    /*println!(
+                    println!(
                         "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: son wins",
                         &src
                             [curr_father_ls_index..curr_father_ls_index + child_suffix_len], curr_father_ls_index, &src
                             [curr_child_ls_index..curr_child_ls_index + child_suffix_len], curr_child_ls_index, child_suffix_len
-                    );*/
+                    );
                     result.push(curr_child_ls_index);
                     j_child_index += 1;
                 }
             }
             // Ok, we first take all Child Suffixes left, then continue to insert all
             // Father Suffixes left.
-            // println!("   > phase 3: then the last father's");
+            println!("   > phase 3: then the last father's");
             while j_child_index < son.get_buff_index_right_excl() {
                 result.push(wbsa[j_child_index]);
                 j_child_index += 1;
@@ -420,7 +421,7 @@ impl PrefixTrie {
         self.shrunk = true;
 
         self.sons.clear();
-        // println!("   > done with result={:?}", self.get_rankings(wbsa));
+        println!("   > done with result={:?}", self.get_rankings(wbsa));
     }
     fn rules(
         x: usize,
