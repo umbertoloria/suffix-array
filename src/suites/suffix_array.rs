@@ -190,7 +190,7 @@ fn compute_innovative_suffix_array(
         _ => {}
     }
 
-    // root.in_prefix_merge();
+    root.in_prefix_merge(str, &mut wbsa, &mut depths);
 
     /*root.shrink_bottom_up(&mut wbsa, &mut depths, str, &icfl_indexes, &is_custom_vec, &factor_list);
     match debug_mode {

@@ -233,8 +233,75 @@ impl PrefixTrie {
 
         p
     }
-    pub fn in_prefix_merge(&mut self) {
-        //
+    pub fn in_prefix_merge(&mut self, str: &str, wbsa: &mut Vec<usize>, depths: &mut Vec<usize>) {
+        if self.suffix_len == 0 {
+            // This is the Root Node.
+            for son in self.sons.values_mut() {
+                son.in_prefix_merge(str, wbsa, depths);
+            }
+            return;
+        }
+
+        if self.get_rankings_count() == 0 {
+            // This is a Bridge Node.
+            for son in self.sons.values_mut() {
+                son.in_prefix_merge(str, wbsa, depths);
+            }
+            return;
+        }
+
+        // Node with Rankings.
+        let this_left = self.get_buff_index_left();
+        let this_right_excl = self.get_buff_index_right_excl();
+        for son in self.sons.values_mut() {
+            son.in_prefix_merge_deep(str, wbsa, depths, this_left, this_right_excl);
+        }
+    }
+    fn in_prefix_merge_deep(
+        &mut self,
+        str: &str,
+        wbsa: &mut Vec<usize>,
+        depths: &mut Vec<usize>,
+        parent_buff_index_left: usize,
+        parent_buff_index_right_excl: usize,
+    ) {
+        // Parent has to *ALWAYS* have rankings.
+
+        if self.get_rankings_count() == 0 {
+            // This is a Bridge Node.
+            for son in self.sons.values_mut() {
+                son.in_prefix_merge_deep(
+                    str,
+                    wbsa,
+                    depths,
+                    parent_buff_index_left,
+                    parent_buff_index_right_excl,
+                );
+            }
+            return;
+        }
+
+        // Compare this node's rankings with parent's rankings.
+        let parent_rankings = &wbsa[parent_buff_index_left..parent_buff_index_right_excl];
+        let parent_first_ls_index = parent_rankings[0];
+        let parent_ls_length = depths[parent_first_ls_index];
+        let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
+
+        let this_rankings = self.get_rankings(wbsa);
+        let this_first_ls_index = this_rankings[0];
+        let this_ls_length = depths[this_first_ls_index];
+        let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
+        println!(
+            "Compare parent ({}) {:?} with curr ({}) {:?}",
+            parent_ls, parent_rankings, this_ls, this_rankings
+        );
+
+        // Now it's your turn to be the parent.
+        let this_left = self.get_buff_index_left();
+        let this_right_excl = self.get_buff_index_right_excl();
+        for son in self.sons.values_mut() {
+            son.in_prefix_merge_deep(str, wbsa, depths, this_left, this_right_excl);
+        }
     }
     pub fn shrink_bottom_up(
         &mut self,
@@ -402,7 +469,7 @@ impl PrefixTrie {
                         "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
                         &src
                             [curr_father_ls_index..curr_father_ls_index + child_suffix_len], curr_father_ls_index, &src
-                                [curr_child_ls_index..curr_child_ls_index + child_suffix_len], curr_child_ls_index, child_suffix_len
+                            [curr_child_ls_index..curr_child_ls_index + child_suffix_len], curr_child_ls_index, child_suffix_len
                     );
                     result.push(curr_father_ls_index);
                     i_father_index += 1;
