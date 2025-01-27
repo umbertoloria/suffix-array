@@ -194,6 +194,7 @@ impl PrefixTrie {
         &mut self,
         src: &str,
         wbsa: &mut Vec<usize>,
+        depths: &mut Vec<usize>,
         wbsa_start_from_index: usize,
     ) -> usize {
         // Single "rankings" list
@@ -218,17 +219,27 @@ impl PrefixTrie {
         }
         self.wbsa_q = p;
 
+        // Depth
+        for i in self.get_buff_index_left()..self.get_buff_index_right_excl() {
+            let ls_index = wbsa[i];
+            depths[ls_index] = self.suffix_len;
+        }
+
         // Recursive calls...
         for (_, son) in &mut self.sons {
-            let new_p = son.merge_rankings_and_sort_recursive(src, wbsa, p);
+            let new_p = son.merge_rankings_and_sort_recursive(src, wbsa, depths, p);
             p = new_p;
         }
 
         p
     }
+    pub fn in_prefix_merge(&mut self) {
+        //
+    }
     pub fn shrink_bottom_up(
         &mut self,
         wbsa: &mut Vec<usize>,
+        depths: &mut Vec<usize>,
         src: &str,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -253,7 +264,7 @@ impl PrefixTrie {
 
         // First, we Shrink the Children Nodes.
         for (_, son) in &mut self.sons {
-            son.shrink_bottom_up(wbsa, src, icfl_indexes, is_custom_vec, factor_list);
+            son.shrink_bottom_up(wbsa, depths, src, icfl_indexes, is_custom_vec, factor_list);
         }
         /*println!(
             "SHRINK MERGING SONS OF \"{}\": from {} to {} (extended to {})",
@@ -297,11 +308,9 @@ impl PrefixTrie {
         for son in sons {
             // Start by comparing Father Suffixes (using the length of this son, if
             // possible) and putting first the ones that are < Child Suffix.
-            let child_suffix_len = son.suffix_len;
-            let child_ls =
-                son.get_string_from_first_ranking_with_length(wbsa, src, child_suffix_len);
-            /*let child_ls =
-            &src[wbsa[son.wbsa_p]..usize::min(wbsa[son.wbsa_p] + child_suffix_len, src.len())];*/
+            let child_node_height = son.suffix_len;
+            let child_ls_length_height =
+                son.get_string_from_first_ranking_with_length(wbsa, src, child_node_height);
             println!(
                 " > merge father={} {:?} with child={} {:?}",
                 self.label,
@@ -314,12 +323,12 @@ impl PrefixTrie {
             while i_father_index < self.get_buff_index_right_excl() {
                 let curr_father_ls_index = wbsa[i_father_index];
                 let curr_father_ls = &src[curr_father_ls_index
-                    ..usize::min(curr_father_ls_index + child_suffix_len, src.len())];
+                    ..usize::min(curr_father_ls_index + child_node_height, src.len())];
 
                 // Comparing strings.
-                if curr_father_ls < child_ls {
+                if curr_father_ls < child_ls_length_height {
                     result.push(curr_father_ls_index);
-                    println!("   > father ls index {} added first", curr_father_ls_index);
+                    println!("     > father ls index {curr_father_ls_index} added first");
                     i_father_index += 1;
                 } else {
                     // Found a Father Suffix that is >= Child Suffix.
@@ -339,23 +348,33 @@ impl PrefixTrie {
             // Curr. Father Suffixes that are equal to Curr. Child Suffix, and lose the
             // possibility to use "RULES".
 
-            println!("   > phase 2: window for comparing using \"RULES\"");
+            println!(
+                "   > phase 2: window comparing via \"RULES\" from {}",
+                wbsa[i_father_index]
+            );
+            // let son_first_ranking = wbsa[son.get_buff_index_left()];
+            // let son_first_ranking_depth = depths[son_first_ranking];
             let mut max_i_father_index = i_father_index;
             while max_i_father_index < self.get_buff_index_right_excl() {
                 let curr_father_ls_index = wbsa[max_i_father_index];
                 let curr_father_ls = &src[curr_father_ls_index
-                    ..usize::min(curr_father_ls_index + child_suffix_len, src.len())];
+                    ..usize::min(curr_father_ls_index + child_node_height, src.len())];
 
                 // Comparing strings.
-                if curr_father_ls > child_ls {
+                if curr_father_ls > child_ls_length_height {
                     // Found Father Suffix that is > Curr. Child Suffix.
+                    // println!("     > break because: {curr_father_ls} > {child_ls_length_height}");
                     break;
                 } else {
                     max_i_father_index += 1;
-                    println!("     > incr. MAX_FATHER, comp. fail: {curr_father_ls} > {child_ls}");
+                    // println!("     > incr. MAX_FATHER, comp. fail: {curr_father_ls} > {child_ls_length_height}   /   {}", son_first_ranking_depth);
                 }
             }
-            println!("     > [{}, {})", i_father_index, max_i_father_index);
+            println!("     > indx [{}, {})", i_father_index, max_i_father_index);
+            println!(
+                "       > vals {:?}",
+                &wbsa[i_father_index..max_i_father_index]
+            );
 
             // Ok, now we can use "RULES" for all items between "i_father_index" (incl.)
             // and "max_i_father_index" (excl.).
@@ -368,6 +387,7 @@ impl PrefixTrie {
                 // FIXME: The value "child_suffix_len" should be the same as what were
                 //  saved in its Native Node. Shrinking should preserve that
                 //  Child Suffix Length, otherwise there's a bug :(
+                let child_suffix_len = child_node_height;
                 let result_rules = Self::rules_safe(
                     curr_father_ls_index,
                     curr_child_ls_index,
@@ -532,12 +552,14 @@ impl PrefixTrie {
 
         // Debug only.
         /*if given != oracle {
-            println!(" RULES: x={x:2}, y={y:2}, offset={child_offset} => {oracle}, BUT GIVEN WRONG!");
+            println!(
+                " RULES: x={x:2}, y={y:2}, offset={child_offset} => {oracle}, BUT GIVEN WRONG!"
+            );
         } else {
-            println!(" RULES: x={x:2}, y={y:2}, offset={child_offset} => {oracle}");
+            // println!(" RULES: x={x:2}, y={y:2}, offset={child_offset} => {oracle}");
         }
 
-        oracle*/
+        // oracle*/
         given
     }
 }

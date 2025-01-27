@@ -16,7 +16,7 @@ pub fn main_suffix_array() {
 
     // INNOVATIVE SUFFIX ARRAY
     let innovative_suffix_array_computation =
-        compute_innovative_suffix_array(src_str, 7, DebugMode::Overview);
+        compute_innovative_suffix_array(src_str, 4, DebugMode::Overview);
     let wbsa = innovative_suffix_array_computation.suffix_array;
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     println!(
@@ -144,6 +144,22 @@ fn compute_innovative_suffix_array(
     // Factor List: [Source Char Index] => ICFL Factor Index of that
     let factor_list = get_factor_list(&icfl_indexes, src_length);
 
+    // Prefix Trie Structure create
+    let mut root = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
+
+    match debug_mode {
+        DebugMode::Verbose => {
+            println!("Before merge");
+            root.print(0, "".into());
+        }
+        _ => {}
+    }
+
+    // Merge Rankings (Canonical and Custom)
+    let mut wbsa = (0..src_length).collect::<Vec<_>>();
+    let mut depths = vec![0usize; src_length];
+    root.merge_rankings_and_sort_recursive(str, &mut wbsa, &mut depths, 0);
+
     match debug_mode {
         DebugMode::Overview | DebugMode::Verbose => {
             /*println!("chunk_size={}", chunk_size);
@@ -160,25 +176,11 @@ fn compute_innovative_suffix_array(
                 &custom_indexes,
                 &factor_list,
                 &is_custom_vec,
+                &depths,
             );
         }
         _ => {}
     }
-
-    // Prefix Trie Structure create
-    let mut root = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
-
-    match debug_mode {
-        DebugMode::Verbose => {
-            println!("Before merge");
-            root.print(0, "".into());
-        }
-        _ => {}
-    }
-
-    // Merge Rankings (Canonical and Custom)
-    let mut wbsa = (0..src_length).collect::<Vec<_>>();
-    root.merge_rankings_and_sort_recursive(str, &mut wbsa, 0);
 
     match debug_mode {
         DebugMode::Overview => {
@@ -188,8 +190,9 @@ fn compute_innovative_suffix_array(
         _ => {}
     }
 
-    root.shrink_bottom_up(&mut wbsa, str, &icfl_indexes, &is_custom_vec, &factor_list);
+    // root.in_prefix_merge();
 
+    /*root.shrink_bottom_up(&mut wbsa, &mut depths, str, &icfl_indexes, &is_custom_vec, &factor_list);
     match debug_mode {
         DebugMode::Overview => {
             println!("After SHRINK");
@@ -197,7 +200,7 @@ fn compute_innovative_suffix_array(
             println!("{:?}", wbsa);
         }
         _ => {}
-    }
+    }*/
 
     let after = Instant::now();
 
@@ -215,6 +218,7 @@ fn print_for_human_like_debug(
     custom_indexes: &Vec<usize>,
     factor_list: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
+    depths: &Vec<usize>,
 ) {
     // CHAR INDEXES
     for i in 0..src_length {
@@ -244,6 +248,10 @@ fn print_for_human_like_debug(
         i += 1;
     }
     println!("   <= IS IN CUSTOM FACTOR");
+    for i in 0..src_length {
+        print!(" {:2} ", depths[i]);
+    }
+    println!("   <= DEPTHS");
 }
 fn print_indexes_list(indexes_list: &Vec<usize>, src_length: usize) {
     let mut iter = &mut indexes_list.iter();
