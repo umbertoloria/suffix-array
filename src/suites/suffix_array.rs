@@ -4,6 +4,7 @@ use crate::suffix_array::chunking::{
     get_custom_factor_strings_from_custom_indexes, get_custom_factors, get_factor_list,
     get_indexes_from_factors, get_is_custom_vec,
 };
+use crate::suffix_array::prefix_tree::create_pt_from_trie;
 use crate::suffix_array::prefix_trie::create_prefix_trie;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::time::{Duration, Instant};
@@ -216,9 +217,12 @@ fn compute_innovative_suffix_array(
     println!("After IN_PREFIX_MERGE");
     root.print_with_wbsa(0, "".into(), &wbsa);
 
+    let pt = create_pt_from_trie(root, &mut wbsa);
+    pt.print();
+
     let mut sa = Vec::new();
     // root.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
-    root.prepare_get_common_prefix_partition(&mut wbsa, &mut sa);
+    // root.prepare_get_common_prefix_partition(&mut wbsa, &mut sa);
 
     let after = Instant::now();
 

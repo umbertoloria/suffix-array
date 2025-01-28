@@ -711,7 +711,7 @@ impl PrefixTrie {
         println!("{:?}", result);*/
         result
     }
-    fn get_real_rankings(&self, wbsa: &Vec<usize>) -> Vec<usize> {
+    pub fn get_real_rankings(&self, wbsa: &Vec<usize>) -> Vec<usize> {
         if let Some(rankings) = &self.rankings_forced {
             // FIXME: Avoid cloning
             rankings.clone()
