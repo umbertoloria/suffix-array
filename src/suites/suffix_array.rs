@@ -16,7 +16,7 @@ pub fn main_suffix_array() {
 
     // INNOVATIVE SUFFIX ARRAY
     let innovative_suffix_array_computation =
-        compute_innovative_suffix_array(src_str, 4, DebugMode::Overview);
+        compute_innovative_suffix_array(src_str, 5, DebugMode::Overview);
     let wbsa = innovative_suffix_array_computation.suffix_array;
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     println!(
@@ -183,7 +183,7 @@ fn compute_innovative_suffix_array(
     }
 
     match debug_mode {
-        DebugMode::Overview => {
+        DebugMode::Verbose => {
             println!("Before SHRINK");
             root.print_with_wbsa(0, "".into(), &wbsa);
         }
@@ -197,6 +197,10 @@ fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &factor_list,
+        match debug_mode {
+            DebugMode::Verbose => true,
+            _ => false,
+        },
     );
 
     /*root.shrink_bottom_up(&mut wbsa, &mut depths, str, &icfl_indexes, &is_custom_vec, &factor_list);
@@ -212,14 +216,16 @@ fn compute_innovative_suffix_array(
     println!("After IN_PREFIX_MERGE");
     root.print_with_wbsa(0, "".into(), &wbsa);
 
-    root.dump_onto_wbsa(&mut wbsa);
+    let mut sa = Vec::new();
+    // root.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
+    root.prepare_get_common_prefix_partition(&mut wbsa, &mut sa);
 
     let after = Instant::now();
 
     // println!("Total time: {}", duration.as_secs_f32());
 
     InnovativeSuffixArrayComputationResults {
-        suffix_array: wbsa,
+        suffix_array: sa,
         duration: after - before,
     }
 }

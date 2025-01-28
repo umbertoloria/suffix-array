@@ -184,17 +184,13 @@ impl PrefixTrie {
                 .print(tabs_offset, format!("{}{}", prefix, char_key));
         } else {*/
         println!(
-            "{}\"{}\" {:?}   [{}..{}), min={}, MAX={}",
+            "{}\"{}\" {:?}   min={}, MAX={}",
             "\t".repeat(tabs_offset),
             prefix,
             // self.label,
-            if let Some(rankings) = &self.rankings_forced {
-                rankings
-            } else {
-                self.get_rankings(wbsa)
-            },
-            self.get_buff_index_left(),
-            self.get_buff_index_right_excl(),
+            self.get_real_rankings(wbsa),
+            // self.get_buff_index_left(),
+            // self.get_buff_index_right_excl(),
             if let Some(x) = self.min_father {
                 format!("{}", x)
             } else {
@@ -264,11 +260,20 @@ impl PrefixTrie {
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         factor_list: &Vec<usize>,
+        verbose: bool,
     ) {
         if self.suffix_len == 0 {
             // This is the Root Node.
             for son in self.sons.values_mut() {
-                son.in_prefix_merge(str, wbsa, depths, icfl_indexes, is_custom_vec, factor_list);
+                son.in_prefix_merge(
+                    str,
+                    wbsa,
+                    depths,
+                    icfl_indexes,
+                    is_custom_vec,
+                    factor_list,
+                    verbose,
+                );
             }
             return;
         }
@@ -276,7 +281,15 @@ impl PrefixTrie {
         if self.get_rankings_count() == 0 {
             // This is a Bridge Node.
             for son in self.sons.values_mut() {
-                son.in_prefix_merge(str, wbsa, depths, icfl_indexes, is_custom_vec, factor_list);
+                son.in_prefix_merge(
+                    str,
+                    wbsa,
+                    depths,
+                    icfl_indexes,
+                    is_custom_vec,
+                    factor_list,
+                    verbose,
+                );
             }
             return;
         }
@@ -294,6 +307,7 @@ impl PrefixTrie {
                 factor_list,
                 this_left,
                 this_right_excl,
+                verbose,
             );
         }
     }
@@ -307,6 +321,7 @@ impl PrefixTrie {
         factor_list: &Vec<usize>,
         parent_buff_index_left: usize,
         parent_buff_index_right_excl: usize,
+        verbose: bool,
     ) {
         // Parent has to *ALWAYS* have rankings.
 
@@ -322,6 +337,7 @@ impl PrefixTrie {
                     factor_list,
                     parent_buff_index_left,
                     parent_buff_index_right_excl,
+                    verbose,
                 );
             }
             return;
@@ -337,10 +353,12 @@ impl PrefixTrie {
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
-        println!(
-            "Compare parent ({}) {:?} with curr ({}) {:?}",
-            parent_ls, parent_rankings, this_ls, this_rankings
-        );
+        if verbose {
+            println!(
+                "Compare parent ({}) {:?} with curr ({}) {:?}",
+                parent_ls, parent_rankings, this_ls, this_rankings
+            );
+        }
 
         // MERGE RANKINGS
         let mut i_parent = 0;
@@ -390,7 +408,9 @@ impl PrefixTrie {
 
                 let mut result = Vec::new();
                 if let Some(max_father) = self.max_father {
-                    println!("   > start comparing, window=[{},{})", i_parent, max_father);
+                    if verbose {
+                        println!("   > start comparing, window=[{},{})", i_parent, max_father);
+                    }
                     while i_parent < max_father && j_this < this_rankings.len() {
                         let curr_parent_ls_index = parent_rankings[i_parent];
                         let curr_this_ls_index = this_rankings[j_this];
@@ -405,21 +425,25 @@ impl PrefixTrie {
                             &factor_list,
                         );
                         if !result_rules {
-                            println!(
-                                "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
-                                &str
-                                    [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
-                                    [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
-                            );
+                            if verbose {
+                                println!(
+                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
+                                    &str
+                                        [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
+                                        [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
+                                );
+                            }
                             result.push(curr_parent_ls_index);
                             i_parent += 1;
                         } else {
-                            println!(
-                                "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: son wins",
-                                &str
-                                    [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
-                                    [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
-                            );
+                            if verbose {
+                                println!(
+                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: son wins",
+                                    &str
+                                        [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
+                                        [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
+                                );
+                            }
                             result.push(curr_this_ls_index);
                             j_this += 1;
                         }
@@ -435,8 +459,6 @@ impl PrefixTrie {
                         i_parent += 1;
                     }
                 }
-
-                // println!("FINAL RANKINGS {:?}", result);
                 self.rankings_forced = Some(result);
             }
         }
@@ -454,11 +476,248 @@ impl PrefixTrie {
                 factor_list,
                 this_left,
                 this_right_excl,
+                verbose,
             );
         }
     }
-    pub fn dump_onto_wbsa(&self, wbsa: &mut Vec<usize>) {
-        // TODO: Write correctly on "Wanna Be Suffix Array"
+    pub fn prepare_get_common_prefix_partition(
+        &mut self,
+        wbsa: &mut Vec<usize>,
+        sa: &mut Vec<usize>,
+    ) {
+        // TODO: Make sure "self" is always "root".
+        if self.sons.is_empty() {
+            // TODO: This should never happen...
+            return;
+        }
+        for first_layer_son in self.sons.values_mut() {
+            let part_of_sa = first_layer_son.get_common_prefix_partition(wbsa);
+            println!("{:?}", part_of_sa);
+            sa.extend(part_of_sa);
+        }
+    }
+    /*pub fn dump_onto_wbsa(&self, wbsa: &mut Vec<usize>, sa: &mut Vec<usize>, level: usize) {
+        if self.suffix_len == 0 {
+            // This is the Root Node.
+            for son in self.sons.values() {
+                son.dump_onto_wbsa(wbsa, sa, 0);
+            }
+            return;
+        }
+
+        if self.get_rankings_count() == 0 {
+            // This is a Bridge Node.
+            for son in self.sons.values() {
+                son.dump_onto_wbsa(wbsa, sa, level + 1);
+            }
+            return;
+        }
+
+        // Node with Rankings.
+        let this_real_rankings = self.get_real_rankings(wbsa);
+        let mut i_parent = 0;
+        for son in self.sons.values() {
+            i_parent = son.dump_onto_wbsa_deep(wbsa, sa, this_real_rankings, i_parent, level + 1);
+        }
+        // Managing the rest of my rankings myself.
+        while i_parent < this_real_rankings.len() {
+            // +
+            sa.push(this_real_rankings[i_parent]);
+            print_with_offset(level, format!("**[0]** {}", this_real_rankings[i_parent]));
+            // -
+
+            i_parent += 1;
+        }
+    }
+    fn dump_onto_wbsa_deep(
+        &self,
+        wbsa: &mut Vec<usize>,
+        sa: &mut Vec<usize>,
+        parent_real_rankings: &Vec<usize>,
+        parent_index_start_from: usize,
+        level: usize,
+    ) -> usize {
+        // Parent has to *ALWAYS* have rankings.
+
+        let mut i_parent = parent_index_start_from;
+
+        if self.get_rankings_count() == 0 {
+            // This is a Bridge Node.
+            print_with_offset(
+                level,
+                format!(
+                    "dump: parent {:?} (from {}), curr is bridge",
+                    &parent_real_rankings[parent_index_start_from..],
+                    parent_index_start_from
+                ),
+            );
+            for son in self.sons.values() {
+                i_parent = son.dump_onto_wbsa_deep(wbsa, sa, parent_real_rankings, i_parent, level + 1);
+            }
+
+            return i_parent;
+        }
+
+        // Node with Rankings.
+        let this_real_rankings = self.get_real_rankings(wbsa);
+        print_with_offset(
+            level,
+            format!(
+                "dump: parent {:?} (from {}), this {:?} with min={:?} and MAX={:?}",
+                &parent_real_rankings[parent_index_start_from..],
+                parent_index_start_from,
+                this_real_rankings,
+                self.min_father,
+                self.max_father
+            ),
+        );
+        if let Some(min_father) = self.min_father {
+            while i_parent < min_father {
+                // +
+                sa.push(parent_real_rankings[i_parent]);
+                print_with_offset(level, format!("**[A]** {}", parent_real_rankings[i_parent]));
+                // -
+
+                i_parent += 1;
+            }
+        } else {
+            // If Min Father is None, then use first all Parent Rankings and then all Curr Rankings.
+            while i_parent < parent_real_rankings.len() {
+                // +
+                sa.push(parent_real_rankings[i_parent]);
+                print_with_offset(level, format!("**[D]** {}", parent_real_rankings[i_parent]));
+                // -
+
+                i_parent += 1;
+            }
+            let mut j_curr = 0;
+            for son in self.sons.values() {
+                print_with_offset(level, format!("> valuta figlio"));
+                j_curr = son.dump_onto_wbsa_deep(wbsa, sa, this_real_rankings, j_curr, level + 1);
+            }
+        }
+
+        if self.sons.is_empty() {
+            // Managing my rankings myself.
+            for i in 0..this_real_rankings.len() {
+                // +
+                sa.push(this_real_rankings[i]);
+                print_with_offset(level, format!("**[B]** {}", this_real_rankings[i]));
+                // -
+            }
+
+            if let Some(max_father) = self.max_father {
+                max_father
+            } else {
+                // Min Father NONE, means we can consume Curr LS indexes without Parent Index edit.
+                i_parent
+            }
+        } else {
+            // Let my children manage my rankings.
+            let mut j_curr = 0;
+            for son in self.sons.values() {
+                print_with_offset(level, format!("> valuta figlio"));
+                // i_parent = son.dump_onto_wbsa_deep(wbsa, this_real_rankings, i_parent, level + 1);
+                j_curr = son.dump_onto_wbsa_deep(wbsa, sa, this_real_rankings, j_curr, level + 1);
+            }
+            print_with_offset(level, format!("> non dovrei sbufferare gli altri?"));
+            // Managing the rest of my rankings myself.
+            while j_curr < this_real_rankings.len() {
+                // +
+                sa.push(this_real_rankings[j_curr]);
+                print_with_offset(level, format!("**[C]** {}", this_real_rankings[j_curr]));
+                // -
+
+                j_curr += 1;
+            }
+            i_parent
+        }
+
+        // Then, solve relationship with parent.
+        // let min = if let Some(x) = self.min_father {x} else {};
+
+        /*let mut result: Vec<usize> = Vec::new();
+
+        if let Some(min_father) = self.min_father {
+            // First Parent elements if present, then Child.
+            if min_father > 0 {
+                result.extend(&parent_real_rankings[0..min_father]);
+            }
+            result.extend(this_real_rankings);
+        } else {
+            // First Parent element, then Child.
+            result.extend(parent_real_rankings);
+            result.extend(this_real_rankings);
+            // TODO: Can we ignore Max Father in this case?
+        }
+        print_with_offset(level, format!("  -> {:?}", result));*/
+    }*/
+    fn get_common_prefix_partition(&mut self, wbsa: &mut Vec<usize>) -> Vec<usize> {
+        let mut result: Vec<usize> = Vec::new();
+
+        println!("\nNode: ");
+        println!("{}", self.label);
+
+        let common = self.get_real_rankings(wbsa);
+        println!("common: ");
+        println!("{:?}", common);
+
+        if self.sons.is_empty() {
+            result.extend(common);
+            /*println!(
+                "Node {} (m={:?}, M={:?}) {:?} => {:?}",
+                self.label,
+                self.min_father,
+                self.max_father,
+                self.get_real_rankings(wbsa),
+                result
+            );*/
+            println!("result: ");
+            println!("{:?}", result);
+            return result;
+        }
+
+        let mut position = 0;
+        for son in self.sons.values_mut() {
+            let temp = son.get_common_prefix_partition(wbsa);
+            if let Some(min_father) = son.min_father {
+                // println!("Here self={} and son={}", self.label, son.label);
+                if min_father >= position {
+                    result.extend(&common[position..min_father]);
+                }
+                result.extend(temp);
+                if let Some(max_father) = son.max_father {
+                    position = max_father;
+                } else {
+                    position = min_father;
+                }
+            } else {
+                // Min Father is None.
+                result.extend(&common[position..]);
+                result.extend(temp);
+                position = common.len();
+            }
+        }
+        result.extend(&common[position..]);
+        /*println!(
+            "Node {} (m={:?}, M={:?}) {:?} => {:?}",
+            self.label,
+            self.min_father,
+            self.max_father,
+            self.get_real_rankings(wbsa),
+            result
+        );*/
+        println!("result: ");
+        println!("{:?}", result);
+        result
+    }
+    fn get_real_rankings(&self, wbsa: &Vec<usize>) -> Vec<usize> {
+        if let Some(rankings) = &self.rankings_forced {
+            // FIXME: Avoid cloning
+            rankings.clone()
+        } else {
+            self.get_rankings(wbsa).to_vec()
+        }
     }
     pub fn shrink_bottom_up(
         &mut self,
@@ -786,4 +1045,8 @@ impl PrefixTrie {
         // oracle*/
         given
     }
+}
+fn print_with_offset(level: usize, str: String) {
+    // TODO: Move from here
+    println!("{} {}", "  ".repeat(level), str);
 }
