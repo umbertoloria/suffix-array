@@ -17,7 +17,7 @@ pub fn main_suffix_array() {
 
     // INNOVATIVE SUFFIX ARRAY
     let innovative_suffix_array_computation =
-        compute_innovative_suffix_array(src_str, 5, DebugMode::Overview);
+        compute_innovative_suffix_array(src_str, 7, DebugMode::Silent);
     let wbsa = innovative_suffix_array_computation.suffix_array;
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     println!(
@@ -214,15 +214,32 @@ fn compute_innovative_suffix_array(
         _ => {}
     }*/
 
-    println!("After IN_PREFIX_MERGE");
-    root.print_with_wbsa(0, "".into(), &wbsa);
+    match debug_mode {
+        DebugMode::Overview | DebugMode::Verbose => {
+            println!("After IN_PREFIX_MERGE");
+            root.print_with_wbsa(0, "".into(), &wbsa);
+        }
+        _ => {}
+    }
 
-    let pt = create_pt_from_trie(root, &mut wbsa);
-    pt.print();
+    let mut pt = create_pt_from_trie(root, &mut wbsa);
+    match debug_mode {
+        DebugMode::Overview | DebugMode::Verbose => {
+            println!("Prefix Tree");
+            pt.print();
+        }
+        _ => {}
+    }
 
     let mut sa = Vec::new();
     // root.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
-    // root.prepare_get_common_prefix_partition(&mut wbsa, &mut sa);
+    pt.prepare_get_common_prefix_partition(
+        &mut sa,
+        match debug_mode {
+            DebugMode::Silent => false,
+            _ => true,
+        },
+    );
 
     let after = Instant::now();
 

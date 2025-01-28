@@ -480,22 +480,6 @@ impl PrefixTrie {
             );
         }
     }
-    pub fn prepare_get_common_prefix_partition(
-        &mut self,
-        wbsa: &mut Vec<usize>,
-        sa: &mut Vec<usize>,
-    ) {
-        // TODO: Make sure "self" is always "root".
-        if self.sons.is_empty() {
-            // TODO: This should never happen...
-            return;
-        }
-        for first_layer_son in self.sons.values_mut() {
-            let part_of_sa = first_layer_son.get_common_prefix_partition(wbsa);
-            println!("{:?}", part_of_sa);
-            sa.extend(part_of_sa);
-        }
-    }
     /*pub fn dump_onto_wbsa(&self, wbsa: &mut Vec<usize>, sa: &mut Vec<usize>, level: usize) {
         if self.suffix_len == 0 {
             // This is the Root Node.
@@ -652,65 +636,6 @@ impl PrefixTrie {
         }
         print_with_offset(level, format!("  -> {:?}", result));*/
     }*/
-    fn get_common_prefix_partition(&mut self, wbsa: &mut Vec<usize>) -> Vec<usize> {
-        let mut result: Vec<usize> = Vec::new();
-
-        /*println!("\nNode: ");
-        println!("{}", self.label);*/
-
-        let common = self.get_real_rankings(wbsa);
-        /*println!("common: ");
-        println!("{:?}", common);*/
-
-        if self.sons.is_empty() {
-            result.extend(common);
-            println!(
-                "Node {} (m={:?}, M={:?}) {:?} => {:?}",
-                self.label,
-                self.min_father,
-                self.max_father,
-                self.get_real_rankings(wbsa),
-                result
-            );
-            /*println!("result: ");
-            println!("{:?}", result);*/
-            return result;
-        }
-
-        let mut position = 0;
-        for son in self.sons.values_mut() {
-            let temp = son.get_common_prefix_partition(wbsa);
-            if let Some(min_father) = son.min_father {
-                println!("Here self={} and son={}", self.label, son.label);
-                if min_father >= position {
-                    result.extend(&common[position..min_father]);
-                }
-                result.extend(temp);
-                if let Some(max_father) = son.max_father {
-                    position = max_father;
-                } else {
-                    position = min_father;
-                }
-            } else {
-                // Min Father is None.
-                result.extend(&common[position..]);
-                result.extend(temp);
-                position = common.len();
-            }
-        }
-        result.extend(&common[position..]);
-        println!(
-            "Node {} (m={:?}, M={:?}) {:?} => {:?}",
-            self.label,
-            self.min_father,
-            self.max_father,
-            self.get_real_rankings(wbsa),
-            result
-        );
-        /*println!("result: ");
-        println!("{:?}", result);*/
-        result
-    }
     pub fn get_real_rankings(&self, wbsa: &Vec<usize>) -> Vec<usize> {
         if let Some(rankings) = &self.rankings_forced {
             // FIXME: Avoid cloning
