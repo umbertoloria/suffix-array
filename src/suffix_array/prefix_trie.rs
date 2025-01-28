@@ -655,25 +655,25 @@ impl PrefixTrie {
     fn get_common_prefix_partition(&mut self, wbsa: &mut Vec<usize>) -> Vec<usize> {
         let mut result: Vec<usize> = Vec::new();
 
-        println!("\nNode: ");
-        println!("{}", self.label);
+        /*println!("\nNode: ");
+        println!("{}", self.label);*/
 
         let common = self.get_real_rankings(wbsa);
-        println!("common: ");
-        println!("{:?}", common);
+        /*println!("common: ");
+        println!("{:?}", common);*/
 
         if self.sons.is_empty() {
             result.extend(common);
-            /*println!(
+            println!(
                 "Node {} (m={:?}, M={:?}) {:?} => {:?}",
                 self.label,
                 self.min_father,
                 self.max_father,
                 self.get_real_rankings(wbsa),
                 result
-            );*/
-            println!("result: ");
-            println!("{:?}", result);
+            );
+            /*println!("result: ");
+            println!("{:?}", result);*/
             return result;
         }
 
@@ -681,7 +681,7 @@ impl PrefixTrie {
         for son in self.sons.values_mut() {
             let temp = son.get_common_prefix_partition(wbsa);
             if let Some(min_father) = son.min_father {
-                // println!("Here self={} and son={}", self.label, son.label);
+                println!("Here self={} and son={}", self.label, son.label);
                 if min_father >= position {
                     result.extend(&common[position..min_father]);
                 }
@@ -699,16 +699,16 @@ impl PrefixTrie {
             }
         }
         result.extend(&common[position..]);
-        /*println!(
+        println!(
             "Node {} (m={:?}, M={:?}) {:?} => {:?}",
             self.label,
             self.min_father,
             self.max_father,
             self.get_real_rankings(wbsa),
             result
-        );*/
-        println!("result: ");
-        println!("{:?}", result);
+        );
+        /*println!("result: ");
+        println!("{:?}", result);*/
         result
     }
     fn get_real_rankings(&self, wbsa: &Vec<usize>) -> Vec<usize> {
