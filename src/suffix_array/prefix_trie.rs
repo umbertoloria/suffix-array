@@ -360,84 +360,86 @@ impl PrefixTrie {
         }
         if i_parent >= parent_rankings.len() {
             // This means "min_father"=None and "max_father"=None.
-            return;
-        }
-        // From here, we have a "min_father" value.
+        } else {
+            // From here, we have a "min_father" value.
 
-        // let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
-        let curr_parent_ls_index = parent_rankings[i_parent];
-        let curr_parent_ls = &str
-            [curr_parent_ls_index..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
-        if curr_parent_ls > this_ls {
-            // This means "max_father"=None.
-            // There's no Window for Comparing Rankings using "RULES".
-            return;
-        }
-
-        while i_parent < parent_rankings.len() {
+            // let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
-            if curr_parent_ls == this_ls {
-                // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
-                self.max_father = Some(i_parent + 1);
-                i_parent += 1;
+            if curr_parent_ls > this_ls {
+                // This means "max_father"=None.
+                // There's no Window for Comparing Rankings using "RULES".
             } else {
-                // Found a Parent LS that is > Curr LS.
-                break;
-            }
-        }
+                while i_parent < parent_rankings.len() {
+                    let curr_parent_ls_index = parent_rankings[i_parent];
+                    let curr_parent_ls = &str[curr_parent_ls_index
+                        ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
+                    if curr_parent_ls == this_ls {
+                        // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
+                        self.max_father = Some(i_parent + 1);
+                        i_parent += 1;
+                    } else {
+                        // Found a Parent LS that is > Curr LS.
+                        break;
+                    }
+                }
 
-        i_parent = self.min_father.unwrap();
-        let mut j_this = 0;
+                i_parent = self.min_father.unwrap();
+                let mut j_this = 0;
 
-        let mut result = Vec::new();
-        if let Some(max_father) = self.max_father {
-            while i_parent < max_father && j_this < this_rankings.len() {
-                let curr_parent_ls_index = parent_rankings[i_parent];
-                let curr_this_ls_index = this_rankings[j_this];
-                let child_offset = self.suffix_len;
-                let result_rules = Self::rules_safe(
-                    curr_parent_ls_index,
-                    curr_this_ls_index,
-                    child_offset,
-                    str,
-                    &icfl_indexes,
-                    &is_custom_vec,
-                    &factor_list,
-                );
-                if !result_rules {
-                    println!(
-                        "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
-                        &str
-                            [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
-                            [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
-                    );
-                    result.push(curr_parent_ls_index);
-                    i_parent += 1;
-                } else {
-                    println!(
-                        "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: son wins",
-                        &str
-                            [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
-                            [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
-                    );
-                    result.push(curr_this_ls_index);
+                let mut result = Vec::new();
+                if let Some(max_father) = self.max_father {
+                    println!("   > start comparing, window=[{},{})", i_parent, max_father);
+                    while i_parent < max_father && j_this < this_rankings.len() {
+                        let curr_parent_ls_index = parent_rankings[i_parent];
+                        let curr_this_ls_index = this_rankings[j_this];
+                        let child_offset = self.suffix_len;
+                        let result_rules = Self::rules_safe(
+                            curr_parent_ls_index,
+                            curr_this_ls_index,
+                            child_offset,
+                            str,
+                            &icfl_indexes,
+                            &is_custom_vec,
+                            &factor_list,
+                        );
+                        if !result_rules {
+                            println!(
+                                "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
+                                &str
+                                    [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
+                                    [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
+                            );
+                            result.push(curr_parent_ls_index);
+                            i_parent += 1;
+                        } else {
+                            println!(
+                                "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: son wins",
+                                &str
+                                    [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
+                                    [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
+                            );
+                            result.push(curr_this_ls_index);
+                            j_this += 1;
+                        }
+                    }
+                }
+                while j_this < this_rankings.len() {
+                    result.push(this_rankings[j_this]);
                     j_this += 1;
                 }
+                if let Some(max_father) = self.max_father {
+                    while i_parent < max_father {
+                        result.push(parent_rankings[i_parent]);
+                        i_parent += 1;
+                    }
+                }
+
+                // println!("FINAL RANKINGS {:?}", result);
+                self.rankings_forced = Some(result);
             }
         }
-        while j_this < this_rankings.len() {
-            result.push(wbsa[j_this]);
-            j_this += 1;
-        }
-        while i_parent < parent_rankings.len() {
-            result.push(parent_rankings[i_parent]);
-            i_parent += 1;
-        }
-
-        // println!("FINAL RANKINGS {:?}", result);
-        self.rankings_forced = Some(result);
 
         // Now it's your turn to be the parent.
         let this_left = self.get_buff_index_left();
