@@ -15,23 +15,7 @@ pub fn main_suffix_array() {
     let src_str = src.as_str();
     // println!("STRING={}", src_str);
 
-    // INNOVATIVE SUFFIX ARRAY
-    let innovative_suffix_array_computation =
-        compute_innovative_suffix_array(src_str, 7, DebugMode::Silent);
-    let wbsa = innovative_suffix_array_computation.suffix_array;
-    println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
-    println!(
-        " > Duration: {:15} micros",
-        innovative_suffix_array_computation.duration.as_micros()
-    );
-    println!(
-        " > Duration: {:15.3} seconds",
-        innovative_suffix_array_computation.duration.as_secs_f64()
-    );
-    println!(" > Suffix Array: {:?}", wbsa);
-
     // CLASSIC SUFFIX ARRAY
-    println!();
     let classic_suffix_array_computation = compute_classic_suffix_array(src_str, false);
     let classic_suffix_array = classic_suffix_array_computation.suffix_array;
     println!("CLASSIC SUFFIX ARRAY CALCULATION");
@@ -45,26 +29,50 @@ pub fn main_suffix_array() {
     );
     println!(" > Suffix Array: {:?}", classic_suffix_array);
 
-    // VERIFICATION
+    // INNOVATIVE SUFFIX ARRAY
+    let chunk_size_min = 1;
+    let chunk_size_max = 20;
     println!();
-    if wbsa.len() != classic_suffix_array.len() {
-        println!("Wanna Be Suffix Array is insufficient in size");
-    } else {
-        let mut i = 0;
+    println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
+    for chunk_size in chunk_size_min..chunk_size_max + 1 {
+        let innovative_suffix_array_computation =
+            compute_innovative_suffix_array(src_str, chunk_size, DebugMode::Silent);
+        let wbsa = innovative_suffix_array_computation.suffix_array;
+        println!("[CHUNK SIZE={chunk_size}]");
+        println!(
+            " > Duration: {:15} micros",
+            innovative_suffix_array_computation.duration.as_micros()
+        );
+        println!(
+            " > Duration: {:15.3} seconds",
+            innovative_suffix_array_computation.duration.as_secs_f64()
+        );
+        // println!(" > Suffix Array: {:?}", wbsa);
+
+        // VERIFICATION
         let mut success = true;
-        while i < classic_suffix_array.len() {
-            let sa_item = classic_suffix_array[i];
-            let wbsa_item = wbsa[i];
-            if wbsa_item != sa_item {
-                println!("Wanna Be Suffix Array is insufficient: element [{}] should be \"{}\" but is \"{}\"", i, sa_item, wbsa_item);
-                success = false;
+        if wbsa.len() != classic_suffix_array.len() {
+            success = false;
+            println!("Wanna Be Suffix Array is insufficient in size");
+        } else {
+            let mut i = 0;
+            while i < classic_suffix_array.len() {
+                let sa_item = classic_suffix_array[i];
+                let wbsa_item = wbsa[i];
+                if wbsa_item != sa_item {
+                    println!("Wanna Be Suffix Array is insufficient: element [{}] should be \"{}\" but is \"{}\"", i, sa_item, wbsa_item);
+                    success = false;
+                }
+                i += 1;
             }
-            i += 1;
         }
         if success {
-            println!("Wanna Be Suffix Array is PERFECT :)");
+            // println!("Wanna Be Suffix Array is PERFECT :)");
         } else {
+            println!(" > Suffix Array: {:?}", wbsa);
             println!("Wanna Be Suffix Array is WRONG!!! :(");
+
+            break;
         }
     }
 }
