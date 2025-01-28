@@ -295,8 +295,7 @@ impl PrefixTrie {
         }
 
         // Node with Rankings.
-        let this_left = self.get_buff_index_left();
-        let this_right_excl = self.get_buff_index_right_excl();
+        let this_ranking = self.get_real_rankings(wbsa);
         for son in self.sons.values_mut() {
             son.in_prefix_merge_deep(
                 str,
@@ -305,8 +304,7 @@ impl PrefixTrie {
                 icfl_indexes,
                 is_custom_vec,
                 factor_list,
-                this_left,
-                this_right_excl,
+                &this_ranking,
                 verbose,
             );
         }
@@ -319,8 +317,7 @@ impl PrefixTrie {
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         factor_list: &Vec<usize>,
-        parent_buff_index_left: usize,
-        parent_buff_index_right_excl: usize,
+        parent_rankings: &Vec<usize>,
         verbose: bool,
     ) {
         // Parent has to *ALWAYS* have rankings.
@@ -335,8 +332,7 @@ impl PrefixTrie {
                     icfl_indexes,
                     is_custom_vec,
                     factor_list,
-                    parent_buff_index_left,
-                    parent_buff_index_right_excl,
+                    parent_rankings,
                     verbose,
                 );
             }
@@ -344,7 +340,6 @@ impl PrefixTrie {
         }
 
         // Compare this node's rankings with parent's rankings.
-        let parent_rankings = &wbsa[parent_buff_index_left..parent_buff_index_right_excl];
         let parent_first_ls_index = parent_rankings[0];
         let parent_ls_length = depths[parent_first_ls_index];
         let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
@@ -414,7 +409,7 @@ impl PrefixTrie {
                     while i_parent < max_father && j_this < this_rankings.len() {
                         let curr_parent_ls_index = parent_rankings[i_parent];
                         let curr_this_ls_index = this_rankings[j_this];
-                        let child_offset = self.suffix_len;
+                        let child_offset = self.suffix_len; // Could be inline.
                         let result_rules = Self::rules_safe(
                             curr_parent_ls_index,
                             curr_this_ls_index,
@@ -449,14 +444,45 @@ impl PrefixTrie {
                         }
                     }
                 }
+                if j_this < this_rankings.len() {
+                    // Enters in following while.
+                } else {
+                    if verbose {
+                        println!("     > no child rankings left to add");
+                    }
+                }
                 while j_this < this_rankings.len() {
-                    result.push(this_rankings[j_this]);
+                    let curr_this_ls_index = this_rankings[j_this];
+                    let child_offset = self.suffix_len; // Could be inline.
+                    if verbose {
+                        println!(
+                            "     > adding child=\"{}\" [{}], child.suff.len={}",
+                            &str[curr_this_ls_index..curr_this_ls_index + child_offset],
+                            curr_this_ls_index,
+                            child_offset
+                        );
+                    }
+                    result.push(curr_this_ls_index);
                     j_this += 1;
                 }
                 if let Some(max_father) = self.max_father {
                     while i_parent < max_father {
-                        result.push(parent_rankings[i_parent]);
+                        let curr_parent_ls_index = parent_rankings[i_parent];
+                        let child_offset = self.suffix_len; // Could be inline.
+                        if verbose {
+                            println!(
+                                "     > adding father=\"{}\" [{}], father.suff.len={}",
+                                &str[curr_parent_ls_index..curr_parent_ls_index + child_offset],
+                                curr_parent_ls_index,
+                                child_offset
+                            );
+                        }
+                        result.push(curr_parent_ls_index);
                         i_parent += 1;
+                    }
+                } else {
+                    if verbose {
+                        println!("     > no parent rankings left to add");
                     }
                 }
                 self.rankings_forced = Some(result);
@@ -464,8 +490,7 @@ impl PrefixTrie {
         }
 
         // Now it's your turn to be the parent.
-        let this_left = self.get_buff_index_left();
-        let this_right_excl = self.get_buff_index_right_excl();
+        let this_rankings = self.get_real_rankings(wbsa);
         for son in self.sons.values_mut() {
             son.in_prefix_merge_deep(
                 str,
@@ -474,8 +499,7 @@ impl PrefixTrie {
                 icfl_indexes,
                 is_custom_vec,
                 factor_list,
-                this_left,
-                this_right_excl,
+                &this_rankings,
                 verbose,
             );
         }
@@ -644,7 +668,7 @@ impl PrefixTrie {
             self.get_rankings(wbsa).to_vec()
         }
     }
-    pub fn shrink_bottom_up(
+    /*pub fn shrink_bottom_up(
         &mut self,
         wbsa: &mut Vec<usize>,
         depths: &mut Vec<usize>,
@@ -850,7 +874,7 @@ impl PrefixTrie {
 
         self.sons.clear();
         println!("   > done with result={:?}", self.get_rankings(wbsa));
-    }
+    }*/
     fn rules(
         x: usize,
         y: usize,

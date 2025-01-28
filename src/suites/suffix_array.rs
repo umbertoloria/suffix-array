@@ -7,6 +7,7 @@ use crate::suffix_array::chunking::{
 use crate::suffix_array::prefix_tree::create_pt_from_trie;
 use crate::suffix_array::prefix_trie::create_prefix_trie;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
+use std::cmp::PartialEq;
 use std::time::{Duration, Instant};
 
 pub fn main_suffix_array() {
@@ -32,11 +33,14 @@ pub fn main_suffix_array() {
     // INNOVATIVE SUFFIX ARRAY
     let chunk_size_min = 1;
     let chunk_size_max = 20;
+    // let debug_mode = DebugMode::Verbose;
+    // let debug_mode = DebugMode::Overview;
+    let debug_mode = DebugMode::Silent;
     println!();
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     for chunk_size in chunk_size_min..chunk_size_max + 1 {
         let innovative_suffix_array_computation =
-            compute_innovative_suffix_array(src_str, chunk_size, DebugMode::Silent);
+            compute_innovative_suffix_array(src_str, chunk_size, debug_mode);
         let wbsa = innovative_suffix_array_computation.suffix_array;
         println!("[CHUNK SIZE={chunk_size}]");
         println!(
@@ -119,6 +123,7 @@ fn compute_classic_suffix_array(
 }
 
 // INNOVATIVE SUFFIX ARRAY
+#[derive(Clone, Copy, Eq, PartialEq)]
 enum DebugMode {
     Silent,
     Overview,
@@ -156,12 +161,9 @@ fn compute_innovative_suffix_array(
     // Prefix Trie Structure create
     let mut root = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
 
-    match debug_mode {
-        DebugMode::Verbose => {
-            println!("Before merge");
-            root.print(0, "".into());
-        }
-        _ => {}
+    if debug_mode == DebugMode::Verbose {
+        println!("Before merge");
+        root.print(0, "".into());
     }
 
     // Merge Rankings (Canonical and Custom)
@@ -169,34 +171,28 @@ fn compute_innovative_suffix_array(
     let mut depths = vec![0usize; src_length];
     root.merge_rankings_and_sort_recursive(str, &mut wbsa, &mut depths, 0);
 
-    match debug_mode {
-        DebugMode::Overview | DebugMode::Verbose => {
-            /*println!("chunk_size={}", chunk_size);
-            println!("ICFL_INDEXES={:?}", icfl_indexes);
-            println!("ICFL FACTORS: {:?}", factors);
-            println!("CSTM_INDEXES={:?}", custom_indexes);
-            println!("CSTM FACTORS: {:?}", custom_factors);
-            println!("is_custom_vec={:?}", is_custom_vec);
-            println!("factor_list={:?}", factor_list);*/
-            print_for_human_like_debug(
-                str,
-                src_length,
-                &icfl_indexes,
-                &custom_indexes,
-                &factor_list,
-                &is_custom_vec,
-                &depths,
-            );
-        }
-        _ => {}
+    if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
+        /*println!("chunk_size={}", chunk_size);
+        println!("ICFL_INDEXES={:?}", icfl_indexes);
+        println!("ICFL FACTORS: {:?}", factors);
+        println!("CSTM_INDEXES={:?}", custom_indexes);
+        println!("CSTM FACTORS: {:?}", custom_factors);
+        println!("is_custom_vec={:?}", is_custom_vec);
+        println!("factor_list={:?}", factor_list);*/
+        print_for_human_like_debug(
+            str,
+            src_length,
+            &icfl_indexes,
+            &custom_indexes,
+            &factor_list,
+            &is_custom_vec,
+            &depths,
+        );
     }
 
-    match debug_mode {
-        DebugMode::Verbose => {
-            println!("Before SHRINK");
-            root.print_with_wbsa(0, "".into(), &wbsa);
-        }
-        _ => {}
+    if debug_mode == DebugMode::Verbose {
+        println!("Before SHRINK");
+        root.print_with_wbsa(0, "".into(), &wbsa);
     }
 
     root.in_prefix_merge(
@@ -206,10 +202,7 @@ fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &factor_list,
-        match debug_mode {
-            DebugMode::Verbose => true,
-            _ => false,
-        },
+        debug_mode == DebugMode::Verbose,
     );
 
     /*root.shrink_bottom_up(&mut wbsa, &mut depths, str, &icfl_indexes, &is_custom_vec, &factor_list);
@@ -222,32 +215,19 @@ fn compute_innovative_suffix_array(
         _ => {}
     }*/
 
-    match debug_mode {
-        DebugMode::Overview | DebugMode::Verbose => {
-            println!("After IN_PREFIX_MERGE");
-            root.print_with_wbsa(0, "".into(), &wbsa);
-        }
-        _ => {}
+    if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
+        println!("After IN_PREFIX_MERGE");
+        root.print_with_wbsa(0, "".into(), &wbsa);
     }
 
     let mut pt = create_pt_from_trie(root, &mut wbsa);
-    match debug_mode {
-        DebugMode::Overview | DebugMode::Verbose => {
-            println!("Prefix Tree");
-            pt.print();
-        }
-        _ => {}
+    if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
+        pt.print();
     }
 
     let mut sa = Vec::new();
     // root.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
-    pt.prepare_get_common_prefix_partition(
-        &mut sa,
-        match debug_mode {
-            DebugMode::Silent => false,
-            _ => true,
-        },
-    );
+    pt.prepare_get_common_prefix_partition(&mut sa, debug_mode == DebugMode::Verbose);
 
     let after = Instant::now();
 
