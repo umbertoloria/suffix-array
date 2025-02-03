@@ -13,9 +13,9 @@ use std::time::{Duration, Instant};
 pub fn main_suffix_array() {
     // READING FILE
     // let src = get_fasta_content("generated/000.fasta".into());
-    let src = get_fasta_content("generated/001.fasta".into());
+    // let src = get_fasta_content("generated/001.fasta".into());
     // let src = get_fasta_content("generated/002_mini.fasta".into());
-    // let src = get_fasta_content("generated/002_70.fasta".into());
+    let src = get_fasta_content("generated/002_70.fasta".into());
     // let src = get_fasta_content("generated/002_700.fasta".into());
     // let src = get_fasta_content("generated/002_7000.fasta".into());
     // let src = get_fasta_content("generated/002_70000.fasta".into());
