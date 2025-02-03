@@ -19,7 +19,6 @@ pub fn create_prefix_trie(
         rankings_custom: Vec::new(),
         wbsa_p: 0,
         wbsa_q: 0,
-        shrunk: false,
         min_father: None,
         max_father: None,
         rankings_forced: None,
@@ -76,7 +75,6 @@ pub fn create_prefix_trie(
                             rankings_custom: Vec::new(),
                             wbsa_p: 0,
                             wbsa_q: 0,
-                            shrunk: false,
                             min_father: None,
                             max_father: None,
                             rankings_forced: None,
@@ -112,7 +110,6 @@ pub struct PrefixTrie {
     pub rankings_custom: Vec<usize>,
     pub wbsa_p: usize, // Incl.
     pub wbsa_q: usize, // Excl.
-    pub shrunk: bool,
     pub min_father: Option<usize>,
     pub max_father: Option<usize>,
     pub rankings_forced: Option<Vec<usize>>,
@@ -242,6 +239,7 @@ impl PrefixTrie {
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         factor_list: &Vec<usize>,
+        monitor: &mut PrefixTrieMonitor,
         verbose: bool,
     ) {
         if self.suffix_len == 0 {
@@ -254,6 +252,7 @@ impl PrefixTrie {
                     icfl_indexes,
                     is_custom_vec,
                     factor_list,
+                    monitor,
                     verbose,
                 );
             }
@@ -270,6 +269,7 @@ impl PrefixTrie {
                     icfl_indexes,
                     is_custom_vec,
                     factor_list,
+                    monitor,
                     verbose,
                 );
             }
@@ -287,6 +287,7 @@ impl PrefixTrie {
                 is_custom_vec,
                 factor_list,
                 &this_ranking,
+                monitor,
                 verbose,
             );
         }
@@ -300,6 +301,7 @@ impl PrefixTrie {
         is_custom_vec: &Vec<bool>,
         factor_list: &Vec<usize>,
         parent_rankings: &Vec<usize>,
+        monitor: &mut PrefixTrieMonitor,
         verbose: bool,
     ) {
         // Parent has to *ALWAYS* have rankings.
@@ -315,6 +317,7 @@ impl PrefixTrie {
                     is_custom_vec,
                     factor_list,
                     parent_rankings,
+                    monitor,
                     verbose,
                 );
             }
@@ -401,6 +404,7 @@ impl PrefixTrie {
                             &is_custom_vec,
                             &factor_list,
                             false,
+                            monitor,
                         );
                         if !result_rules {
                             if verbose {
@@ -483,6 +487,7 @@ impl PrefixTrie {
                 is_custom_vec,
                 factor_list,
                 &this_rankings,
+                monitor,
                 verbose,
             );
         }
@@ -503,9 +508,12 @@ impl PrefixTrie {
         icfl_list: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         factor_list: &Vec<usize>,
+        monitor: &mut PrefixTrieMonitor,
     ) -> bool {
         let icfl_list_size = icfl_list.len();
         if is_custom_vec[x] && is_custom_vec[y] {
+            monitor.new_compare_of_two_ls_in_custom_factors();
+            monitor.new_compare_using_actual_string_compare();
             let cmp1 = &src[y + child_offset..];
             let cmp2 = &src[x + child_offset..];
             if cmp1 < cmp2 {
@@ -514,13 +522,16 @@ impl PrefixTrie {
                 false
             }
         } else if is_custom_vec[x] {
+            monitor.new_compare_one_ls_in_custom_factor();
             if factor_list[x] <= factor_list[y] {
+                monitor.new_compare_using_rules();
                 if y >= icfl_list[icfl_list_size - 1] {
                     true
                 } else {
                     false
                 }
             } else {
+                monitor.new_compare_using_actual_string_compare();
                 let cmp1 = &src[y + child_offset..];
                 let cmp2 = &src[x + child_offset..];
                 if cmp1 < cmp2 {
@@ -530,13 +541,16 @@ impl PrefixTrie {
                 }
             }
         } else if is_custom_vec[y] {
+            monitor.new_compare_one_ls_in_custom_factor();
             if factor_list[y] <= factor_list[x] {
+                monitor.new_compare_using_rules();
                 if x >= icfl_list[icfl_list_size - 1] {
                     false
                 } else {
                     true
                 }
             } else {
+                monitor.new_compare_using_actual_string_compare();
                 let cmp1 = &src[y + child_offset..];
                 let cmp2 = &src[x + child_offset..];
                 if cmp1 < cmp2 {
@@ -546,13 +560,17 @@ impl PrefixTrie {
                 }
             }
         } else if x >= icfl_list[icfl_list_size - 1] && y >= icfl_list[icfl_list_size - 1] {
+            monitor.new_compare_using_rules();
             false
         } else if factor_list[x] == factor_list[y] {
+            monitor.new_compare_using_rules();
             true
         } else {
             if x >= icfl_list[icfl_list_size - 1] {
+                monitor.new_compare_using_rules();
                 false
             } else if y >= icfl_list[icfl_list_size - 1] {
+                monitor.new_compare_using_actual_string_compare();
                 let cmp1 = &src[y + child_offset..];
                 let cmp2 = &src[x + child_offset..];
                 if cmp1 < cmp2 {
@@ -562,8 +580,10 @@ impl PrefixTrie {
                 }
             } else {
                 if x > y {
+                    monitor.new_compare_using_rules();
                     true
                 } else {
+                    monitor.new_compare_using_actual_string_compare();
                     let cmp1 = &src[y + child_offset..];
                     let cmp2 = &src[x + child_offset..];
                     if cmp1 < cmp2 {
@@ -584,6 +604,7 @@ impl PrefixTrie {
         is_custom_vec: &Vec<bool>,
         factor_list: &Vec<usize>,
         slow_check: bool,
+        monitor: &mut PrefixTrieMonitor,
     ) -> bool {
         if !slow_check {
             Self::rules(
@@ -594,6 +615,7 @@ impl PrefixTrie {
                 icfl_list,
                 is_custom_vec,
                 factor_list,
+                monitor,
             )
         } else {
             let cmp1_father = &src[x + child_offset..];
@@ -612,6 +634,7 @@ impl PrefixTrie {
                 icfl_list,
                 is_custom_vec,
                 factor_list,
+                monitor,
             );
             if given != oracle {
                 println!(
@@ -627,4 +650,40 @@ impl PrefixTrie {
 fn print_with_offset(level: usize, str: String) {
     // TODO: Move from here
     println!("{} {}", "  ".repeat(level), str);
+}
+
+pub struct PrefixTrieMonitor {
+    compares_with_two_cfs: usize,
+    compares_with_one_cf: usize,
+    compares_using_rules: usize,
+    compares_using_strcmp: usize,
+}
+impl PrefixTrieMonitor {
+    pub fn new() -> Self {
+        Self {
+            compares_with_two_cfs: 0,
+            compares_with_one_cf: 0,
+            compares_using_rules: 0,
+            compares_using_strcmp: 0,
+        }
+    }
+    pub fn new_compare_of_two_ls_in_custom_factors(&mut self) {
+        self.compares_with_two_cfs += 1;
+    }
+    pub fn new_compare_one_ls_in_custom_factor(&mut self) {
+        self.compares_with_one_cf += 1;
+    }
+    pub fn new_compare_using_rules(&mut self) {
+        self.compares_using_rules += 1;
+    }
+    pub fn new_compare_using_actual_string_compare(&mut self) {
+        self.compares_using_strcmp += 1;
+    }
+    pub fn print(&self) {
+        println!("Monitor output:");
+        println!(" > two custom: {}", self.compares_with_two_cfs);
+        println!(" > one custom: {}", self.compares_with_one_cf);
+        println!(" > rules: {}", self.compares_using_rules);
+        println!(" > string compares: {}", self.compares_using_strcmp);
+    }
 }

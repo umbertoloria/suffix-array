@@ -5,7 +5,7 @@ use crate::suffix_array::chunking::{
     get_indexes_from_factors, get_is_custom_vec,
 };
 use crate::suffix_array::prefix_tree::create_pt_from_trie;
-use crate::suffix_array::prefix_trie::create_prefix_trie;
+use crate::suffix_array::prefix_trie::{create_prefix_trie, PrefixTrieMonitor};
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::cmp::PartialEq;
 use std::time::{Duration, Instant};
@@ -48,6 +48,7 @@ pub fn main_suffix_array() {
         let innovative_suffix_array_computation =
             compute_innovative_suffix_array(src_str, chunk_size, debug_mode);
         let wbsa = innovative_suffix_array_computation.suffix_array;
+        let monitor = innovative_suffix_array_computation.monitor;
         println!("[CHUNK SIZE={chunk_size}]");
         println!(
             " > Duration: {:15} micros",
@@ -57,6 +58,9 @@ pub fn main_suffix_array() {
             " > Duration: {:15.3} seconds",
             innovative_suffix_array_computation.duration.as_secs_f64()
         );
+        if debug_mode == DebugMode::Overview || debug_mode == DebugMode::Verbose {
+            monitor.print();
+        }
         // println!(" > Suffix Array: {:?}", wbsa);
 
         // VERIFICATION
@@ -137,6 +141,7 @@ enum DebugMode {
 }
 struct InnovativeSuffixArrayComputationResults {
     suffix_array: Vec<usize>,
+    monitor: PrefixTrieMonitor,
     duration: Duration,
 }
 fn compute_innovative_suffix_array(
@@ -201,6 +206,7 @@ fn compute_innovative_suffix_array(
         root.print_with_wbsa(0, "".into(), &wbsa);
     }
 
+    let mut monitor = PrefixTrieMonitor::new();
     root.in_prefix_merge(
         str,
         &mut wbsa,
@@ -208,6 +214,7 @@ fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &factor_list,
+        &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
 
@@ -241,6 +248,7 @@ fn compute_innovative_suffix_array(
 
     InnovativeSuffixArrayComputationResults {
         suffix_array: sa,
+        monitor,
         duration: after - before,
     }
 }
