@@ -4,10 +4,12 @@ use crate::suffix_array::chunking::{
     get_custom_factor_strings_from_custom_indexes, get_custom_factors, get_factor_list,
     get_indexes_from_factors, get_is_custom_vec,
 };
+use crate::suffix_array::plot::draw_histogram_from_prefix_trie_monitor;
 use crate::suffix_array::prefix_tree::create_pt_from_trie;
 use crate::suffix_array::prefix_trie::{create_prefix_trie, PrefixTrieMonitor};
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::cmp::PartialEq;
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 pub fn main_suffix_array() {
@@ -37,14 +39,17 @@ pub fn main_suffix_array() {
     // println!(" > Suffix Array: {:?}", classic_suffix_array);
 
     // INNOVATIVE SUFFIX ARRAY
-    let chunk_size_min = 1;
-    let chunk_size_max = 20;
+    // let chunk_size = (3, 35);
+    let chunk_size = (15, 50);
     // let debug_mode = DebugMode::Verbose;
     // let debug_mode = DebugMode::Overview;
     let debug_mode = DebugMode::Silent;
     println!();
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
-    for chunk_size in chunk_size_min..chunk_size_max + 1 {
+
+    let chunks_interval = (chunk_size.0..chunk_size.1 + 1).collect::<Vec<_>>();
+    let mut chunk_data = HashMap::new();
+    for &chunk_size in &chunks_interval {
         let innovative_suffix_array_computation =
             compute_innovative_suffix_array(src_str, chunk_size, debug_mode);
         let wbsa = innovative_suffix_array_computation.suffix_array;
@@ -62,6 +67,15 @@ pub fn main_suffix_array() {
             monitor.print();
         }
         // println!(" > Suffix Array: {:?}", wbsa);
+        chunk_data.insert(
+            chunk_size,
+            (
+                // Duration
+                innovative_suffix_array_computation.duration,
+                // Monitor
+                monitor,
+            ),
+        );
 
         // VERIFICATION
         let mut success = true;
@@ -89,6 +103,12 @@ pub fn main_suffix_array() {
             break;
         }
     }
+    let mut data = Vec::new();
+    for chunk_size in chunks_interval {
+        let (duration, monitor) = chunk_data.remove(&chunk_size).unwrap();
+        data.push((chunk_size, duration, monitor));
+    }
+    draw_histogram_from_prefix_trie_monitor(data);
 }
 
 // CLASSIC SUFFIX ARRAY

@@ -653,10 +653,10 @@ fn print_with_offset(level: usize, str: String) {
 }
 
 pub struct PrefixTrieMonitor {
-    compares_with_two_cfs: usize,
-    compares_with_one_cf: usize,
-    compares_using_rules: usize,
-    compares_using_strcmp: usize,
+    pub compares_with_two_cfs: usize,
+    pub compares_with_one_cf: usize,
+    pub compares_using_rules: usize,
+    pub compares_using_strcmp: usize,
 }
 impl PrefixTrieMonitor {
     pub fn new() -> Self {
