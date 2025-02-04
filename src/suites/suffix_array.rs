@@ -1,10 +1,10 @@
 use crate::factorization::icfl::icfl;
 use crate::files::fasta::get_fasta_content;
+use crate::plot::plot::draw_histogram_from_prefix_trie_monitor;
 use crate::suffix_array::chunking::{
     get_custom_factor_strings_from_custom_indexes, get_custom_factors, get_factor_list,
     get_indexes_from_factors, get_is_custom_vec,
 };
-use crate::suffix_array::plot::draw_histogram_from_prefix_trie_monitor;
 use crate::suffix_array::prefix_tree::create_pt_from_trie;
 use crate::suffix_array::prefix_trie::{create_prefix_trie, PrefixTrieMonitor};
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;

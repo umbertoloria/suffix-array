@@ -4,6 +4,29 @@ use plotters::prelude::*;
 use plotters::style::full_palette::{BLUE_400, GREY, ORANGE_500};
 use std::time::Duration;
 
+pub struct GroupOfBars {
+    pub bars: Vec<SingleBar>,
+}
+impl GroupOfBars {
+    pub fn new() -> Self {
+        Self { bars: Vec::new() }
+    }
+    pub fn add_bar(&mut self, bar: SingleBar) {
+        self.bars.push(bar);
+    }
+    pub fn get_bars_count(&self) -> usize {
+        self.bars.len()
+    }
+    pub fn get_bar(&self, index: usize) -> &SingleBar {
+        &self.bars[index]
+    }
+}
+pub struct SingleBar {
+    pub x: u32,
+    pub y: i32,
+    pub color: RGBColor,
+}
+
 pub fn draw_histogram_from_prefix_trie_monitor(
     data_list: Vec<(usize, Duration, PrefixTrieMonitor)>,
 ) {
@@ -34,51 +57,43 @@ pub fn draw_histogram_from_prefix_trie_monitor(
 
     ctx.configure_mesh().draw().unwrap();
 
-    let sets_or_bars = data_list.into_iter().map(|item| {
+    let groups_of_bars = data_list.into_iter().map(|item| {
         let (chunk_size, duration, monitor) = item;
         let chunk_size = chunk_size as u32;
-
-        let bar_millis = create_rectangle_bar(
-            chunk_size * num_cols_per_data_item,
-            (duration.as_millis() * 3) as i32,
-            GREY,
-        );
-        let bar_cmp_rules = create_rectangle_bar(
-            num_cols_per_data_item * chunk_size + 1,
-            (monitor.compares_using_rules * 300) as i32,
-            GREEN,
-        );
-        let bar_cmp_str = create_rectangle_bar(
-            num_cols_per_data_item * chunk_size + 2,
-            (monitor.compares_using_strcmp / 50) as i32,
-            RED,
-        );
-        let bar_cmp_one_cf = create_rectangle_bar(
-            num_cols_per_data_item * chunk_size + 3,
-            (monitor.compares_with_one_cf * 5) as i32,
-            BLUE_400,
-        );
-        let bar_cmp_two_cf = create_rectangle_bar(
-            num_cols_per_data_item * chunk_size + 4,
-            (monitor.compares_with_two_cfs / 22) as i32,
-            ORANGE_500,
-        );
-
-        (
-            bar_millis,
-            bar_cmp_rules,
-            bar_cmp_str,
-            bar_cmp_one_cf,
-            bar_cmp_two_cf,
-        )
+        let mut result = GroupOfBars::new();
+        result.add_bar(SingleBar {
+            x: chunk_size * num_cols_per_data_item,
+            y: (duration.as_millis() * 3) as i32,
+            color: GREY,
+        });
+        result.add_bar(SingleBar {
+            x: num_cols_per_data_item * chunk_size + 1,
+            y: (monitor.compares_using_rules * 300) as i32,
+            color: GREEN,
+        });
+        result.add_bar(SingleBar {
+            x: num_cols_per_data_item * chunk_size + 2,
+            y: (monitor.compares_using_strcmp / 50) as i32,
+            color: RED,
+        });
+        result.add_bar(SingleBar {
+            x: num_cols_per_data_item * chunk_size + 3,
+            y: (monitor.compares_with_one_cf * 5) as i32,
+            color: BLUE_400,
+        });
+        result.add_bar(SingleBar {
+            x: num_cols_per_data_item * chunk_size + 4,
+            y: (monitor.compares_with_two_cfs / 22) as i32,
+            color: ORANGE_500,
+        });
+        result
     });
     let mut flat_bars = Vec::new();
-    for (a, b, c, d, e) in sets_or_bars {
-        flat_bars.push(a);
-        flat_bars.push(b);
-        flat_bars.push(c);
-        flat_bars.push(d);
-        flat_bars.push(e);
+    for group_of_bars in groups_of_bars {
+        for i in 0..group_of_bars.get_bars_count() {
+            let bar = group_of_bars.get_bar(i);
+            flat_bars.push(create_rectangle_bar(bar.x, bar.y, bar.color));
+        }
     }
     ctx.draw_series(flat_bars).unwrap();
 }

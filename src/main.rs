@@ -9,6 +9,7 @@ use suites::suffix_array::main_suffix_array;
 mod comparing;
 mod factorization;
 mod files;
+mod plot;
 mod suffix_array;
 mod suites;
 
