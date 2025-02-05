@@ -100,35 +100,17 @@ pub fn get_max_size(factor_indexes: &Vec<usize>, src_length: usize) -> Option<us
     result
 }
 
-/*
-fn check_if_custom_index(
-    icfl_indexes: &Vec<usize>,
-    src_length: usize,
-    index: usize,
-    chunk_size: usize,
-) -> bool {
-    for i in 1..icfl_indexes.len() + 1 {
-        let prev_factor_index = icfl_indexes[i - 1];
-        let cur_factor_index = if i < icfl_indexes.len() {
-            icfl_indexes[i]
-        } else {
-            src_length
-        };
-        if prev_factor_index <= index && index < cur_factor_index {
-            if (cur_factor_index - index) <= chunk_size {
-                return false;
-            }
-        }
-    }
-    true
-}
-*/
-pub fn get_is_custom_vec(
+pub fn get_is_custom_vec_and_factor_list(
     icfl_indexes: &Vec<usize>,
     src_length: usize,
     chunk_size: usize,
 ) -> (Vec<bool>, Vec<usize>) {
+    // Custom Vec:  [Source Char Index] => True if it's part of the last Custom Factor of an
+    //                                     ICFL Factor, so it's a Local Suffix of ICFL Factor.
+    // Factor List: [Source Char Index] => ICFL Factor Index of that
+
     let mut is_custom_vec = Vec::with_capacity(src_length);
+    let mut factor_list = Vec::with_capacity(src_length);
 
     for i in 0..icfl_indexes.len() {
         let cur_factor_index = icfl_indexes[i];
@@ -141,6 +123,7 @@ pub fn get_is_custom_vec(
         };
         let cur_factor_size = next_factor_index - cur_factor_index;
 
+        // Updating "is_custom_vec"
         let mut remaining_chars_in_icfl_factor = cur_factor_size;
         if remaining_chars_in_icfl_factor >= chunk_size {
             while remaining_chars_in_icfl_factor > chunk_size {
@@ -152,20 +135,8 @@ pub fn get_is_custom_vec(
             is_custom_vec.push(false);
             remaining_chars_in_icfl_factor -= 1;
         }
-    }
 
-    let mut factor_list = Vec::with_capacity(src_length);
-    for i in 0..icfl_indexes.len() {
-        let cur_factor_index = icfl_indexes[i];
-
-        // Curr Factor Size
-        let next_factor_index = if i < icfl_indexes.len() - 1 {
-            icfl_indexes[i + 1]
-        } else {
-            src_length
-        };
-        let cur_factor_size = next_factor_index - cur_factor_index;
-
+        // Updating "factor_list"
         for _ in 0..cur_factor_size {
             factor_list.push(i);
         }
@@ -173,21 +144,3 @@ pub fn get_is_custom_vec(
 
     (is_custom_vec, factor_list)
 }
-
-/*
-pub fn get_factor_list(icfl_indexes: &Vec<usize>, src_length: usize) -> Vec<usize> {
-    let mut result = Vec::with_capacity(src_length);
-    for i in 0..src_length {
-        result.push(get_factor(icfl_indexes, i));
-    }
-    result
-}
-fn get_factor(icfl_indexes: &Vec<usize>, index: usize) -> usize {
-    for i in 0..icfl_indexes.len() - 1 {
-        if icfl_indexes[i] <= index && index < icfl_indexes[i + 1] {
-            return i;
-        }
-    }
-    icfl_indexes.len() - 1
-}
-*/
