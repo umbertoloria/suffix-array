@@ -35,7 +35,7 @@ pub fn main_factorization() {
 fn print_kmers_from_fasta_to_file_number(index: usize, fact_alg_of_choice: &str) {
     // Read FASTA file
     let file_path_read = format!("in/{}.fasta", index);
-    let contents_buf = get_fasta_content(file_path_read.as_str());
+    let contents_buf = get_fasta_content(file_path_read);
     let contents = contents_buf.as_str();
 
     // Factorization

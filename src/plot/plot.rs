@@ -30,6 +30,7 @@ pub struct SingleBar {
 }
 
 pub fn draw_histogram_from_prefix_trie_monitor(
+    fasta_file_name: &str,
     data_list: Vec<(usize, Duration, PrefixTrieMonitor)>,
 ) {
     let num_cols_per_data_item: u32 = 1 + 1 + 4; // Duration + 4 monitor parameters.
@@ -132,10 +133,10 @@ pub fn draw_histogram_from_prefix_trie_monitor(
     */
 
     draw_histogram(
-        "./plots/plot-002_mini.png",
+        format!("./plots/plot-{}.png", fasta_file_name).as_str(),
         3600,
         1400,
-        "Prefix Trie: Monitor Data",
+        format!("Prefix Trie: {}", fasta_file_name).as_str(),
         num_cols_per_data_item,
         min_x,
         max_x,

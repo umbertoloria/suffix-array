@@ -1,5 +1,6 @@
 use crate::factorization::icfl::icfl;
 use crate::files::fasta::get_fasta_content;
+use crate::files::paths::get_path_in_generated_folder;
 use crate::plot::plot::draw_histogram_from_prefix_trie_monitor;
 use crate::suffix_array::chunking::{
     get_custom_factor_strings_from_custom_indexes, get_custom_factors, get_factor_list,
@@ -13,14 +14,15 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 pub fn main_suffix_array() {
+    // let fasta_file_name = "000";
+    // let fasta_file_name = "001";
+    // let fasta_file_name = "002_mini";
+    let fasta_file_name = "002_70";
+    // let fasta_file_name = "002_700";
+    // let fasta_file_name = "002_7000";
+    // let fasta_file_name = "002_70000";
     // READING FILE
-    // let src = get_fasta_content("generated/000.fasta".into());
-    // let src = get_fasta_content("generated/001.fasta".into());
-    // let src = get_fasta_content("generated/002_mini.fasta".into());
-    let src = get_fasta_content("generated/002_70.fasta".into());
-    // let src = get_fasta_content("generated/002_700.fasta".into());
-    // let src = get_fasta_content("generated/002_7000.fasta".into());
-    // let src = get_fasta_content("generated/002_70000.fasta".into());
+    let src = get_fasta_content(get_path_in_generated_folder(fasta_file_name));
     let src_str = src.as_str();
     // println!("STRING={}", src_str);
 
@@ -108,7 +110,7 @@ pub fn main_suffix_array() {
         let (duration, monitor) = chunk_data.remove(&chunk_size).unwrap();
         data.push((chunk_size, duration, monitor));
     }
-    draw_histogram_from_prefix_trie_monitor(data);
+    draw_histogram_from_prefix_trie_monitor(fasta_file_name, data);
 }
 
 // CLASSIC SUFFIX ARRAY

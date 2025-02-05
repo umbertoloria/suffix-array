@@ -32,11 +32,11 @@ pub fn main_similarity() {
 
     // JACCARD ON K-MERS OF FILES
     let filepath1 = "in/1.fasta";
-    let contents1_buf = get_fasta_content(filepath1);
+    let contents1_buf = get_fasta_content(filepath1.into());
     let contents1 = contents1_buf.as_str();
 
     let filepath2 = "in/2.fasta";
-    let contents2_buf = get_fasta_content(filepath2);
+    let contents2_buf = get_fasta_content(filepath2.into());
     let contents2 = contents2_buf.as_str();
 
     let before = Instant::now();
