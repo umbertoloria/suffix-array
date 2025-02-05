@@ -8,20 +8,28 @@ pub fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
     result
 }
 
-pub fn get_custom_factors(icfl: &Vec<usize>, chunk_size: usize, src_length: usize) -> Vec<usize> {
+pub fn get_custom_factors(
+    icfl_indexes: &Vec<usize>,
+    chunk_size: usize,
+    src_length: usize,
+) -> Vec<usize> {
     // From string "AAA|B|CAABCA|DCAABCA"
     // Es. ICFL=[0, 3, 4, 10]
     //  src_length = 17
     //  chunk_size = 3
     let mut result = Vec::new();
-    for i in 0..icfl.len() {
-        let cur_factor_index = icfl[i];
-        let next_factor_index = if i < icfl.len() - 1 {
-            icfl[i + 1]
+
+    for i in 0..icfl_indexes.len() {
+        let cur_factor_index = icfl_indexes[i];
+
+        // Curr Factor Size
+        let next_factor_index = if i < icfl_indexes.len() - 1 {
+            icfl_indexes[i + 1]
         } else {
             src_length
         };
         let cur_factor_size = next_factor_index - cur_factor_index;
+
         // Es. on the 2nd factor "B": cur_factor_index=3, next_factor_index=4, cur_factor_size=1
         if cur_factor_size < chunk_size {
             // Es. on the 2nd factor "B": no space to perform chunking
@@ -45,7 +53,7 @@ pub fn get_custom_factors(icfl: &Vec<usize>, chunk_size: usize, src_length: usiz
             }
         }
     }
-    // println!("ICFL_CUSTOM_FACTORS={:?}", res);
+
     result
 }
 
@@ -92,6 +100,7 @@ pub fn get_max_size(factor_indexes: &Vec<usize>, src_length: usize) -> Option<us
     result
 }
 
+/*
 fn check_if_custom_index(
     icfl_indexes: &Vec<usize>,
     src_length: usize,
@@ -113,19 +122,35 @@ fn check_if_custom_index(
     }
     true
 }
+*/
 pub fn get_is_custom_vec(
     icfl_indexes: &Vec<usize>,
     src_length: usize,
     chunk_size: usize,
 ) -> Vec<bool> {
     let mut result = Vec::with_capacity(src_length);
-    for i in 0..src_length {
-        result.push(check_if_custom_index(
-            icfl_indexes,
-            src_length,
-            i,
-            chunk_size,
-        ));
+    for i in 0..icfl_indexes.len() {
+        let cur_factor_index = icfl_indexes[i];
+
+        // Curr Factor Size
+        let next_factor_index = if i < icfl_indexes.len() - 1 {
+            icfl_indexes[i + 1]
+        } else {
+            src_length
+        };
+        let cur_factor_size = next_factor_index - cur_factor_index;
+
+        let mut remaining_chars_in_icfl_factor = cur_factor_size;
+        if remaining_chars_in_icfl_factor >= chunk_size {
+            while remaining_chars_in_icfl_factor > chunk_size {
+                result.push(true);
+                remaining_chars_in_icfl_factor -= 1;
+            }
+        }
+        while remaining_chars_in_icfl_factor > 0 {
+            result.push(false);
+            remaining_chars_in_icfl_factor -= 1;
+        }
     }
     result
 }
