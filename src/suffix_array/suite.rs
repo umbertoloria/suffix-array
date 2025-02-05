@@ -7,7 +7,7 @@ use crate::files::paths::{
 };
 use crate::plot::plot::draw_histogram_from_prefix_trie_monitor;
 use crate::suffix_array::chunking::{
-    get_custom_factors_and_more, get_indexes_from_factors, get_is_custom_vec_and_factor_list,
+    get_custom_factors_and_more, get_indexes_from_factors,
 };
 use crate::suffix_array::prefix_tree::{
     create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
@@ -185,15 +185,11 @@ fn compute_innovative_suffix_array(
     let (
         //
         custom_indexes,
+        is_custom_vec,
+        factor_list,
     ) = get_custom_factors_and_more(&icfl_indexes, chunk_size, src_length);
     // let custom_factors = get_custom_factor_strings_from_custom_indexes(str, &custom_indexes);
     // println!("{:?}", custom_factors);
-
-    let (
-        //
-        is_custom_vec,
-        factor_list,
-    ) = get_is_custom_vec_and_factor_list(&icfl_indexes, src_length, chunk_size);
 
     // Prefix Trie Structure create
     let mut prefix_trie = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
