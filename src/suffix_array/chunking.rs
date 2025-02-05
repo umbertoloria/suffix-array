@@ -19,6 +19,12 @@ pub fn get_custom_factors_and_more(
     //  chunk_size = 3
     let mut custom_indexes = Vec::new();
 
+    // Custom Vec:  [Source Char Index] => True if it's part of the last Custom Factor of an
+    //                                     ICFL Factor, so it's a Local Suffix of ICFL Factor.
+    // Factor List: [Source Char Index] => ICFL Factor Index of that
+    let mut is_custom_vec = Vec::with_capacity(src_length);
+    let mut factor_list = Vec::with_capacity(src_length);
+
     for i in 0..icfl_indexes.len() {
         let cur_factor_index = icfl_indexes[i];
 
@@ -30,6 +36,7 @@ pub fn get_custom_factors_and_more(
         };
         let cur_factor_size = next_factor_index - cur_factor_index;
 
+        // Updating "custom_indexes"
         // Es. on the 2nd factor "B": cur_factor_index=3, next_factor_index=4, cur_factor_size=1
         if cur_factor_size < chunk_size {
             // Es. on the 2nd factor "B": no space to perform chunking
@@ -52,25 +59,6 @@ pub fn get_custom_factors_and_more(
                 cur_chunk_index += chunk_size;
             }
         }
-    }
-
-    // Custom Vec:  [Source Char Index] => True if it's part of the last Custom Factor of an
-    //                                     ICFL Factor, so it's a Local Suffix of ICFL Factor.
-    // Factor List: [Source Char Index] => ICFL Factor Index of that
-
-    let mut is_custom_vec = Vec::with_capacity(src_length);
-    let mut factor_list = Vec::with_capacity(src_length);
-
-    for i in 0..icfl_indexes.len() {
-        let cur_factor_index = icfl_indexes[i];
-
-        // Curr Factor Size
-        let next_factor_index = if i < icfl_indexes.len() - 1 {
-            icfl_indexes[i + 1]
-        } else {
-            src_length
-        };
-        let cur_factor_size = next_factor_index - cur_factor_index;
 
         // Updating "is_custom_vec"
         let mut remaining_chars_in_icfl_factor = cur_factor_size;

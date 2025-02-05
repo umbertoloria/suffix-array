@@ -6,9 +6,7 @@ use crate::files::paths::{
     get_path_in_generated_folder,
 };
 use crate::plot::plot::draw_histogram_from_prefix_trie_monitor;
-use crate::suffix_array::chunking::{
-    get_custom_factors_and_more, get_indexes_from_factors,
-};
+use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
 use crate::suffix_array::prefix_tree::{
     create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
     make_sure_directory_exist,
