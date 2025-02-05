@@ -8,16 +8,16 @@ pub fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
     result
 }
 
-pub fn get_custom_factors(
+pub fn get_custom_factors_and_more(
     icfl_indexes: &Vec<usize>,
     chunk_size: usize,
     src_length: usize,
-) -> Vec<usize> {
+) -> (Vec<usize>,) {
     // From string "AAA|B|CAABCA|DCAABCA"
     // Es. ICFL=[0, 3, 4, 10]
     //  src_length = 17
     //  chunk_size = 3
-    let mut result = Vec::new();
+    let mut custom_indexes = Vec::new();
 
     for i in 0..icfl_indexes.len() {
         let cur_factor_index = icfl_indexes[i];
@@ -33,14 +33,14 @@ pub fn get_custom_factors(
         // Es. on the 2nd factor "B": cur_factor_index=3, next_factor_index=4, cur_factor_size=1
         if cur_factor_size < chunk_size {
             // Es. on the 2nd factor "B": no space to perform chunking
-            result.push(cur_factor_index);
+            custom_indexes.push(cur_factor_index);
         } else {
             let first_chunk_index_offset = cur_factor_size % chunk_size;
             if first_chunk_index_offset > 0 {
                 // If factor was "DCAABCA" then we would have first_chunk_index_offset=1 (since
                 // "cur_factor_size"=7 and "chunk_size"=3). So the index of this factor is not a
                 // chunk, and it has to be added as factor "manually".
-                result.push(cur_factor_index);
+                custom_indexes.push(cur_factor_index);
             } else {
                 // If factor was "CAABCA" then we would have first_chunk_index_offset=0 (since
                 // "cur_factor_size"=6 and "chunk_size"=3). So the index of this factor is also the
@@ -48,13 +48,13 @@ pub fn get_custom_factors(
             }
             let mut cur_chunk_index = cur_factor_index + first_chunk_index_offset;
             while cur_chunk_index < next_factor_index {
-                result.push(cur_chunk_index);
+                custom_indexes.push(cur_chunk_index);
                 cur_chunk_index += chunk_size;
             }
         }
     }
 
-    result
+    (custom_indexes,)
 }
 
 pub fn get_custom_factor_strings_from_custom_indexes(
