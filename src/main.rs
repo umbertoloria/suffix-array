@@ -12,6 +12,7 @@ mod files;
 mod plot;
 mod suffix_array;
 mod suites;
+mod utils;
 
 fn main() {
     // TODO: Control this main with CLI Interface with Arguments

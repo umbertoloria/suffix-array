@@ -1,14 +1,18 @@
 use crate::factorization::icfl::icfl;
 use crate::files::fasta::get_fasta_content;
 use crate::files::paths::{
-    get_path_in_generated_folder, get_path_in_logged_folder_prefix_tree,
-    get_path_in_logged_folder_prefix_trie,
+    get_path_for_project_folder, get_path_for_project_prefix_tree_file,
+    get_path_for_project_prefix_trie_file, get_path_for_project_suffix_array_file,
+    get_path_in_generated_folder,
 };
 use crate::plot::plot::draw_histogram_from_prefix_trie_monitor;
 use crate::suffix_array::chunking::{
     get_custom_factors, get_factor_list, get_indexes_from_factors, get_is_custom_vec,
 };
-use crate::suffix_array::prefix_tree::{create_prefix_tree_from_prefix_trie, log_prefix_tree};
+use crate::suffix_array::prefix_tree::{
+    create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
+    make_sure_directory_exist,
+};
 use crate::suffix_array::prefix_trie::{create_prefix_trie, log_prefix_trie, PrefixTrieMonitor};
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::cmp::PartialEq;
@@ -16,13 +20,30 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 pub fn main_suffix_array() {
-    // let fasta_file_name = "000";
-    // let fasta_file_name = "001";
-    // let fasta_file_name = "002_mini";
-    let fasta_file_name = "002_70";
-    // let fasta_file_name = "002_700";
-    // let fasta_file_name = "002_7000";
-    // let fasta_file_name = "002_70000";
+    // let chunk_size_interval = (3, 35);
+    let chunk_size_interval = (15, 50);
+    // let chunk_size_interval = (3, 6);
+
+    // let debug_mode = DebugMode::Verbose;
+    // let debug_mode = DebugMode::Overview;
+    let debug_mode = DebugMode::Silent;
+
+    // suite_complete_on_fasta_file("000", chunk_size_interval, debug_mode);
+    // suite_complete_on_fasta_file("001", chunk_size_interval, debug_mode);
+    suite_complete_on_fasta_file("002_mini", chunk_size_interval, debug_mode);
+    // suite_complete_on_fasta_file("002_70", chunk_size_interval, debug_mode);
+    // suite_complete_on_fasta_file("002_700", chunk_size_interval, debug_mode);
+    // suite_complete_on_fasta_file("002_7000", chunk_size_interval, debug_mode);
+    // suite_complete_on_fasta_file("002_70000", chunk_size_interval, debug_mode);
+}
+
+// SUITE COMPLETE FOR CLASSIC VS INNOVATIVE COMPUTATION
+fn suite_complete_on_fasta_file(
+    fasta_file_name: &str,
+    chunk_size_interval: (usize, usize /* Incl. */),
+    debug_mode: DebugMode,
+) {
+    println!("\n\nCOMPUTING SUITE ON FILE: \"{}\"\n", fasta_file_name);
 
     // READING FILE
     let src = get_fasta_content(get_path_in_generated_folder(fasta_file_name));
@@ -44,15 +65,10 @@ pub fn main_suffix_array() {
     // println!(" > Suffix Array: {:?}", classic_suffix_array);
 
     // INNOVATIVE SUFFIX ARRAY
-    // let chunk_size = (3, 35);
-    let chunk_size = (15, 50);
-    // let debug_mode = DebugMode::Verbose;
-    // let debug_mode = DebugMode::Overview;
-    let debug_mode = DebugMode::Silent;
     println!();
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
 
-    let chunks_interval = (chunk_size.0..chunk_size.1 + 1).collect::<Vec<_>>();
+    let chunks_interval = (chunk_size_interval.0..chunk_size_interval.1 + 1).collect::<Vec<_>>();
     let mut chunk_data = HashMap::new();
     for &chunk_size in &chunks_interval {
         let innovative_suffix_array_computation =
@@ -208,6 +224,12 @@ fn compute_innovative_suffix_array(
     let mut wbsa = (0..src_length).collect::<Vec<_>>();
     let mut depths = vec![0usize; src_length];
     prefix_trie.merge_rankings_and_sort_recursive(str, &mut wbsa, &mut depths, 0);
+    make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
+    log_prefix_trie(
+        &prefix_trie,
+        &wbsa,
+        get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size),
+    );
 
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         print_for_human_like_debug(
@@ -259,24 +281,23 @@ fn compute_innovative_suffix_array(
         prefix_trie.print_with_wbsa(0, "".into(), &wbsa);
     }
 
-    log_prefix_trie(
-        &prefix_trie,
-        &wbsa,
-        get_path_in_logged_folder_prefix_trie(fasta_file_name, chunk_size),
-    );
-
     let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie, &mut wbsa);
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         prefix_tree.print();
     }
     log_prefix_tree(
         &prefix_tree,
-        get_path_in_logged_folder_prefix_tree(fasta_file_name, chunk_size),
+        get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size),
     );
 
     let mut sa = Vec::new();
     // prefix_trie.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
     prefix_tree.prepare_get_common_prefix_partition(&mut sa, debug_mode == DebugMode::Verbose);
+
+    log_suffix_array(
+        &sa,
+        get_path_for_project_suffix_array_file(fasta_file_name, chunk_size),
+    );
 
     let after = Instant::now();
 

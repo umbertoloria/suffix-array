@@ -15,3 +15,16 @@ pub fn vec_skip_duplicates(vec: Vec<&str>) -> Vec<&str> {
     }
     result
 }
+
+pub fn print_array_of_numbers(list: &Vec<usize>) -> String {
+    let mut result = String::from("[");
+
+    let last_item = list[list.len() - 1];
+    for i in 0..list.len() - 1 {
+        let curr_item = list[i];
+        result.push_str(format!("{}, ", curr_item).as_str());
+    }
+    result.push_str(format!("{}]", last_item).as_str());
+
+    result
+}

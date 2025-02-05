@@ -1,0 +1,153 @@
+A [34, 0, 19]
+ AA [18]
+  AAA [17]
+  AAC
+   AACC
+    AACCT
+     AACCTC
+      AACCTCG
+       AACCTCGA [27]
+ AC
+  ACA
+   ACAG
+    ACAGA
+     ACAGAA
+      ACAGAAA [13]
+  ACC [8]
+   ACCT
+    ACCTC
+     ACCTCG
+      ACCTCGA [28]
+ AG
+  AGA
+   AGAA
+    AGAAA [15]
+    AGAAC
+     AGAACC
+      AGAACCT
+       AGAACCTC
+        AGAACCTCG
+         AGAACCTCGA [25]
+   AGAC
+    AGACC [6]
+  AGG
+   AGGT
+    AGGTA
+     AGGTAG
+      AGGTAGA
+       AGGTAGAA
+        AGGTAGAAC
+         AGGTAGAACC
+          AGGTAGAACCT
+           AGGTAGAACCTC
+            AGGTAGAACCTCG
+             AGGTAGAACCTCGA [21]
+C [1, 10]
+ CA
+  CAG
+   CAGA
+    CAGAA
+     CAGAAA [14]
+ CC [9]
+  CCT
+   CCTC
+    CCTCG
+     CCTCGA [29]
+ CG
+  CGA [32]
+  CGT
+   CGTA
+    CGTAG
+     CGTAGA
+      CGTAGAC
+       CGTAGACC [3]
+ CT
+  CTC
+   CTCG
+    CTCGA [30]
+G
+ GA [33]
+  GAA
+   GAAA [16]
+   GAAC
+    GAACC
+     GAACCT
+      GAACCTC
+       GAACCTCG
+        GAACCTCGA [26]
+  GAC
+   GACC [7]
+  GAG
+   GAGG
+    GAGGT
+     GAGGTA
+      GAGGTAG
+       GAGGTAGA
+        GAGGTAGAA
+         GAGGTAGAAC
+          GAGGTAGAACC
+           GAGGTAGAACCT
+            GAGGTAGAACCTC
+             GAGGTAGAACCTCG
+              GAGGTAGAACCTCGA [20]
+ GG
+  GGT
+   GGTA
+    GGTAG
+     GGTAGA
+      GGTAGAA
+       GGTAGAAC
+        GGTAGAACC
+         GGTAGAACCT
+          GGTAGAACCTC
+           GGTAGAACCTCG
+            GGTAGAACCTCGA [22]
+ GT
+  GTA
+   GTAG
+    GTAGA
+     GTAGAA
+      GTAGAAC
+       GTAGAACC
+        GTAGAACCT
+         GTAGAACCTC
+          GTAGAACCTCG
+           GTAGAACCTCGA [23]
+     GTAGAC
+      GTAGACC [4]
+T
+ TA
+  TAC
+   TACA
+    TACAG
+     TACAGA
+      TACAGAA
+       TACAGAAA [12]
+  TAG
+   TAGA
+    TAGAA
+     TAGAAC
+      TAGAACC
+       TAGAACCT
+        TAGAACCTC
+         TAGAACCTCG
+          TAGAACCTCGA [24]
+    TAGAC
+     TAGACC [5]
+ TC
+  TCG
+   TCGA [31]
+   TCGT
+    TCGTA
+     TCGTAG
+      TCGTAGA
+       TCGTAGAC
+        TCGTAGACC [2]
+ TT
+  TTA
+   TTAC
+    TTACA
+     TTACAG
+      TTACAGA
+       TTACAGAA
+        TTACAGAAA [11]
