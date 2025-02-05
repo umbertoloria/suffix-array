@@ -40,7 +40,7 @@ pub fn main_suffix_array() {
 // SUITE COMPLETE FOR CLASSIC VS INNOVATIVE COMPUTATION
 fn suite_complete_on_fasta_file(
     fasta_file_name: &str,
-    chunk_size_interval: (usize, usize /* Incl. */),
+    chunk_size_interval: (usize, usize), // Both incl.
     debug_mode: DebugMode,
 ) {
     println!("\n\nCOMPUTING SUITE ON FILE: \"{}\"\n", fasta_file_name);
