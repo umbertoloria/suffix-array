@@ -1,6 +1,8 @@
 use crate::suffix_array::chunking::get_max_size;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::Write;
 
 pub fn create_prefix_trie(
     src: &str,
@@ -12,7 +14,7 @@ pub fn create_prefix_trie(
         get_max_size(&custom_indexes, src_length).expect("custom_max_size is not valid");
 
     let mut root = PrefixTrie {
-        label: "\0".into(),
+        label: "".into(),
         suffix_len: 0,
         sons: BTreeMap::new(),
         rankings_canonical: Vec::new(),
@@ -686,5 +688,31 @@ impl PrefixTrieMonitor {
         println!(" > one custom: {}", self.compares_with_one_cf);
         println!(" > rules: {}", self.compares_using_rules);
         println!(" > string compares: {}", self.compares_using_strcmp);
+    }
+}
+
+// PREFIX TRIE LOGGER
+pub fn log_prefix_trie(prefix_trie: &PrefixTrie, wbsa: &Vec<usize>, filepath: String) {
+    let mut file = File::create(filepath).expect("Unable to create file");
+    for (_, son) in &prefix_trie.sons {
+        log_prefix_trie_recursive(son, wbsa, &mut file, 0);
+    }
+    file.flush().expect("Unable to flush file");
+}
+fn log_prefix_trie_recursive(node: &PrefixTrie, wbsa: &Vec<usize>, file: &mut File, level: usize) {
+    let mut line = format!("{}{}", " ".repeat(level), node.label);
+    let mut rankings = node.get_real_rankings(wbsa);
+    if !rankings.is_empty() {
+        line.push_str(" [");
+        let last_ranking = rankings.pop().unwrap();
+        for ranking in rankings {
+            line.push_str(format!("{}, ", ranking).as_str());
+        }
+        line.push_str(format!("{}]", last_ranking).as_str());
+    }
+    line.push_str("\n");
+    file.write(line.as_bytes()).expect("Unable to write line");
+    for (_, son) in &node.sons {
+        log_prefix_trie_recursive(son, wbsa, file, level + 1);
     }
 }

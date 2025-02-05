@@ -1,12 +1,15 @@
 use crate::factorization::icfl::icfl;
 use crate::files::fasta::get_fasta_content;
-use crate::files::paths::get_path_in_generated_folder;
+use crate::files::paths::{
+    get_path_in_generated_folder, get_path_in_logged_folder_prefix_tree,
+    get_path_in_logged_folder_prefix_trie,
+};
 use crate::plot::plot::draw_histogram_from_prefix_trie_monitor;
 use crate::suffix_array::chunking::{
     get_custom_factors, get_factor_list, get_indexes_from_factors, get_is_custom_vec,
 };
-use crate::suffix_array::prefix_tree::create_prefix_tree_from_prefix_trie;
-use crate::suffix_array::prefix_trie::{create_prefix_trie, PrefixTrieMonitor};
+use crate::suffix_array::prefix_tree::{create_prefix_tree_from_prefix_trie, log_prefix_tree};
+use crate::suffix_array::prefix_trie::{create_prefix_trie, log_prefix_trie, PrefixTrieMonitor};
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::cmp::PartialEq;
 use std::collections::HashMap;
@@ -53,9 +56,9 @@ pub fn main_suffix_array() {
     let mut chunk_data = HashMap::new();
     for &chunk_size in &chunks_interval {
         let innovative_suffix_array_computation =
-            compute_innovative_suffix_array(src_str, chunk_size, debug_mode);
+            compute_innovative_suffix_array(fasta_file_name, src_str, chunk_size, debug_mode);
         let wbsa = innovative_suffix_array_computation.suffix_array;
-        let monitor = innovative_suffix_array_computation.monitor;
+        let prefix_trie_monitor = innovative_suffix_array_computation.prefix_trie_monitor;
         println!("[CHUNK SIZE={chunk_size}]");
         println!(
             " > Duration: {:15} micros",
@@ -66,7 +69,7 @@ pub fn main_suffix_array() {
             innovative_suffix_array_computation.duration.as_secs_f64()
         );
         if debug_mode == DebugMode::Overview || debug_mode == DebugMode::Verbose {
-            monitor.print();
+            prefix_trie_monitor.print();
         }
         // println!(" > Suffix Array: {:?}", wbsa);
         chunk_data.insert(
@@ -75,7 +78,7 @@ pub fn main_suffix_array() {
                 // Duration
                 innovative_suffix_array_computation.duration,
                 // Monitor
-                monitor,
+                prefix_trie_monitor,
             ),
         );
 
@@ -107,8 +110,8 @@ pub fn main_suffix_array() {
     }
     let mut data = Vec::new();
     for chunk_size in chunks_interval {
-        let (duration, monitor) = chunk_data.remove(&chunk_size).unwrap();
-        data.push((chunk_size, duration, monitor));
+        let (duration, prefix_trie_monitor) = chunk_data.remove(&chunk_size).unwrap();
+        data.push((chunk_size, duration, prefix_trie_monitor));
     }
     draw_histogram_from_prefix_trie_monitor(fasta_file_name, data);
 }
@@ -163,10 +166,11 @@ enum DebugMode {
 }
 struct InnovativeSuffixArrayComputationResults {
     suffix_array: Vec<usize>,
-    monitor: PrefixTrieMonitor,
+    prefix_trie_monitor: PrefixTrieMonitor,
     duration: Duration,
 }
 fn compute_innovative_suffix_array(
+    fasta_file_name: &str,
     str: &str,
     chunk_size: usize,
     debug_mode: DebugMode,
@@ -193,7 +197,7 @@ fn compute_innovative_suffix_array(
 
     // Prefix Trie Structure create
     let mut prefix_trie = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
-    let mut monitor = PrefixTrieMonitor::new();
+    let mut prefix_trie_monitor = PrefixTrieMonitor::new();
 
     if debug_mode == DebugMode::Verbose {
         println!("Before merge");
@@ -229,7 +233,7 @@ fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &factor_list,
-        &mut monitor,
+        &mut prefix_trie_monitor,
         debug_mode == DebugMode::Verbose,
     );
 
@@ -255,10 +259,20 @@ fn compute_innovative_suffix_array(
         prefix_trie.print_with_wbsa(0, "".into(), &wbsa);
     }
 
+    log_prefix_trie(
+        &prefix_trie,
+        &wbsa,
+        get_path_in_logged_folder_prefix_trie(fasta_file_name, chunk_size),
+    );
+
     let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie, &mut wbsa);
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         prefix_tree.print();
     }
+    log_prefix_tree(
+        &prefix_tree,
+        get_path_in_logged_folder_prefix_tree(fasta_file_name, chunk_size),
+    );
 
     let mut sa = Vec::new();
     // prefix_trie.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
@@ -270,7 +284,7 @@ fn compute_innovative_suffix_array(
 
     InnovativeSuffixArrayComputationResults {
         suffix_array: sa,
-        monitor,
+        prefix_trie_monitor,
         duration: after - before,
     }
 }

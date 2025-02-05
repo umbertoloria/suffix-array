@@ -1,4 +1,6 @@
 use crate::suffix_array::prefix_trie::PrefixTrie;
+use std::fs::File;
+use std::io::Write;
 
 pub struct PrefixTree {
     pub children: Vec<PrefixTreeNode>,
@@ -108,11 +110,14 @@ impl PrefixTreeNode {
 }
 pub fn create_prefix_tree_from_prefix_trie(root_trie: PrefixTrie, wbsa: &Vec<usize>) -> PrefixTree {
     let mut tree = PrefixTree {
-        children: create_pt_from_trie_deep(&root_trie, wbsa),
+        children: create_prefix_tree_from_trie_deep(&root_trie, wbsa),
     };
     tree
 }
-fn create_pt_from_trie_deep(real_node: &PrefixTrie, wbsa: &Vec<usize>) -> Vec<PrefixTreeNode> {
+fn create_prefix_tree_from_trie_deep(
+    real_node: &PrefixTrie,
+    wbsa: &Vec<usize>,
+) -> Vec<PrefixTreeNode> {
     let mut result = Vec::new();
 
     let rankings = real_node.get_real_rankings(wbsa);
@@ -126,18 +131,45 @@ fn create_pt_from_trie_deep(real_node: &PrefixTrie, wbsa: &Vec<usize>) -> Vec<Pr
             min_father: real_node.min_father,
             max_father: real_node.max_father,
         };
-        for child in real_node.sons.values() {
-            let nodes_list = create_pt_from_trie_deep(child, wbsa);
+        for son in real_node.sons.values() {
+            let nodes_list = create_prefix_tree_from_trie_deep(son, wbsa);
             node.children.extend(nodes_list);
         }
         result.push(node);
     } else {
         // This Node is a Bridge, so we consider its Children (skipping Child Bridges).
         for child in real_node.sons.values() {
-            let nodes_list = create_pt_from_trie_deep(child, wbsa);
+            let nodes_list = create_prefix_tree_from_trie_deep(child, wbsa);
             result.extend(nodes_list);
         }
     }
 
     result
+}
+
+// PREFIX TREE LOGGER
+pub fn log_prefix_tree(prefix_tree: &PrefixTree, filepath: String) {
+    let mut file = File::create(filepath).expect("Unable to create file");
+    for child in &prefix_tree.children {
+        log_prefix_tree_recursive(child, &mut file, 0);
+    }
+    file.flush().expect("Unable to flush file");
+}
+fn log_prefix_tree_recursive(node: &PrefixTreeNode, file: &mut File, level: usize) {
+    let mut line = format!("{}{}", " ".repeat(level), node.label);
+    let rankings = &node.rankings;
+    if !rankings.is_empty() {
+        line.push_str(" [");
+        let last_ranking = rankings[rankings.len() - 1];
+        for i in 0..rankings.len() - 1 {
+            let ranking = rankings[i];
+            line.push_str(format!("{}, ", ranking).as_str());
+        }
+        line.push_str(format!("{}]", last_ranking).as_str());
+    }
+    line.push_str("\n");
+    file.write(line.as_bytes()).expect("Unable to write line");
+    for child in &node.children {
+        log_prefix_tree_recursive(child, file, level + 1);
+    }
 }
