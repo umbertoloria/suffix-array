@@ -652,6 +652,7 @@ fn print_with_offset(level: usize, str: String) {
     println!("{} {}", "  ".repeat(level), str);
 }
 
+#[derive(Debug)]
 pub struct PrefixTrieMonitor {
     pub compares_with_two_cfs: usize,
     pub compares_with_one_cf: usize,

@@ -13,14 +13,13 @@ pub fn draw_histogram(
     num_cols_per_data_item: u32,
     min_x: u32,
     max_x: u32,
+    max_height: i32,
     groups_of_bars: Vec<GroupOfBars>,
 ) {
     let root_area = BitMapBackend::new(path, (width, height)).into_drawing_area();
     // root_area.fill(&WHITE).unwrap();
     root_area.fill(&GREY_800).unwrap();
 
-    // let max_height = 2500;
-    let max_height = 10000;
     let x_range = (
         // Min
         min_x * num_cols_per_data_item,
@@ -38,13 +37,27 @@ pub fn draw_histogram(
     for group_of_bars in groups_of_bars {
         for i in 0..group_of_bars.get_bars_count() {
             let bar = group_of_bars.get_bar(i);
-            flat_bars.push(create_rectangle_bar(bar.x, bar.y, bar.color));
+            flat_bars.push(create_rectangle_bar(
+                bar.x,
+                bar.y,
+                bar.color,
+                if i == group_of_bars.get_bars_count() - 1 {
+                    Some(5)
+                } else {
+                    None
+                },
+            ));
         }
     }
     ctx.draw_series(flat_bars).unwrap();
 }
 
-fn create_rectangle_bar(x: u32, y: i32, color: RGBColor) -> Rectangle<(SegmentValue<u32>, i32)> {
+fn create_rectangle_bar(
+    x: u32,
+    y: i32,
+    color: RGBColor,
+    margin_right: Option<u32>,
+) -> Rectangle<(SegmentValue<u32>, i32)> {
     let mut bar = Rectangle::new(
         [
             //
@@ -53,6 +66,10 @@ fn create_rectangle_bar(x: u32, y: i32, color: RGBColor) -> Rectangle<(SegmentVa
         ],
         color.filled(),
     );
-    bar.set_margin(0, 0, 2, 2);
+    if let Some(margin_right) = margin_right {
+        bar.set_margin(0, 0, 2, margin_right);
+    } else {
+        bar.set_margin(0, 0, 2, 2);
+    }
     bar
 }
