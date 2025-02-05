@@ -5,7 +5,7 @@ use plotters::element::Rectangle;
 use plotters::prelude::full_palette::GREY_800;
 use plotters::prelude::{Color, IntoDrawingArea, IntoSegmentedCoord, RGBColor, SegmentValue};
 
-pub fn draw_histogram(
+pub fn draw_plot(
     path: &str,
     width: u32,
     height: u32,

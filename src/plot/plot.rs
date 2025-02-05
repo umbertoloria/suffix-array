@@ -1,4 +1,4 @@
-use crate::plot::vendor::draw_histogram;
+use crate::plot::vendor::draw_plot;
 use crate::suffix_array::prefix_trie::PrefixTrieMonitor;
 use plotters::prelude::full_palette::{BLUE_400, GREY, ORANGE_500};
 use plotters::prelude::{RGBColor, GREEN, RED};
@@ -29,7 +29,7 @@ pub struct SingleBar {
     pub color: RGBColor,
 }
 
-pub fn draw_histogram_from_prefix_trie_monitor(
+pub fn draw_plot_from_prefix_trie_monitor(
     fasta_file_name: &str,
     data_list: Vec<(usize, Duration, PrefixTrieMonitor)>,
 ) {
@@ -132,7 +132,7 @@ pub fn draw_histogram_from_prefix_trie_monitor(
     }
     */
 
-    draw_histogram(
+    draw_plot(
         format!("./plots/plot-{}.png", fasta_file_name).as_str(),
         3600,
         1400,
