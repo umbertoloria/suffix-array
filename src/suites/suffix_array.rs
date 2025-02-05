@@ -3,10 +3,9 @@ use crate::files::fasta::get_fasta_content;
 use crate::files::paths::get_path_in_generated_folder;
 use crate::plot::plot::draw_histogram_from_prefix_trie_monitor;
 use crate::suffix_array::chunking::{
-    get_custom_factor_strings_from_custom_indexes, get_custom_factors, get_factor_list,
-    get_indexes_from_factors, get_is_custom_vec,
+    get_custom_factors, get_factor_list, get_indexes_from_factors, get_is_custom_vec,
 };
-use crate::suffix_array::prefix_tree::create_pt_from_trie;
+use crate::suffix_array::prefix_tree::create_prefix_tree_from_prefix_trie;
 use crate::suffix_array::prefix_trie::{create_prefix_trie, PrefixTrieMonitor};
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::cmp::PartialEq;
@@ -21,6 +20,7 @@ pub fn main_suffix_array() {
     // let fasta_file_name = "002_700";
     // let fasta_file_name = "002_7000";
     // let fasta_file_name = "002_70000";
+
     // READING FILE
     let src = get_fasta_content(get_path_in_generated_folder(fasta_file_name));
     let src_str = src.as_str();
@@ -175,15 +175,15 @@ fn compute_innovative_suffix_array(
 
     let src_length = str.len();
 
-    // Compute ICFL
+    // ICFL Factorization
     let factors = icfl(str);
-
     // TODO: Simplify algorithms by having string length as last item of these Factor Index vectors
     let icfl_indexes = get_indexes_from_factors(&factors);
-    let custom_indexes = get_custom_factors(&icfl_indexes, chunk_size, src_length);
-    let custom_factors = get_custom_factor_strings_from_custom_indexes(str, &custom_indexes);
 
-    // TODO: Optimize both functions and rename them (and variables)
+    // Custom Factorization
+    let custom_indexes = get_custom_factors(&icfl_indexes, chunk_size, src_length);
+    // let custom_factors = get_custom_factor_strings_from_custom_indexes(str, &custom_indexes);
+    // println!("{:?}", custom_factors);
     // Factor List: [Source Char Index] => True if it's part of the last Custom Factor of an
     //                                     ICFL Factor, so it's a Local Suffix
     let is_custom_vec = get_is_custom_vec(&icfl_indexes, src_length, chunk_size);
@@ -192,26 +192,20 @@ fn compute_innovative_suffix_array(
     let factor_list = get_factor_list(&icfl_indexes, src_length);
 
     // Prefix Trie Structure create
-    let mut root = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
+    let mut prefix_trie = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
+    let mut monitor = PrefixTrieMonitor::new();
 
     if debug_mode == DebugMode::Verbose {
         println!("Before merge");
-        root.print(0, "".into());
+        prefix_trie.print(0, "".into());
     }
 
     // Merge Rankings (Canonical and Custom)
     let mut wbsa = (0..src_length).collect::<Vec<_>>();
     let mut depths = vec![0usize; src_length];
-    root.merge_rankings_and_sort_recursive(str, &mut wbsa, &mut depths, 0);
+    prefix_trie.merge_rankings_and_sort_recursive(str, &mut wbsa, &mut depths, 0);
 
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
-        /*println!("chunk_size={}", chunk_size);
-        println!("ICFL_INDEXES={:?}", icfl_indexes);
-        println!("ICFL FACTORS: {:?}", factors);
-        println!("CSTM_INDEXES={:?}", custom_indexes);
-        println!("CSTM FACTORS: {:?}", custom_factors);
-        println!("is_custom_vec={:?}", is_custom_vec);
-        println!("factor_list={:?}", factor_list);*/
         print_for_human_like_debug(
             str,
             src_length,
@@ -225,11 +219,10 @@ fn compute_innovative_suffix_array(
 
     if debug_mode == DebugMode::Verbose {
         println!("Before SHRINK");
-        root.print_with_wbsa(0, "".into(), &wbsa);
+        prefix_trie.print_with_wbsa(0, "".into(), &wbsa);
     }
 
-    let mut monitor = PrefixTrieMonitor::new();
-    root.in_prefix_merge(
+    prefix_trie.in_prefix_merge(
         str,
         &mut wbsa,
         &mut depths,
@@ -240,11 +233,18 @@ fn compute_innovative_suffix_array(
         debug_mode == DebugMode::Verbose,
     );
 
-    /*root.shrink_bottom_up(&mut wbsa, &mut depths, str, &icfl_indexes, &is_custom_vec, &factor_list);
+    /*prefix_trie.shrink_bottom_up(
+        &mut wbsa,
+        &mut depths,
+        str,
+        &icfl_indexes,
+        &is_custom_vec,
+        &factor_list,
+    );
     match debug_mode {
         DebugMode::Overview => {
             println!("After SHRINK");
-            root.print_with_wbsa(0, "".into(), &wbsa);
+            prefix_trie.print_with_wbsa(0, "".into(), &wbsa);
             println!("{:?}", wbsa);
         }
         _ => {}
@@ -252,17 +252,17 @@ fn compute_innovative_suffix_array(
 
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         println!("After IN_PREFIX_MERGE");
-        root.print_with_wbsa(0, "".into(), &wbsa);
+        prefix_trie.print_with_wbsa(0, "".into(), &wbsa);
     }
 
-    let mut pt = create_pt_from_trie(root, &mut wbsa);
+    let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie, &mut wbsa);
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
-        pt.print();
+        prefix_tree.print();
     }
 
     let mut sa = Vec::new();
-    // root.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
-    pt.prepare_get_common_prefix_partition(&mut sa, debug_mode == DebugMode::Verbose);
+    // prefix_trie.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
+    prefix_tree.prepare_get_common_prefix_partition(&mut sa, debug_mode == DebugMode::Verbose);
 
     let after = Instant::now();
 

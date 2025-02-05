@@ -106,7 +106,7 @@ impl PrefixTreeNode {
         result
     }
 }
-pub fn create_pt_from_trie(root_trie: PrefixTrie, wbsa: &Vec<usize>) -> PrefixTree {
+pub fn create_prefix_tree_from_prefix_trie(root_trie: PrefixTrie, wbsa: &Vec<usize>) -> PrefixTree {
     let mut tree = PrefixTree {
         children: create_pt_from_trie_deep(&root_trie, wbsa),
     };
