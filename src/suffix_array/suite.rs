@@ -51,7 +51,7 @@ pub fn suite_complete_on_fasta_file(
     let mut chunk_data = HashMap::new();
     for &chunk_size in &chunks_interval {
         let innovative_suffix_array_computation =
-            compute_innovative_suffix_array(fasta_file_name, src_str, chunk_size, debug_mode);
+            compute_innovative_suffix_array(fasta_file_name, src_str, Some(chunk_size), debug_mode);
         let wbsa = innovative_suffix_array_computation.suffix_array;
         let prefix_trie_monitor = innovative_suffix_array_computation.prefix_trie_monitor;
         println!("[CHUNK SIZE={chunk_size}]");
@@ -167,7 +167,7 @@ struct InnovativeSuffixArrayComputationResults {
 fn compute_innovative_suffix_array(
     fasta_file_name: &str,
     str: &str,
-    chunk_size: usize,
+    chunk_size: Option<usize>,
     debug_mode: DebugMode,
 ) -> InnovativeSuffixArrayComputationResults {
     let before = Instant::now();
@@ -180,14 +180,51 @@ fn compute_innovative_suffix_array(
     let icfl_indexes = get_indexes_from_factors(&factors);
 
     // Custom Factorization
-    let (
-        //
-        custom_indexes,
-        is_custom_vec,
-        factor_list,
-    ) = get_custom_factors_and_more(&icfl_indexes, chunk_size, src_length);
-    // let custom_factors = get_custom_factor_strings_from_custom_indexes(str, &custom_indexes);
-    // println!("{:?}", custom_factors);
+    let mut custom_indexes = Vec::new();
+    let mut is_custom_vec = Vec::new();
+    let mut factor_list = Vec::new();
+    if let Some(chunk_size) = chunk_size {
+        let (
+            //
+            custom_indexes_,
+            is_custom_vec_,
+            factor_list_,
+        ) = get_custom_factors_and_more(&icfl_indexes, chunk_size, src_length);
+        custom_indexes = custom_indexes_;
+        is_custom_vec = is_custom_vec_;
+        factor_list = factor_list_;
+        // let custom_factors = get_custom_factor_strings_from_custom_indexes(str, &custom_indexes);
+        // println!("{:?}", custom_factors);
+    } else {
+        // TODO: Test this
+        for i in 0..icfl_indexes.len() {
+            let cur_factor_index = icfl_indexes[i];
+
+            // Curr Factor Size
+            let next_factor_index = if i < icfl_indexes.len() - 1 {
+                icfl_indexes[i + 1]
+            } else {
+                src_length
+            };
+            let cur_factor_size = next_factor_index - cur_factor_index;
+
+            // Updating "custom_indexes"
+            custom_indexes.push(cur_factor_index);
+
+            // Updating "is_custom_vec"
+            // Updating "factor_list"
+            for _ in 0..cur_factor_size {
+                is_custom_vec.push(false);
+                factor_list.push(i);
+            }
+        }
+    }
+
+    let chunk_size_num_for_log = if let Some(chunk_size) = chunk_size {
+        chunk_size
+    } else {
+        0
+    };
 
     // Prefix Trie Structure create
     let mut prefix_trie = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
@@ -206,7 +243,7 @@ fn compute_innovative_suffix_array(
     log_prefix_trie(
         &prefix_trie,
         &wbsa,
-        get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size),
+        get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
     );
 
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
@@ -265,7 +302,7 @@ fn compute_innovative_suffix_array(
     }
     log_prefix_tree(
         &prefix_tree,
-        get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size),
+        get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
     );
 
     let mut sa = Vec::new();
@@ -274,7 +311,7 @@ fn compute_innovative_suffix_array(
 
     log_suffix_array(
         &sa,
-        get_path_for_project_suffix_array_file(fasta_file_name, chunk_size),
+        get_path_for_project_suffix_array_file(fasta_file_name, chunk_size_num_for_log),
     );
 
     let after = Instant::now();

@@ -402,7 +402,7 @@ impl PrefixTrie {
                             curr_this_ls_index,
                             child_offset,
                             str,
-                            &icfl_indexes,
+                            icfl_indexes,
                             &is_custom_vec,
                             &factor_list,
                             false,
