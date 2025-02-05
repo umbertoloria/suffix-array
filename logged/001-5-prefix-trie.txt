@@ -1,0 +1,33 @@
+A [12]
+ AA
+  AAG
+   AAGA [9]
+ AC [18]
+  ACA
+   ACAC [16]
+ AG
+  AGA [10]
+C [19]
+ CA
+  CAA
+   CAAG
+    CAAGA [8]
+  CAC [17]
+   CACA
+    CACAC [15]
+ CG [3]
+ CT [6]
+G [4]
+ GA [11]
+ GC
+  GCG [2]
+ GG
+  GGC
+   GGCG [1]
+  GGG
+   GGGC
+    GGGCG [0]
+T [7, 14]
+ TC
+  TCT [5]
+ TT [13]
