@@ -169,9 +169,9 @@ fn log_prefix_trie_recursive(node: &PrefixTrie, wbsa: &Vec<usize>, file: &mut Fi
         line.push_str(" [");
         let last_ranking = rankings.pop().unwrap();
         for ranking in rankings {
-            line.push_str(format!("{}, ", ranking).as_str());
+            line.push_str(&format!("{}, ", ranking));
         }
-        line.push_str(format!("{}]", last_ranking).as_str());
+        line.push_str(&format!("{}]", last_ranking));
     }
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");

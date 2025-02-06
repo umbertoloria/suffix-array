@@ -5,18 +5,55 @@ use plotters::element::Rectangle;
 use plotters::prelude::full_palette::GREY_800;
 use plotters::prelude::{Color, IntoDrawingArea, IntoSegmentedCoord, RGBColor, SegmentValue};
 
+pub struct BarPlot {
+    pub width: u32,
+    pub height: u32,
+    pub plot_title: String,
+}
+impl BarPlot {
+    pub fn new(width: u32, height: u32, plot_title: String) -> Self {
+        Self {
+            width,
+            height,
+            plot_title,
+        }
+    }
+    pub fn draw(
+        &self,
+        path: String,
+        num_cols_per_data_item: u32,
+        min_x: u32,
+        max_x: u32,
+        max_height: i32,
+        groups_of_bars: Vec<GroupOfBars>,
+    ) {
+        draw_plot(
+            path,
+            self.width,
+            self.height,
+            // TODO: Is this cloning?
+            self.plot_title.to_string(),
+            num_cols_per_data_item,
+            min_x,
+            max_x,
+            max_height,
+            groups_of_bars,
+        );
+    }
+}
+
 pub fn draw_plot(
-    path: &str,
+    path: String,
     width: u32,
     height: u32,
-    plot_title: &str,
+    plot_title: String,
     num_cols_per_data_item: u32,
     min_x: u32,
     max_x: u32,
     max_height: i32,
     groups_of_bars: Vec<GroupOfBars>,
 ) {
-    let root_area = BitMapBackend::new(path, (width, height)).into_drawing_area();
+    let root_area = BitMapBackend::new(&path, (width, height)).into_drawing_area();
     // root_area.fill(&WHITE).unwrap();
     root_area.fill(&GREY_800).unwrap();
 
@@ -29,7 +66,7 @@ pub fn draw_plot(
     let mut ctx = ChartBuilder::on(&root_area)
         .set_label_area_size(LabelAreaPosition::Left, 40)
         .set_label_area_size(LabelAreaPosition::Bottom, 40)
-        .caption(plot_title, ("sans-serif", 40))
+        .caption(&plot_title, ("sans-serif", 40))
         .build_cartesian_2d((x_range.0..x_range.1 + 10).into_segmented(), 0..max_height)
         .unwrap();
     ctx.configure_mesh().draw().unwrap();

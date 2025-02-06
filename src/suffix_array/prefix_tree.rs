@@ -163,9 +163,9 @@ fn log_prefix_tree_recursive(node: &PrefixTreeNode, file: &mut File, level: usiz
         let last_ranking = rankings[rankings.len() - 1];
         for i in 0..rankings.len() - 1 {
             let ranking = rankings[i];
-            line.push_str(format!("{}, ", ranking).as_str());
+            line.push_str(&format!("{}, ", ranking));
         }
-        line.push_str(format!("{}]", last_ranking).as_str());
+        line.push_str(&format!("{}]", last_ranking));
     }
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");

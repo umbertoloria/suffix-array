@@ -1,4 +1,4 @@
-use crate::plot::vendor::draw_plot;
+use crate::plot::vendor::BarPlot;
 use crate::suffix_array::monitor::Monitor;
 use plotters::prelude::full_palette::{BLUE_400, GREY, ORANGE_500};
 use plotters::prelude::{RGBColor, GREEN, RED};
@@ -129,11 +129,9 @@ pub fn draw_plot_from_monitor(fasta_file_name: &str, data_list: Vec<(usize, Dura
     }
     */
 
-    draw_plot(
-        format!("./plots/plot-{}.png", fasta_file_name).as_str(),
-        3600,
-        1400,
-        format!("Prefix Trie: {}", fasta_file_name).as_str(),
+    let bar_plot = BarPlot::new(3600, 1400, format!("Prefix Trie: {}", fasta_file_name));
+    bar_plot.draw(
+        format!("./plots/plot-{}.png", fasta_file_name),
         num_cols_per_data_item,
         min_x,
         max_x,

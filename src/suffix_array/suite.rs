@@ -16,8 +16,7 @@ pub fn suite_complete_on_fasta_file(
     println!("\n\nCOMPUTING SUITE ON FILE: \"{}\"\n", fasta_file_name);
 
     // READING FILE
-    let src = get_fasta_content(get_path_in_generated_folder(fasta_file_name));
-    let src_str = src.as_str();
+    let src_str = &get_fasta_content(get_path_in_generated_folder(fasta_file_name));
 
     // CLASSIC SUFFIX ARRAY
     let classic_suffix_array_computation = compute_classic_suffix_array(src_str, false);
