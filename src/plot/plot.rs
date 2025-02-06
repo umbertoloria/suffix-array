@@ -82,11 +82,11 @@ pub fn draw_plot_from_monitor(fasta_file_name: &str, data_list: Vec<(usize, Dura
                 value, min_column, max_column, percentage, proportional_value
             );*/
 
-            let single_bar = SingleBar {
-                x: chunk_size * num_cols_per_data_item + (j as u32),
-                y: proportional_value,
-                color: colors[j],
-            };
+            let single_bar = SingleBar::new(
+                chunk_size * num_cols_per_data_item + (j as u32),
+                proportional_value,
+                colors[j],
+            );
             group_of_bars.add_bar(single_bar);
         }
         groups_of_bars.push(group_of_bars);

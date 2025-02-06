@@ -37,32 +37,32 @@ pub fn draw_plot(
     for group_of_bars in groups_of_bars {
         for i in 0..group_of_bars.get_bars_count() {
             let bar = group_of_bars.get_bar(i);
-            flat_bars.push(create_rectangle_bar(
-                bar.x,
-                bar.y,
-                bar.color,
-                if i == group_of_bars.get_bars_count() - 1 {
-                    Some(5)
-                } else {
-                    None
-                },
-            ));
+            let margin_right = if i == group_of_bars.get_bars_count() - 1 {
+                Some(5)
+            } else {
+                None
+            };
+            let rectangle_bars = bar.create_rectangle(margin_right);
+            for rectangle_bar in rectangle_bars {
+                flat_bars.push(rectangle_bar);
+            }
         }
     }
     ctx.draw_series(flat_bars).unwrap();
 }
 
-fn create_rectangle_bar(
+pub fn create_rectangle_bar(
     x: u32,
-    y: i32,
+    min_y: i32,
+    max_y: i32,
     color: RGBColor,
     margin_right: Option<u32>,
 ) -> Rectangle<(SegmentValue<u32>, i32)> {
     let mut bar = Rectangle::new(
         [
             //
-            (SegmentValue::Exact(x), 0),
-            (SegmentValue::Exact(x + 1), y),
+            (SegmentValue::Exact(x), min_y),
+            (SegmentValue::Exact(x + 1), max_y),
         ],
         color.filled(),
     );

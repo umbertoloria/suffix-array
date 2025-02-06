@@ -1,11 +1,28 @@
-use crate::plot::vendor::draw_plot;
-use plotters::prelude::RGBColor;
+use crate::plot::vendor::{create_rectangle_bar, draw_plot};
+use plotters::element::Rectangle;
+use plotters::prelude::{RGBColor, SegmentValue};
 
 #[derive(Debug)]
 pub struct SingleBar {
     pub x: u32,
     pub y: i32,
     pub color: RGBColor,
+}
+impl SingleBar {
+    pub fn new(x: u32, y: i32, color: RGBColor) -> Self {
+        Self { x, y, color }
+    }
+    pub fn create_rectangle(
+        &self,
+        margin_right: Option<u32>,
+    ) -> Vec<Rectangle<(SegmentValue<u32>, i32)>> {
+        let mut result = Vec::new();
+
+        let main_rectangle = create_rectangle_bar(self.x, 0, self.y, self.color, margin_right);
+        result.push(main_rectangle);
+
+        result
+    }
 }
 
 pub struct GroupOfBars {
