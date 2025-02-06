@@ -1,9 +1,9 @@
 use crate::files::fasta::get_fasta_content;
 use crate::files::paths::get_path_in_generated_folder;
-use crate::plot::plot::draw_plot_from_prefix_trie_monitor;
+use crate::plot::plot::draw_plot_from_monitor;
 use crate::suffix_array::classic_suffix_array::compute_classic_suffix_array;
+use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::new_suffix_array::{compute_innovative_suffix_array, DebugMode};
-use crate::suffix_array::prefix_trie::PrefixTrieMonitor;
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -66,10 +66,10 @@ pub fn suite_complete_on_fasta_file(
     // Plots
     let mut data = Vec::new();
     for chunk_size in chunks_interval {
-        let (duration, prefix_trie_monitor) = chunk_data.remove(&chunk_size).unwrap();
-        data.push((chunk_size, duration, prefix_trie_monitor));
+        let (duration, monitor) = chunk_data.remove(&chunk_size).unwrap();
+        data.push((chunk_size, duration, monitor));
     }
-    draw_plot_from_prefix_trie_monitor(fasta_file_name, data);
+    draw_plot_from_monitor(fasta_file_name, data);
 }
 
 fn run_and_validate_test(
@@ -77,13 +77,13 @@ fn run_and_validate_test(
     debug_mode: DebugMode,
     src_str: &str,
     classic_suffix_array: &Vec<usize>,
-    chunk_data: &mut HashMap<usize, (Duration, PrefixTrieMonitor)>,
+    chunk_data: &mut HashMap<usize, (Duration, Monitor)>,
     chunk_size: Option<usize>,
 ) -> bool {
     let innovative_suffix_array_computation =
         compute_innovative_suffix_array(fasta_file_name, src_str, chunk_size, debug_mode);
     let suffix_array = innovative_suffix_array_computation.suffix_array;
-    let prefix_trie_monitor = innovative_suffix_array_computation.prefix_trie_monitor;
+    let monitor = innovative_suffix_array_computation.monitor;
 
     let chunk_size_or_zero = if let Some(chunk_size) = chunk_size {
         chunk_size
@@ -96,27 +96,14 @@ fn run_and_validate_test(
     } else {
         println!("[NO CHUNKING]");
     }
-    println!(
-        " > Duration: {:15} micros",
-        innovative_suffix_array_computation.duration.as_micros()
-    );
-    println!(
-        " > Duration: {:15.3} seconds",
-        innovative_suffix_array_computation.duration.as_secs_f64()
-    );
+    let duration = monitor.get_process_duration().unwrap();
+    println!(" > Duration: {:15} micros", duration.as_micros());
+    println!(" > Duration: {:15.3} seconds", duration.as_secs_f64());
     if debug_mode == DebugMode::Overview || debug_mode == DebugMode::Verbose {
-        prefix_trie_monitor.print();
+        monitor.print();
     }
     // println!(" > Suffix Array: {:?}", wbsa);
-    chunk_data.insert(
-        chunk_size_or_zero,
-        (
-            // Duration
-            innovative_suffix_array_computation.duration,
-            // Monitor
-            prefix_trie_monitor,
-        ),
-    );
+    chunk_data.insert(chunk_size_or_zero, (duration, monitor));
 
     // VERIFICATION
     let mut success = true;

@@ -4,12 +4,12 @@ use crate::files::paths::{
     get_path_for_project_prefix_trie_file, get_path_for_project_suffix_array_file,
 };
 use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
+use crate::suffix_array::monitor::{log_prefix_trie, Monitor};
 use crate::suffix_array::prefix_tree::{
     create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
     make_sure_directory_exist,
 };
-use crate::suffix_array::prefix_trie::{create_prefix_trie, log_prefix_trie, PrefixTrieMonitor};
-use std::time::{Duration, Instant};
+use crate::suffix_array::prefix_trie::create_prefix_trie;
 
 // INNOVATIVE SUFFIX ARRAY
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -20,8 +20,7 @@ pub enum DebugMode {
 }
 pub struct InnovativeSuffixArrayComputationResults {
     pub suffix_array: Vec<usize>,
-    pub prefix_trie_monitor: PrefixTrieMonitor,
-    pub duration: Duration,
+    pub monitor: Monitor,
 }
 pub fn compute_innovative_suffix_array(
     fasta_file_name: &str,
@@ -29,7 +28,8 @@ pub fn compute_innovative_suffix_array(
     chunk_size: Option<usize>,
     debug_mode: DebugMode,
 ) -> InnovativeSuffixArrayComputationResults {
-    let before = Instant::now();
+    let mut monitor = Monitor::new();
+    monitor.process_begin();
 
     let src_length = str.len();
 
@@ -87,7 +87,6 @@ pub fn compute_innovative_suffix_array(
 
     // Prefix Trie Structure create
     let mut prefix_trie = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
-    let mut prefix_trie_monitor = PrefixTrieMonitor::new();
 
     if debug_mode == DebugMode::Verbose {
         println!("Before merge");
@@ -129,7 +128,7 @@ pub fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &factor_list,
-        &mut prefix_trie_monitor,
+        &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
 
@@ -173,14 +172,13 @@ pub fn compute_innovative_suffix_array(
         get_path_for_project_suffix_array_file(fasta_file_name, chunk_size_num_for_log),
     );
 
-    let after = Instant::now();
+    monitor.process_end();
 
     // println!("Total time: {}", duration.as_secs_f32());
 
     InnovativeSuffixArrayComputationResults {
         suffix_array: sa,
-        prefix_trie_monitor,
-        duration: after - before,
+        monitor: monitor,
     }
 }
 fn print_for_human_like_debug(

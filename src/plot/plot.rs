@@ -1,5 +1,5 @@
 use crate::plot::vendor::draw_plot;
-use crate::suffix_array::prefix_trie::PrefixTrieMonitor;
+use crate::suffix_array::monitor::Monitor;
 use plotters::prelude::full_palette::{BLUE_400, GREY, ORANGE_500};
 use plotters::prelude::{RGBColor, GREEN, RED};
 use plotters::style::full_palette::PURPLE;
@@ -29,10 +29,7 @@ pub struct SingleBar {
     pub color: RGBColor,
 }
 
-pub fn draw_plot_from_prefix_trie_monitor(
-    fasta_file_name: &str,
-    data_list: Vec<(usize, Duration, PrefixTrieMonitor)>,
-) {
+pub fn draw_plot_from_monitor(fasta_file_name: &str, data_list: Vec<(usize, Duration, Monitor)>) {
     let num_cols_per_data_item: u32 = 1 + 1 + 4; // Duration + 4 monitor parameters.
     let min_x = data_list.first().expect("Data List should no be empty").0 as u32;
     let max_x = data_list.last().unwrap().0 as u32;
