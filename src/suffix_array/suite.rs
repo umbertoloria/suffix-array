@@ -97,8 +97,35 @@ fn run_and_validate_test(
         println!("[NO CHUNKING]");
     }
     let duration = monitor.get_process_duration().unwrap();
-    println!(" > Duration: {:15} micros", duration.as_micros());
-    println!(" > Duration: {:15.3} seconds", duration.as_secs_f64());
+    print_duration(" > Duration                       ", &duration);
+    print_duration(
+        " > Phase 1.1: Factorization ICFL  ",
+        &monitor.get_phase1_1_icfl_factorization_duration(),
+    );
+    print_duration(
+        " > Phase 1.2: Factorization Custom",
+        &monitor.get_phase1_2_custom_factorization_duration(),
+    );
+    print_duration(
+        " > Phase 2.1: Trie Create         ",
+        &monitor.get_phase2_1_prefix_trie_create_duration(),
+    );
+    print_duration(
+        " > Phase 2.2: Trie Merge rankings ",
+        &monitor.get_phase2_2_prefix_trie_merge_rankings_duration(),
+    );
+    print_duration(
+        " > Phase 2.3: Trie In-prefix merge",
+        &monitor.get_phase2_3_prefix_trie_in_prefix_merge_duration(),
+    );
+    print_duration(
+        " > Phase 2.4: Tree create         ",
+        &monitor.get_phase2_4_prefix_tree_create_duration(),
+    );
+    print_duration(
+        " > Phase   3: Suffix Array        ",
+        &monitor.get_phase3_suffix_array_compose_duration(),
+    );
     if debug_mode == DebugMode::Overview || debug_mode == DebugMode::Verbose {
         monitor.print();
     }
@@ -131,4 +158,13 @@ fn run_and_validate_test(
         return true;
     }
     false
+}
+
+fn print_duration(prefix: &str, duration: &Duration) {
+    println!(
+        "{}: {:15} micros / {:15.3} seconds",
+        prefix,
+        duration.as_micros(),
+        duration.as_secs_f64()
+    );
 }
