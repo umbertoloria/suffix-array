@@ -3,18 +3,24 @@ use crate::suffix_array::monitor::Monitor;
 use plotters::prelude::full_palette::{BLUE_400, GREY, ORANGE_500};
 use plotters::prelude::{GREEN, RED};
 use plotters::style::full_palette::PURPLE;
-use std::time::Duration;
 
-pub fn draw_plot_from_monitor(fasta_file_name: &str, data_list: Vec<(usize, Duration, Monitor)>) {
+pub fn draw_plot_from_monitor(
+    fasta_file_name: &str,
+    chunk_and_monitor_pairs: Vec<(usize, Monitor)>,
+) {
     let num_cols_per_data_item: u32 = 1 + 1 + 4; // Duration + 4 monitor parameters.
-    let min_x = data_list.first().expect("Data List should no be empty").0 as u32;
-    let max_x = data_list.last().unwrap().0 as u32;
+    let min_x = chunk_and_monitor_pairs
+        .first()
+        .expect("Data List should no be empty")
+        .0 as u32;
+    let max_x = chunk_and_monitor_pairs.last().unwrap().0 as u32;
     let mut groups_of_bars = Vec::new();
 
-    let records = data_list
+    let records = chunk_and_monitor_pairs
         .into_iter()
-        .map(|(chunk_size, duration, monitor)| {
+        .map(|(chunk_size, monitor)| {
             let chunk_size = chunk_size as u32;
+            let duration = monitor.get_process_duration().unwrap();
             let value_1 = duration.as_millis() as u32;
             let value_2 = monitor.compares_using_rules as u32;
             let value_3 = monitor.compares_using_strcmp as u32;

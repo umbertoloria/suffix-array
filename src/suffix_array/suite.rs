@@ -36,7 +36,7 @@ pub fn suite_complete_on_fasta_file(
     println!();
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     let chunks_interval = (chunk_size_interval.0..chunk_size_interval.1 + 1).collect::<Vec<_>>();
-    let mut chunk_data = HashMap::new();
+    let mut chunk_to_monitor = HashMap::new();
     /*
     // TODO: Lethal with medium files on small PCs
     run_and_validate_test(
@@ -54,7 +54,7 @@ pub fn suite_complete_on_fasta_file(
             debug_mode,
             src_str,
             &classic_suffix_array,
-            &mut chunk_data,
+            &mut chunk_to_monitor,
             Some(chunk_size),
         );
         if test_result_ok {
@@ -63,12 +63,12 @@ pub fn suite_complete_on_fasta_file(
     }
 
     // Plots
-    let mut data = Vec::new();
+    let mut chunk_and_monitor_pairs = Vec::new();
     for chunk_size in chunks_interval {
-        let (duration, monitor) = chunk_data.remove(&chunk_size).unwrap();
-        data.push((chunk_size, duration, monitor));
+        let monitor = chunk_to_monitor.remove(&chunk_size).unwrap();
+        chunk_and_monitor_pairs.push((chunk_size, monitor));
     }
-    draw_plot_from_monitor(fasta_file_name, data);
+    draw_plot_from_monitor(fasta_file_name, chunk_and_monitor_pairs);
 }
 
 fn run_and_validate_test(
@@ -76,7 +76,7 @@ fn run_and_validate_test(
     debug_mode: DebugMode,
     src_str: &str,
     classic_suffix_array: &Vec<usize>,
-    chunk_data: &mut HashMap<usize, (Duration, Monitor)>,
+    chunk_to_monitor: &mut HashMap<usize, Monitor>,
     chunk_size: Option<usize>,
 ) -> bool {
     let innovative_suffix_array_computation =
@@ -95,8 +95,10 @@ fn run_and_validate_test(
     } else {
         println!("[NO CHUNKING]");
     }
-    let duration = monitor.get_process_duration().unwrap();
-    print_duration(" > Duration                       ", &duration);
+    print_duration(
+        " > Duration                       ",
+        &monitor.get_process_duration().unwrap(),
+    );
     print_duration(
         " > Phase 1.1: Factorization ICFL  ",
         &monitor.get_phase1_1_icfl_factorization_duration(),
@@ -129,7 +131,7 @@ fn run_and_validate_test(
         monitor.print();
     }
     // println!(" > Suffix Array: {:?}", wbsa);
-    chunk_data.insert(chunk_size_or_zero, (duration, monitor));
+    chunk_to_monitor.insert(chunk_size_or_zero, monitor);
 
     // VERIFICATION
     let mut success = true;
