@@ -1,4 +1,4 @@
-use crate::plot::interface::{BarPlot, GroupOfBars, SingleBar};
+use crate::plot::interface::{BarPlot, GroupOfBars, SingleBar, SingleBarRectangle};
 use crate::suffix_array::monitor::Monitor;
 use plotters::prelude::full_palette::{BLUE_400, GREY, ORANGE_500};
 use plotters::prelude::{GREEN, RED};
@@ -82,10 +82,15 @@ pub fn draw_plot_from_monitor(fasta_file_name: &str, data_list: Vec<(usize, Dura
                 value, min_column, max_column, percentage, proportional_value
             );*/
 
-            let single_bar = SingleBar::new(
-                chunk_size * num_cols_per_data_item + (j as u32),
-                proportional_value,
-                colors[j],
+            let mut single_bar = SingleBar::new();
+            single_bar.add_rectangle(
+                //
+                SingleBarRectangle::new(
+                    chunk_size * num_cols_per_data_item + (j as u32),
+                    0,
+                    proportional_value,
+                    colors[j],
+                ),
             );
             group_of_bars.add_bar(single_bar);
         }

@@ -3,24 +3,51 @@ use plotters::element::Rectangle;
 use plotters::prelude::{RGBColor, SegmentValue};
 
 #[derive(Debug)]
-pub struct SingleBar {
+pub struct SingleBarRectangle {
     pub x: u32,
-    pub y: i32,
+    pub y_bottom: i32,
+    pub y_top: i32,
     pub color: RGBColor,
 }
+impl SingleBarRectangle {
+    pub fn new(x: u32, y_bottom: i32, y_top: i32, color: RGBColor) -> Self {
+        Self {
+            x,
+            y_bottom,
+            y_top,
+            color,
+        }
+    }
+    pub fn create_rectangle(
+        &self,
+        margin_right: Option<u32>,
+    ) -> Rectangle<(SegmentValue<u32>, i32)> {
+        create_rectangle_bar(self.x, self.y_bottom, self.y_top, self.color, margin_right)
+    }
+}
+
+#[derive(Debug)]
+pub struct SingleBar {
+    pub rectangles: Vec<SingleBarRectangle>,
+}
 impl SingleBar {
-    pub fn new(x: u32, y: i32, color: RGBColor) -> Self {
-        Self { x, y, color }
+    pub fn new() -> Self {
+        Self {
+            rectangles: Vec::new(),
+        }
+    }
+    pub fn add_rectangle(&mut self, rectangle: SingleBarRectangle) {
+        self.rectangles.push(rectangle);
     }
     pub fn create_rectangle(
         &self,
         margin_right: Option<u32>,
     ) -> Vec<Rectangle<(SegmentValue<u32>, i32)>> {
         let mut result = Vec::new();
-
-        let main_rectangle = create_rectangle_bar(self.x, 0, self.y, self.color, margin_right);
-        result.push(main_rectangle);
-
+        for rectangle in &self.rectangles {
+            let main_rectangle = rectangle.create_rectangle(margin_right);
+            result.push(main_rectangle);
+        }
         result
     }
 }
