@@ -1,33 +1,9 @@
-use crate::plot::vendor::BarPlot;
+use crate::plot::interface::{BarPlot, GroupOfBars, SingleBar};
 use crate::suffix_array::monitor::Monitor;
 use plotters::prelude::full_palette::{BLUE_400, GREY, ORANGE_500};
-use plotters::prelude::{RGBColor, GREEN, RED};
+use plotters::prelude::{GREEN, RED};
 use plotters::style::full_palette::PURPLE;
 use std::time::Duration;
-
-pub struct GroupOfBars {
-    pub bars: Vec<SingleBar>,
-}
-impl GroupOfBars {
-    pub fn new() -> Self {
-        Self { bars: Vec::new() }
-    }
-    pub fn add_bar(&mut self, bar: SingleBar) {
-        self.bars.push(bar);
-    }
-    pub fn get_bars_count(&self) -> usize {
-        self.bars.len()
-    }
-    pub fn get_bar(&self, index: usize) -> &SingleBar {
-        &self.bars[index]
-    }
-}
-#[derive(Debug)]
-pub struct SingleBar {
-    pub x: u32,
-    pub y: i32,
-    pub color: RGBColor,
-}
 
 pub fn draw_plot_from_monitor(fasta_file_name: &str, data_list: Vec<(usize, Duration, Monitor)>) {
     let num_cols_per_data_item: u32 = 1 + 1 + 4; // Duration + 4 monitor parameters.
@@ -106,14 +82,12 @@ pub fn draw_plot_from_monitor(fasta_file_name: &str, data_list: Vec<(usize, Dura
                 value, min_column, max_column, percentage, proportional_value
             );*/
 
-            group_of_bars.add_bar(
-                //
-                SingleBar {
-                    x: chunk_size * num_cols_per_data_item + (j as u32),
-                    y: proportional_value,
-                    color: colors[j],
-                },
-            );
+            let single_bar = SingleBar {
+                x: chunk_size * num_cols_per_data_item + (j as u32),
+                y: proportional_value,
+                color: colors[j],
+            };
+            group_of_bars.add_bar(single_bar);
         }
         groups_of_bars.push(group_of_bars);
     }
