@@ -73,7 +73,7 @@ pub fn draw_plot_from_monitor(
     let max_x = execution_generics_list.last().unwrap().chunk_size;
 
     let mut colors = vec![
-        GREY,       // Duration // There is no such thing as the "color" of a multicolor column.
+        GREY,       // Duration // Actually never used, but it's important that stays here.
         PURPLE,     // Chunk Size
         GREEN,      // Compare using rules
         RED,        // Compare using strcmp
@@ -149,8 +149,21 @@ pub fn draw_plot_from_monitor(
 
         // Composite Bar: durations spread in actual height
         {
-            // TODO: Make a composite bar
-            let j = 0;
+            let mut composite_bar = SingleBar::new();
+            let mut curr_y_bottom = 0;
+
+            let execution_timing = &monitor_value_for_chunk_size.execution_timing;
+            let props = vec![
+                execution_timing.prop_p11,
+                execution_timing.prop_p12,
+                execution_timing.prop_p21,
+                execution_timing.prop_p22,
+                execution_timing.prop_p23,
+                execution_timing.prop_p24,
+                execution_timing.prop_p3,
+                execution_timing.prop_extra,
+            ];
+            let mut j = 0;
 
             let min_column = min_values[j];
             let max_column = max_values[j];
@@ -163,21 +176,23 @@ pub fn draw_plot_from_monitor(
             } else {
                 (value - min_column) as f64 / diff_max_min_column as f64
             };
-            let proportional_value = // Value "min_height" is included.
+            let this_max_height = // Value "min_height" is included.
                 min_height + (percentage * (leeway_height_for_displaying_values as f64)) as i32;
 
-            let mut single_bar = SingleBar::new();
-            single_bar.add_rectangle(
-                //
-                SingleBarRectangle::new(
-                    chunk_size * num_cols_per_data_item + 1 + (j as u32),
-                    0,
-                    proportional_value,
-                    colors[j],
-                ),
-            );
-            println!(" height of {} is {}", chunk_size, proportional_value);
-            group_of_bars.add_bar(single_bar);
+            let mut jj = 0;
+            for prop in props {
+                let proportional_value = (prop * (this_max_height as f64)) as i32;
+                let single_bar_rectangle = SingleBarRectangle::new(
+                    chunk_size * num_cols_per_data_item + 1,
+                    curr_y_bottom,
+                    curr_y_bottom + proportional_value,
+                    colors_for_partial_durations[jj],
+                );
+                composite_bar.add_rectangle(single_bar_rectangle);
+                curr_y_bottom += proportional_value;
+                jj += 1;
+            }
+            group_of_bars.add_bar(composite_bar);
         }
 
         // Single Bars
