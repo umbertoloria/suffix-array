@@ -53,53 +53,67 @@ pub fn create_prefix_trie(
 
         // Filling "rankings_canonical" or "rankings_custom".
         for custom_factor_local_suffix_index in ordered_list_of_custom_factor_local_suffix_index {
-            // Implementation of "add_in_custom_prefix_trie".
-            let local_suffix = &src[custom_factor_local_suffix_index
-                ..custom_factor_local_suffix_index + curr_suffix_length];
-            let chars_local_suffix = local_suffix.chars().collect::<Vec<_>>();
-
-            let mut curr_node = &mut root;
-
-            let mut i_chars_of_suffix = 0; // This is the current "depth" of "curr_node".
-            while i_chars_of_suffix < curr_suffix_length {
-                let curr_letter = chars_local_suffix[i_chars_of_suffix];
-
-                if !curr_node.sons.contains_key(&curr_letter) {
-                    // First time "curr_node" node deals with "curr_letter".
-                    curr_node.sons.insert(
-                        curr_letter,
-                        PrefixTrie {
-                            label: format!("{}{}", curr_node.label, curr_letter),
-                            suffix_len: i_chars_of_suffix + 1,
-                            sons: BTreeMap::new(),
-                            rankings_canonical: Vec::new(),
-                            rankings_custom: Vec::new(),
-                            wbsa_p: 0,
-                            wbsa_q: 0,
-                            min_father: None,
-                            max_father: None,
-                            rankings_forced: None,
-                        },
-                    );
-                }
-                curr_node = curr_node.sons.get_mut(&curr_letter).unwrap();
-
-                i_chars_of_suffix += 1;
-            }
-            // TODO: Here we could create an interesting wrapping among real "non-bridge" nodes
-            if is_custom_vec[custom_factor_local_suffix_index] {
-                curr_node
-                    .rankings_custom
-                    .push(custom_factor_local_suffix_index);
-            } else {
-                curr_node
-                    .rankings_canonical
-                    .push(custom_factor_local_suffix_index);
-            }
+            add_node_to_prefix_trie(
+                src,
+                is_custom_vec,
+                &mut root,
+                curr_suffix_length,
+                custom_factor_local_suffix_index,
+            );
         }
     }
 
     root
+}
+
+fn add_node_to_prefix_trie(
+    src: &str,
+    is_custom_vec: &Vec<bool>,
+    root: &mut PrefixTrie,
+    curr_suffix_length: usize,
+    custom_factor_local_suffix_index: usize,
+) {
+    let local_suffix = &src
+        [custom_factor_local_suffix_index..custom_factor_local_suffix_index + curr_suffix_length];
+    let chars_local_suffix = local_suffix.chars().collect::<Vec<_>>();
+
+    let mut curr_node = root;
+
+    let mut i_chars_of_suffix = 0; // This is the current "depth" of "curr_node".
+    while i_chars_of_suffix < curr_suffix_length {
+        let curr_letter = chars_local_suffix[i_chars_of_suffix];
+
+        if !curr_node.sons.contains_key(&curr_letter) {
+            // First time "curr_node" node deals with "curr_letter".
+            curr_node.sons.insert(
+                curr_letter,
+                PrefixTrie {
+                    label: format!("{}{}", curr_node.label, curr_letter),
+                    suffix_len: i_chars_of_suffix + 1,
+                    sons: BTreeMap::new(),
+                    rankings_canonical: Vec::new(),
+                    rankings_custom: Vec::new(),
+                    wbsa_p: 0,
+                    wbsa_q: 0,
+                    min_father: None,
+                    max_father: None,
+                    rankings_forced: None,
+                },
+            );
+        }
+        curr_node = curr_node.sons.get_mut(&curr_letter).unwrap();
+
+        i_chars_of_suffix += 1;
+    }
+    if is_custom_vec[custom_factor_local_suffix_index] {
+        curr_node
+            .rankings_custom
+            .push(custom_factor_local_suffix_index);
+    } else {
+        curr_node
+            .rankings_canonical
+            .push(custom_factor_local_suffix_index);
+    }
 }
 
 pub struct PrefixTrie {
