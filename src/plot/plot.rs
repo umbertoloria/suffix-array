@@ -6,27 +6,6 @@ use plotters::prelude::full_palette::{
 };
 use plotters::prelude::{GREEN, RED};
 
-struct ExecutionGenerics {
-    chunk_size: u32,
-    execution_timing: ExecutionTiming,
-    param_1: u32,
-    param_2: u32,
-    param_3: u32,
-    param_4: u32,
-}
-impl ExecutionGenerics {
-    pub fn create_record(&self) -> Vec<u32> {
-        vec![
-            self.chunk_size,
-            self.execution_timing.whole_duration.as_millis() as u32,
-            self.param_1,
-            self.param_2,
-            self.param_3,
-            self.param_4,
-        ]
-    }
-}
-
 pub fn draw_plot_from_monitor(
     fasta_file_name: &str,
     chunk_size_and_execution_info_list: Vec<(usize, ExecutionInfo)>,
@@ -46,6 +25,16 @@ pub fn draw_plot_from_monitor(
         YELLOW_600, // execution_timing.prop_p3,
         GREY_700,   // execution_timing.prop_extra,
     ];
+
+    struct ExecutionGenerics {
+        chunk_size: u32,
+        execution_timing: ExecutionTiming,
+        param_1: u32,
+        param_2: u32,
+        param_3: u32,
+        param_4: u32,
+    }
+
     let execution_generics_list = chunk_size_and_execution_info_list
         .into_iter()
         .map(|(chunk_size, execution_info)| {
@@ -64,8 +53,18 @@ pub fn draw_plot_from_monitor(
 
     let mut records = Vec::new();
     for monitor_value_for_chunk_size in &execution_generics_list {
-        let record = monitor_value_for_chunk_size.create_record();
-        records.push(record);
+        records.push(vec![
+            // This is required only to have min and max values.
+            monitor_value_for_chunk_size
+                .execution_timing
+                .whole_duration
+                .as_millis() as u32,
+            monitor_value_for_chunk_size.chunk_size,
+            monitor_value_for_chunk_size.param_1,
+            monitor_value_for_chunk_size.param_2,
+            monitor_value_for_chunk_size.param_3,
+            monitor_value_for_chunk_size.param_4,
+        ]);
     }
     let min_x = execution_generics_list
         .first()
@@ -74,8 +73,8 @@ pub fn draw_plot_from_monitor(
     let max_x = execution_generics_list.last().unwrap().chunk_size;
 
     let mut colors = vec![
+        GREY,       // Duration // There is no such thing as the "color" of a multicolor column.
         PURPLE,     // Chunk Size
-        GREY,       // Duration
         GREEN,      // Compare using rules
         RED,        // Compare using strcmp
         BLUE_400,   // Compare with one Custom Factor
@@ -113,13 +112,13 @@ pub fn draw_plot_from_monitor(
     while i < execution_generics_list.len() {
         let monitor_value_for_chunk_size = &execution_generics_list[i];
         let record = &records[i];
-        let chunk_size = record[0];
+        let chunk_size = record[1];
         let mut group_of_bars = GroupOfBars::new();
 
-        // Composite Bar
-        let mut composite_bar = SingleBar::new();
+        // Composite Bar: durations spread in full height
         {
-            let mut curr_y_bottom = min_height;
+            let mut composite_bar = SingleBar::new();
+            let mut curr_y_bottom = 0;
 
             let execution_timing = &monitor_value_for_chunk_size.execution_timing;
             let props = vec![
@@ -134,8 +133,7 @@ pub fn draw_plot_from_monitor(
             ];
             let mut j = 0;
             for prop in props {
-                let proportional_value = // Value "min_height" is not included.
-                    (prop * (leeway_height_for_displaying_values as f64)) as i32;
+                let proportional_value = (prop * (max_height as f64)) as i32;
                 let single_bar_rectangle = SingleBarRectangle::new(
                     chunk_size * num_cols_per_data_item,
                     curr_y_bottom,
@@ -146,11 +144,44 @@ pub fn draw_plot_from_monitor(
                 curr_y_bottom += proportional_value;
                 j += 1;
             }
+            group_of_bars.add_bar(composite_bar);
         }
-        group_of_bars.add_bar(composite_bar);
+
+        // Composite Bar: durations spread in actual height
+        {
+            // TODO: Make a composite bar
+            let j = 0;
+
+            let min_column = min_values[j];
+            let max_column = max_values[j];
+            let diff_max_min_column = max_column - min_column;
+
+            let value = record[j];
+            let percentage = if diff_max_min_column == 0 {
+                // If all data are the same, we use a 50% as default value.
+                0.5
+            } else {
+                (value - min_column) as f64 / diff_max_min_column as f64
+            };
+            let proportional_value = // Value "min_height" is included.
+                min_height + (percentage * (leeway_height_for_displaying_values as f64)) as i32;
+
+            let mut single_bar = SingleBar::new();
+            single_bar.add_rectangle(
+                //
+                SingleBarRectangle::new(
+                    chunk_size * num_cols_per_data_item + 1 + (j as u32),
+                    0,
+                    proportional_value,
+                    colors[j],
+                ),
+            );
+            println!(" height of {} is {}", chunk_size, proportional_value);
+            group_of_bars.add_bar(single_bar);
+        }
 
         // Single Bars
-        for j in 0..record.len() {
+        for j in 1..record.len() {
             let min_column = min_values[j];
             let max_column = max_values[j];
             let diff_max_min_column = max_column - min_column;
