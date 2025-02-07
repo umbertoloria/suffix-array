@@ -226,3 +226,106 @@ fn log_prefix_trie_recursive(node: &PrefixTrie, wbsa: &Vec<usize>, file: &mut Fi
         log_prefix_trie_recursive(son, wbsa, file, level + 1);
     }
 }
+
+// MONITOR LOGGER
+pub fn log_monitor_after_process_ended(monitor: &Monitor, filepath: String) {
+    let mut content = String::new();
+
+    content.push_str(&format_duration(
+        " > Duration phases                ",
+        &monitor.get_sum_phases_duration(),
+        None,
+    ));
+    content.push_str(&format_duration(
+        " > Duration (with extra)          ",
+        &monitor.get_whole_process_duration_included_extra(),
+        None,
+    ));
+
+    let duration_p11 = monitor.get_phase1_1_icfl_factorization_duration();
+    let duration_p12 = monitor.get_phase1_2_custom_factorization_duration();
+    let duration_p21 = monitor.get_phase2_1_prefix_trie_create_duration();
+    let duration_p22 = monitor.get_phase2_2_prefix_trie_merge_rankings_duration();
+    let duration_p23 = monitor.get_phase2_3_prefix_trie_in_prefix_merge_duration();
+    let duration_p24 = monitor.get_phase2_4_prefix_tree_create_duration();
+    let duration_p3 = monitor.get_phase3_suffix_array_compose_duration();
+    let durations = vec![
+        duration_p11,
+        duration_p12,
+        duration_p21,
+        duration_p22,
+        duration_p23,
+        duration_p24,
+        duration_p3,
+    ];
+    let mut sum_micros = 0;
+    for duration in durations {
+        sum_micros += duration.as_micros();
+    }
+    let percentage_p11 = (duration_p11.as_micros() as f64 / sum_micros as f64) * 100.0;
+    let percentage_p12 = (duration_p12.as_micros() as f64 / sum_micros as f64) * 100.0;
+    let percentage_p21 = (duration_p21.as_micros() as f64 / sum_micros as f64) * 100.0;
+    let percentage_p22 = (duration_p22.as_micros() as f64 / sum_micros as f64) * 100.0;
+    let percentage_p23 = (duration_p23.as_micros() as f64 / sum_micros as f64) * 100.0;
+    let percentage_p24 = (duration_p24.as_micros() as f64 / sum_micros as f64) * 100.0;
+    let percentage_p3 = (duration_p3.as_micros() as f64 / sum_micros as f64) * 100.0;
+
+    content.push_str(&format_duration(
+        " > Phase 1.1: Factorization ICFL  ",
+        &duration_p11,
+        Some(percentage_p11),
+    ));
+    content.push_str(&format_duration(
+        " > Phase 1.2: Factorization Custom",
+        &duration_p12,
+        Some(percentage_p12),
+    ));
+    content.push_str(&format_duration(
+        " > Phase 2.1: Trie Create         ",
+        &duration_p21,
+        Some(percentage_p21),
+    ));
+    content.push_str(&format_duration(
+        " > Phase 2.2: Trie Merge rankings ",
+        &duration_p22,
+        Some(percentage_p22),
+    ));
+    content.push_str(&format_duration(
+        " > Phase 2.3: Trie In-prefix merge",
+        &duration_p23,
+        Some(percentage_p23),
+    ));
+    content.push_str(&format_duration(
+        " > Phase 2.4: Tree create         ",
+        &duration_p24,
+        Some(percentage_p24),
+    ));
+    content.push_str(&format_duration(
+        " > Phase 3  : Suffix Array        ",
+        &duration_p3,
+        Some(percentage_p3),
+    ));
+
+    let mut file = File::create(filepath).expect("Unable to create file");
+    file.write(content.as_bytes())
+        .expect("Unable to write line");
+    file.flush().expect("Unable to flush file");
+}
+
+fn format_duration(prefix: &str, duration: &Duration, percentage: Option<f64>) -> String {
+    let mut result = String::new();
+
+    result.push_str(&format!(
+        "{}: {:15} micros / {:15.3} seconds",
+        prefix,
+        duration.as_micros(),
+        duration.as_secs_f64(),
+    ));
+    if let Some(percentage) = percentage {
+        result.push_str(&format!(" / {:7.3}%\n", percentage));
+    } else {
+        result.push_str(&"\n");
+    }
+
+    result
+}

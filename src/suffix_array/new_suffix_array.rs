@@ -1,10 +1,11 @@
 use crate::factorization::icfl::icfl;
 use crate::files::paths::{
-    get_path_for_project_folder, get_path_for_project_prefix_tree_file,
-    get_path_for_project_prefix_trie_file, get_path_for_project_suffix_array_file,
+    get_path_for_project_folder, get_path_for_project_monitor_file,
+    get_path_for_project_prefix_tree_file, get_path_for_project_prefix_trie_file,
+    get_path_for_project_suffix_array_file,
 };
 use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
-use crate::suffix_array::monitor::{log_prefix_trie, Monitor};
+use crate::suffix_array::monitor::{log_monitor_after_process_ended, log_prefix_trie, Monitor};
 use crate::suffix_array::prefix_tree::{
     create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
     make_sure_directory_exist,
@@ -197,6 +198,13 @@ pub fn compute_innovative_suffix_array(
     // -
 
     monitor.process_end();
+
+    // +
+    log_monitor_after_process_ended(
+        &monitor,
+        get_path_for_project_monitor_file(fasta_file_name, chunk_size_num_for_log),
+    );
+    // -
 
     // println!("Total time: {}", duration.as_secs_f32());
 
