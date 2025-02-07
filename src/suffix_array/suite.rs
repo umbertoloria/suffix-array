@@ -96,8 +96,12 @@ fn run_and_validate_test(
         println!("[NO CHUNKING]");
     }
     print_duration(
-        " > Duration                       ",
-        &monitor.get_process_duration().unwrap(),
+        " > Duration phases                ",
+        &monitor.get_sum_phases_duration(),
+    );
+    print_duration(
+        " > Duration (with extra)          ",
+        &monitor.get_whole_process_duration_included_extra(),
     );
     print_duration(
         " > Phase 1.1: Factorization ICFL  ",

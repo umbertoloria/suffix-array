@@ -1,14 +1,7 @@
 use crate::factorization::icfl::icfl;
-use crate::files::paths::{
-    get_path_for_project_folder, get_path_for_project_prefix_tree_file,
-    get_path_for_project_prefix_trie_file, get_path_for_project_suffix_array_file,
-};
 use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
-use crate::suffix_array::monitor::{log_prefix_trie, Monitor};
-use crate::suffix_array::prefix_tree::{
-    create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
-    make_sure_directory_exist,
-};
+use crate::suffix_array::monitor::Monitor;
+use crate::suffix_array::prefix_tree::create_prefix_tree_from_prefix_trie;
 use crate::suffix_array::prefix_trie::create_prefix_trie;
 
 // INNOVATIVE SUFFIX ARRAY
@@ -31,6 +24,7 @@ pub fn compute_innovative_suffix_array(
     let src_length = str.len();
 
     let mut monitor = Monitor::new();
+    monitor.process_start();
 
     // ICFL Factorization
     monitor.phase1_1_icfl_factorization_start();
@@ -79,26 +73,34 @@ pub fn compute_innovative_suffix_array(
         }
     }
 
+    /*
     let chunk_size_num_for_log = if let Some(chunk_size) = chunk_size {
         chunk_size
     } else {
         0
     };
+    */
 
     // Prefix Trie Structure create
     monitor.phase2_1_prefix_trie_create_start();
     let mut prefix_trie = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
+    monitor.phase2_1_prefix_trie_create_stop();
 
+    /*
     if debug_mode == DebugMode::Verbose {
         println!("Before merge");
         prefix_trie.print(0, "".into());
     }
+    */
 
     // Merge Rankings (Canonical and Custom)
     monitor.phase2_2_prefix_trie_merge_rankings_start();
     let mut wbsa = (0..src_length).collect::<Vec<_>>();
     let mut depths = vec![0usize; src_length];
     prefix_trie.merge_rankings_and_sort_recursive(str, &mut wbsa, &mut depths, 0);
+    monitor.phase2_2_prefix_trie_merge_rankings_stop();
+
+    /*
     make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
     log_prefix_trie(
         &prefix_trie,
@@ -122,6 +124,7 @@ pub fn compute_innovative_suffix_array(
         println!("Before SHRINK");
         prefix_trie.print_with_wbsa(0, "".into(), &wbsa);
     }
+    */
 
     monitor.phase2_3_prefix_trie_in_prefix_merge_start();
     prefix_trie.in_prefix_merge(
@@ -134,8 +137,10 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
+    monitor.phase2_3_prefix_trie_in_prefix_merge_stop();
 
-    /*prefix_trie.shrink_bottom_up(
+    /*
+    prefix_trie.shrink_bottom_up(
         &mut wbsa,
         &mut depths,
         str,
@@ -150,15 +155,21 @@ pub fn compute_innovative_suffix_array(
             println!("{:?}", wbsa);
         }
         _ => {}
-    }*/
+    }
+    */
 
+    /*
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         println!("After IN_PREFIX_MERGE");
         prefix_trie.print_with_wbsa(0, "".into(), &wbsa);
     }
+    */
 
     monitor.phase2_4_prefix_tree_create_start();
     let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie, &mut wbsa);
+    monitor.phase2_4_prefix_tree_create_stop();
+
+    /*
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         prefix_tree.print();
     }
@@ -166,16 +177,20 @@ pub fn compute_innovative_suffix_array(
         &prefix_tree,
         get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
     );
+    */
 
     monitor.phase3_suffix_array_compose_start();
     let mut sa = Vec::new();
     // prefix_trie.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
     prefix_tree.prepare_get_common_prefix_partition(&mut sa, debug_mode == DebugMode::Verbose);
+    monitor.phase3_suffix_array_compose_stop();
 
+    /*
     log_suffix_array(
         &sa,
         get_path_for_project_suffix_array_file(fasta_file_name, chunk_size_num_for_log),
     );
+    */
 
     monitor.process_end();
 

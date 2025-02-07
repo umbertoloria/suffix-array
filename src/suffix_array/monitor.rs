@@ -6,6 +6,7 @@ use std::time::{Duration, Instant};
 #[derive(Debug)]
 pub struct Monitor {
     // Timing
+    pub whole_duration: MonitorInterval,
     pub p11_icfl: MonitorInterval,
     pub p12_custom: MonitorInterval,
     pub p21_trie_create: MonitorInterval,
@@ -23,6 +24,7 @@ pub struct Monitor {
 impl Monitor {
     pub fn new() -> Self {
         Self {
+            whole_duration: MonitorInterval::new(),
             p11_icfl: MonitorInterval::new(),
             p12_custom: MonitorInterval::new(),
             p21_trie_create: MonitorInterval::new(),
@@ -37,12 +39,16 @@ impl Monitor {
         }
     }
 
+    // Phase 1.1
     pub fn phase1_1_icfl_factorization_start(&mut self) {
-        self.p11_icfl.set_start(Instant::now());
+        let now = Instant::now();
+        self.p11_icfl.set_start(now);
     }
     pub fn get_phase1_1_icfl_factorization_duration(&self) -> Duration {
         self.p11_icfl.get_duration().unwrap()
     }
+
+    // Phase 1.2
     pub fn phase1_2_custom_factorization_start(&mut self) {
         let now = Instant::now();
         self.p11_icfl.set_end(now);
@@ -51,58 +57,99 @@ impl Monitor {
     pub fn get_phase1_2_custom_factorization_duration(&self) -> Duration {
         self.p12_custom.get_duration().unwrap()
     }
+
+    // Phase 2.1
     pub fn phase2_1_prefix_trie_create_start(&mut self) {
         let now = Instant::now();
         self.p12_custom.set_end(now);
         self.p21_trie_create.set_start(now);
     }
+    pub fn phase2_1_prefix_trie_create_stop(&mut self) {
+        let now = Instant::now();
+        self.p21_trie_create.set_end(now);
+    }
     pub fn get_phase2_1_prefix_trie_create_duration(&self) -> Duration {
         self.p21_trie_create.get_duration().unwrap()
     }
+
+    // Phase 2.2
     pub fn phase2_2_prefix_trie_merge_rankings_start(&mut self) {
         let now = Instant::now();
-        self.p21_trie_create.set_end(now);
         self.p22_trie_merge_rankings.set_start(now);
+    }
+    pub fn phase2_2_prefix_trie_merge_rankings_stop(&mut self) {
+        let now = Instant::now();
+        self.p22_trie_merge_rankings.set_end(now);
     }
     pub fn get_phase2_2_prefix_trie_merge_rankings_duration(&self) -> Duration {
         self.p22_trie_merge_rankings.get_duration().unwrap()
     }
+
+    // Phase 2.3
     pub fn phase2_3_prefix_trie_in_prefix_merge_start(&mut self) {
         let now = Instant::now();
-        self.p22_trie_merge_rankings.set_end(now);
         self.p23_trie_in_prefix_merge.set_start(now);
+    }
+    pub fn phase2_3_prefix_trie_in_prefix_merge_stop(&mut self) {
+        let now = Instant::now();
+        self.p23_trie_in_prefix_merge.set_end(now);
     }
     pub fn get_phase2_3_prefix_trie_in_prefix_merge_duration(&self) -> Duration {
         self.p23_trie_in_prefix_merge.get_duration().unwrap()
     }
+
+    // Phase 2.4
     pub fn phase2_4_prefix_tree_create_start(&mut self) {
         let now = Instant::now();
-        self.p23_trie_in_prefix_merge.set_end(now);
         self.p24_tree_create.set_start(now);
+    }
+    pub fn phase2_4_prefix_tree_create_stop(&mut self) {
+        let now = Instant::now();
+        self.p24_tree_create.set_end(now);
     }
     pub fn get_phase2_4_prefix_tree_create_duration(&self) -> Duration {
         self.p24_tree_create.get_duration().unwrap()
     }
+
+    // Phase 3
     pub fn phase3_suffix_array_compose_start(&mut self) {
         let now = Instant::now();
-        self.p24_tree_create.set_end(now);
         self.p3_sa_compose.set_start(now);
+    }
+    pub fn phase3_suffix_array_compose_stop(&mut self) {
+        let now = Instant::now();
+        self.p3_sa_compose.set_end(now);
     }
     pub fn get_phase3_suffix_array_compose_duration(&self) -> Duration {
         self.p3_sa_compose.get_duration().unwrap()
     }
 
+    // Whole Process
+    pub fn process_start(&mut self) {
+        let now = Instant::now();
+        self.whole_duration.set_start(now);
+    }
     pub fn process_end(&mut self) {
         let now = Instant::now();
-        self.p3_sa_compose.set_end(now);
+        self.whole_duration.set_end(now);
     }
-    pub fn get_process_duration(&self) -> Option<Duration> {
-        if let Some(begin) = self.p11_icfl.start {
-            if let Some(end) = self.p3_sa_compose.end {
-                return Some(end - begin);
-            }
-        }
-        None
+
+    pub fn get_whole_process_duration_included_extra(&self) -> Duration {
+        self.whole_duration.get_duration().unwrap()
+    }
+    pub fn get_extra_time_spent(&self) -> Duration {
+        let whole = self.get_whole_process_duration_included_extra();
+        whole - self.get_sum_phases_duration()
+    }
+    pub fn get_sum_phases_duration(&self) -> Duration {
+        let p11 = self.p11_icfl.get_duration().unwrap();
+        let p12 = self.p12_custom.get_duration().unwrap();
+        let p21 = self.p21_trie_create.get_duration().unwrap();
+        let p22 = self.p22_trie_merge_rankings.get_duration().unwrap();
+        let p23 = self.p23_trie_in_prefix_merge.get_duration().unwrap();
+        let p24 = self.p24_tree_create.get_duration().unwrap();
+        let p3 = self.p3_sa_compose.get_duration().unwrap();
+        p11 + p12 + p21 + p22 + p23 + p24 + p3
     }
 
     pub fn new_compare_of_two_ls_in_custom_factors(&mut self) {

@@ -1,8 +1,8 @@
 use crate::plot::interface::{BarPlot, GroupOfBars, SingleBar, SingleBarRectangle};
 use crate::suffix_array::monitor::Monitor;
 use plotters::prelude::full_palette::{
-    BLUE_400, GREEN_500, GREY, GREY_500, GREY_600, ORANGE_300, ORANGE_500, ORANGE_600, PURPLE,
-    RED_600, YELLOW_600,
+    BLUE_400, GREEN_500, GREY, GREY_500, GREY_600, GREY_700, ORANGE_300, ORANGE_500, ORANGE_600,
+    PURPLE, RED_600, YELLOW_600,
 };
 use plotters::prelude::{GREEN, RED};
 use std::time::Duration;
@@ -46,12 +46,13 @@ pub fn draw_plot_from_monitor(
         ORANGE_600, // monitor.get_phase2_3_prefix_trie_in_prefix_merge_duration(),
         GREEN_500,  // monitor.get_phase2_4_prefix_tree_create_duration(),
         YELLOW_600, // monitor.get_phase3_suffix_array_compose_duration(),
+        GREY_700,   // monitor.get_extra_time_spent(),
     ];
     let monitor_values_for_chunk_size_list = chunk_and_monitor_pairs
         .into_iter()
         .map(|(chunk_size, monitor)| {
             let chunk_size = chunk_size as u32;
-            let duration = monitor.get_process_duration().unwrap();
+            let duration = monitor.get_whole_process_duration_included_extra();
             let value_1 = duration.as_millis() as u32;
             let value_2 = monitor.compares_using_rules as u32;
             let value_3 = monitor.compares_using_strcmp as u32;
@@ -69,6 +70,7 @@ pub fn draw_plot_from_monitor(
                     monitor.get_phase2_3_prefix_trie_in_prefix_merge_duration(),
                     monitor.get_phase2_4_prefix_tree_create_duration(),
                     monitor.get_phase3_suffix_array_compose_duration(),
+                    monitor.get_extra_time_spent(),
                 ],
                 value_2,
                 value_3,
