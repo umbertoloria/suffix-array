@@ -1,3 +1,4 @@
+use crate::files::paths::get_path_for_plot_file;
 use crate::plot::interface::{BarPlot, GroupOfBars, SingleBar, SingleBarRectangle};
 use crate::suffix_array::monitor::{ExecutionInfo, ExecutionTiming};
 use plotters::prelude::full_palette::{
@@ -12,6 +13,12 @@ pub fn draw_plot_from_monitor(
 ) {
     // Duration Composite + Chunk Size + Duration + 4 monitor parameters + gap.
     let num_cols_per_data_item: u32 = 1 + 2 + 4 + 1;
+
+    let min_chunk_size = chunk_size_and_execution_info_list
+        .first()
+        .expect("List should no be empty")
+        .0;
+    let max_chunk_size = chunk_size_and_execution_info_list.last().unwrap().0;
 
     let mut groups_of_bars = Vec::new();
 
@@ -66,11 +73,6 @@ pub fn draw_plot_from_monitor(
             monitor_value_for_chunk_size.param_4,
         ]);
     }
-    let min_x = execution_generics_list
-        .first()
-        .expect("Data List should no be empty")
-        .chunk_size;
-    let max_x = execution_generics_list.last().unwrap().chunk_size;
 
     let mut colors = vec![
         GREY,       // Duration // Actually never used, but it's important that stays here.
@@ -235,10 +237,10 @@ pub fn draw_plot_from_monitor(
 
     let bar_plot = BarPlot::new(3600, 1400, format!("Diagram: {}", fasta_file_name));
     bar_plot.draw(
-        format!("./plots/plot-{}.png", fasta_file_name),
+        get_path_for_plot_file(fasta_file_name, min_chunk_size, max_chunk_size),
         num_cols_per_data_item,
-        min_x,
-        max_x,
+        min_chunk_size as u32, // min_x,
+        max_chunk_size as u32, // max_x,
         diagram_max_y,
         groups_of_bars,
     );
