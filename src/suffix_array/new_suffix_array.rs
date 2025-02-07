@@ -29,6 +29,7 @@ pub fn compute_innovative_suffix_array(
     fasta_file_name: &str,
     str: &str,
     chunk_size: Option<usize>,
+    perform_logging: bool,
     debug_mode: DebugMode,
 ) -> InnovativeSuffixArrayComputationResults {
     let src_length = str.len();
@@ -114,12 +115,14 @@ pub fn compute_innovative_suffix_array(
     } else {
         0
     };
-    make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
-    log_prefix_trie(
-        &prefix_trie,
-        &wbsa,
-        get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
-    );
+    if perform_logging {
+        make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
+        log_prefix_trie(
+            &prefix_trie,
+            &wbsa,
+            get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
+        );
+    }
 
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         print_for_human_like_debug(
@@ -186,10 +189,12 @@ pub fn compute_innovative_suffix_array(
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         prefix_tree.print();
     }
-    log_prefix_tree(
-        &prefix_tree,
-        get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
-    );
+    if perform_logging {
+        log_prefix_tree(
+            &prefix_tree,
+            get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
+        );
+    }
     // -
 
     monitor.phase3_suffix_array_compose_start();
@@ -199,20 +204,24 @@ pub fn compute_innovative_suffix_array(
     monitor.phase3_suffix_array_compose_stop();
 
     // +
-    log_suffix_array(
-        &sa,
-        get_path_for_project_suffix_array_file(fasta_file_name, chunk_size_num_for_log),
-    );
+    if perform_logging {
+        log_suffix_array(
+            &sa,
+            get_path_for_project_suffix_array_file(fasta_file_name, chunk_size_num_for_log),
+        );
+    }
     // -
 
     monitor.process_end();
 
     // +
     let execution_info = monitor.transform_info_execution_info();
-    log_monitor_after_process_ended(
-        &execution_info.0,
-        get_path_for_project_monitor_file(fasta_file_name, chunk_size_num_for_log),
-    );
+    if perform_logging {
+        log_monitor_after_process_ended(
+            &execution_info.0,
+            get_path_for_project_monitor_file(fasta_file_name, chunk_size_num_for_log),
+        );
+    }
     // -
 
     // println!("Total time: {}", duration.as_secs_f32());

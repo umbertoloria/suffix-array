@@ -10,6 +10,7 @@ use std::time::Duration;
 pub fn suite_complete_on_fasta_file(
     fasta_file_name: &str,
     chunk_size_interval: (usize, usize), // Both incl.
+    perform_logging: bool,
     debug_mode: DebugMode,
 ) {
     println!("\n\nCOMPUTING SUITE ON FILE: \"{}\"\n", fasta_file_name);
@@ -50,6 +51,7 @@ pub fn suite_complete_on_fasta_file(
     for &chunk_size in &chunks_interval {
         let test_result = run_and_validate_test(
             fasta_file_name,
+            perform_logging,
             debug_mode,
             src_str,
             &classic_suffix_array,
@@ -71,13 +73,19 @@ pub struct RunAndValidateTestOutput {
 }
 fn run_and_validate_test(
     fasta_file_name: &str,
+    perform_logging: bool,
     debug_mode: DebugMode,
     src_str: &str,
     classic_suffix_array: &Vec<usize>,
     chunk_size: Option<usize>,
 ) -> RunAndValidateTestOutput {
-    let innovative_suffix_array_computation =
-        compute_innovative_suffix_array(fasta_file_name, src_str, chunk_size, debug_mode);
+    let innovative_suffix_array_computation = compute_innovative_suffix_array(
+        fasta_file_name,
+        src_str,
+        chunk_size,
+        perform_logging,
+        debug_mode,
+    );
     let suffix_array = innovative_suffix_array_computation.suffix_array;
     let (execution_timing, execution_outcome) = innovative_suffix_array_computation.execution_info;
 
