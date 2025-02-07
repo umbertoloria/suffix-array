@@ -128,7 +128,7 @@ fn run_and_validate_test(
         &monitor.get_phase2_4_prefix_tree_create_duration(),
     );
     print_duration(
-        " > Phase   3: Suffix Array        ",
+        " > Phase 3  : Suffix Array        ",
         &monitor.get_phase3_suffix_array_compose_duration(),
     );
     if debug_mode == DebugMode::Overview || debug_mode == DebugMode::Verbose {
