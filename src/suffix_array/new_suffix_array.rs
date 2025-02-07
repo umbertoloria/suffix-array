@@ -5,7 +5,9 @@ use crate::files::paths::{
     get_path_for_project_suffix_array_file,
 };
 use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
-use crate::suffix_array::monitor::{log_monitor_after_process_ended, log_prefix_trie, Monitor};
+use crate::suffix_array::monitor::{
+    log_monitor_after_process_ended, log_prefix_trie, ExecutionInfo, Monitor,
+};
 use crate::suffix_array::prefix_tree::{
     create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
     make_sure_directory_exist,
@@ -21,7 +23,7 @@ pub enum DebugMode {
 }
 pub struct InnovativeSuffixArrayComputationResults {
     pub suffix_array: Vec<usize>,
-    pub monitor: Monitor,
+    pub execution_info: ExecutionInfo,
 }
 pub fn compute_innovative_suffix_array(
     fasta_file_name: &str,
@@ -83,7 +85,13 @@ pub fn compute_innovative_suffix_array(
 
     // Prefix Trie Structure create
     monitor.phase2_1_prefix_trie_create_start();
-    let mut prefix_trie = create_prefix_trie(str, src_length, &custom_indexes, &is_custom_vec);
+    let mut prefix_trie = create_prefix_trie(
+        str,
+        src_length,
+        &custom_indexes,
+        &is_custom_vec,
+        &mut monitor,
+    );
     monitor.phase2_1_prefix_trie_create_stop();
 
     // +
@@ -200,8 +208,9 @@ pub fn compute_innovative_suffix_array(
     monitor.process_end();
 
     // +
+    let execution_info = monitor.transform_info_execution_info();
     log_monitor_after_process_ended(
-        &monitor,
+        &execution_info.0,
         get_path_for_project_monitor_file(fasta_file_name, chunk_size_num_for_log),
     );
     // -
@@ -210,7 +219,7 @@ pub fn compute_innovative_suffix_array(
 
     InnovativeSuffixArrayComputationResults {
         suffix_array: sa,
-        monitor,
+        execution_info,
     }
 }
 fn print_for_human_like_debug(

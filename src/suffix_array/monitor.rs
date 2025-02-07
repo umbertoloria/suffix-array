@@ -137,20 +137,6 @@ impl Monitor {
     pub fn get_whole_process_duration_included_extra(&self) -> Duration {
         self.whole_duration.get_duration().unwrap()
     }
-    pub fn get_extra_time_spent(&self) -> Duration {
-        let whole = self.get_whole_process_duration_included_extra();
-        whole - self.get_sum_phases_duration()
-    }
-    pub fn get_sum_phases_duration(&self) -> Duration {
-        let p11 = self.p11_icfl.get_duration().unwrap();
-        let p12 = self.p12_custom.get_duration().unwrap();
-        let p21 = self.p21_trie_create.get_duration().unwrap();
-        let p22 = self.p22_trie_merge_rankings.get_duration().unwrap();
-        let p23 = self.p23_trie_in_prefix_merge.get_duration().unwrap();
-        let p24 = self.p24_tree_create.get_duration().unwrap();
-        let p3 = self.p3_sa_compose.get_duration().unwrap();
-        p11 + p12 + p21 + p22 + p23 + p24 + p3
-    }
 
     pub fn new_compare_of_two_ls_in_custom_factors(&mut self) {
         self.compares_with_two_cfs += 1;
@@ -164,12 +150,32 @@ impl Monitor {
     pub fn new_compare_using_actual_string_compare(&mut self) {
         self.compares_using_strcmp += 1;
     }
-    pub fn print(&self) {
-        println!("Monitor output:");
-        println!(" > two custom: {}", self.compares_with_two_cfs);
-        println!(" > one custom: {}", self.compares_with_one_cf);
-        println!(" > rules: {}", self.compares_using_rules);
-        println!(" > string compares: {}", self.compares_using_strcmp);
+
+    // EVALUATE TIMING AND PROPORTIONS
+    pub fn transform_info_execution_info(self) -> ExecutionInfo {
+        let execution_timing = self.transform_into_execution_timing();
+        let execution_outcome = self.transform_into_execution_outcome();
+        (execution_timing, execution_outcome)
+    }
+    fn transform_into_execution_timing(&self) -> ExecutionTiming {
+        ExecutionTiming::new(
+            self.get_phase1_1_icfl_factorization_duration(),
+            self.get_phase1_2_custom_factorization_duration(),
+            self.get_phase2_1_prefix_trie_create_duration(),
+            self.get_phase2_2_prefix_trie_merge_rankings_duration(),
+            self.get_phase2_3_prefix_trie_in_prefix_merge_duration(),
+            self.get_phase2_4_prefix_tree_create_duration(),
+            self.get_phase3_suffix_array_compose_duration(),
+            self.get_whole_process_duration_included_extra(),
+        )
+    }
+    fn transform_into_execution_outcome(&self) -> ExecutionOutcome {
+        ExecutionOutcome {
+            compares_with_two_cfs: self.compares_with_two_cfs,
+            compares_with_one_cf: self.compares_with_one_cf,
+            compares_using_rules: self.compares_using_rules,
+            compares_using_strcmp: self.compares_using_strcmp,
+        }
     }
 }
 
@@ -228,82 +234,170 @@ fn log_prefix_trie_recursive(node: &PrefixTrie, wbsa: &Vec<usize>, file: &mut Fi
 }
 
 // MONITOR LOGGER
-pub fn log_monitor_after_process_ended(monitor: &Monitor, filepath: String) {
-    let mut content = String::new();
+pub type ExecutionInfo = (ExecutionTiming, ExecutionOutcome);
+pub struct ExecutionTiming {
+    pub duration_p11: Duration,
+    pub duration_p12: Duration,
+    pub duration_p21: Duration,
+    pub duration_p22: Duration,
+    pub duration_p23: Duration,
+    pub duration_p24: Duration,
+    pub duration_p3: Duration,
+    pub duration_extra: Duration,
+    pub sum_duration_only_phases: Duration,
+    pub whole_duration: Duration,
+    pub prop_p11: f64,
+    pub prop_p12: f64,
+    pub prop_p21: f64,
+    pub prop_p22: f64,
+    pub prop_p23: f64,
+    pub prop_p24: f64,
+    pub prop_p3: f64,
+    pub prop_extra: f64,
+}
+impl ExecutionTiming {
+    pub fn new(
+        duration_p11: Duration,
+        duration_p12: Duration,
+        duration_p21: Duration,
+        duration_p22: Duration,
+        duration_p23: Duration,
+        duration_p24: Duration,
+        duration_p3: Duration,
+        whole_duration: Duration,
+    ) -> Self {
+        // Sum Durations (Only Phases)
+        let sum_duration_only_phases = duration_p11
+            + duration_p12
+            + duration_p21
+            + duration_p22
+            + duration_p23
+            + duration_p24
+            + duration_p3;
 
+        // Extra Duration
+        let duration_extra = whole_duration - sum_duration_only_phases;
+
+        // Proportions
+        let sum_micros_incl_extra = whole_duration.as_micros();
+        let prop_p11 = duration_p11.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_p12 = duration_p12.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_p21 = duration_p21.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_p22 = duration_p22.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_p23 = duration_p23.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_p24 = duration_p24.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_p3 = duration_p3.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_extra = duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64;
+
+        Self {
+            duration_p11,
+            duration_p12,
+            duration_p21,
+            duration_p22,
+            duration_p23,
+            duration_p24,
+            duration_p3,
+            sum_duration_only_phases,
+            whole_duration,
+            duration_extra,
+            prop_p11,
+            prop_p12,
+            prop_p21,
+            prop_p22,
+            prop_p23,
+            prop_p24,
+            prop_p3,
+            prop_extra,
+        }
+    }
+    fn get_list(&self) -> Vec<Duration> {
+        vec![
+            self.duration_p11,
+            self.duration_p12,
+            self.duration_p21,
+            self.duration_p22,
+            self.duration_p23,
+            self.duration_p24,
+            self.duration_p3,
+        ]
+    }
+}
+pub struct ExecutionOutcome {
+    pub compares_with_two_cfs: usize,
+    pub compares_with_one_cf: usize,
+    pub compares_using_rules: usize,
+    pub compares_using_strcmp: usize,
+}
+impl ExecutionOutcome {
+    pub fn new(
+        compares_with_two_cfs: usize,
+        compares_with_one_cf: usize,
+        compares_using_rules: usize,
+        compares_using_strcmp: usize,
+    ) -> Self {
+        Self {
+            compares_with_two_cfs,
+            compares_with_one_cf,
+            compares_using_rules,
+            compares_using_strcmp,
+        }
+    }
+    pub fn print(&self) {
+        println!("Execution Outcome:");
+        println!(" > two custom: {}", self.compares_with_two_cfs);
+        println!(" > one custom: {}", self.compares_with_one_cf);
+        println!(" > rules: {}", self.compares_using_rules);
+        println!(" > string compares: {}", self.compares_using_strcmp);
+    }
+}
+
+pub fn log_monitor_after_process_ended(execution_timing: &ExecutionTiming, filepath: String) {
+    let mut content = String::new();
     content.push_str(&format_duration(
         " > Duration phases                ",
-        &monitor.get_sum_phases_duration(),
+        &execution_timing.sum_duration_only_phases,
         None,
     ));
     content.push_str(&format_duration(
         " > Duration (with extra)          ",
-        &monitor.get_whole_process_duration_included_extra(),
+        &execution_timing.whole_duration,
         None,
     ));
 
-    let duration_p11 = monitor.get_phase1_1_icfl_factorization_duration();
-    let duration_p12 = monitor.get_phase1_2_custom_factorization_duration();
-    let duration_p21 = monitor.get_phase2_1_prefix_trie_create_duration();
-    let duration_p22 = monitor.get_phase2_2_prefix_trie_merge_rankings_duration();
-    let duration_p23 = monitor.get_phase2_3_prefix_trie_in_prefix_merge_duration();
-    let duration_p24 = monitor.get_phase2_4_prefix_tree_create_duration();
-    let duration_p3 = monitor.get_phase3_suffix_array_compose_duration();
-    let durations = vec![
-        duration_p11,
-        duration_p12,
-        duration_p21,
-        duration_p22,
-        duration_p23,
-        duration_p24,
-        duration_p3,
-    ];
-    let mut sum_micros = 0;
-    for duration in durations {
-        sum_micros += duration.as_micros();
-    }
-    let percentage_p11 = (duration_p11.as_micros() as f64 / sum_micros as f64) * 100.0;
-    let percentage_p12 = (duration_p12.as_micros() as f64 / sum_micros as f64) * 100.0;
-    let percentage_p21 = (duration_p21.as_micros() as f64 / sum_micros as f64) * 100.0;
-    let percentage_p22 = (duration_p22.as_micros() as f64 / sum_micros as f64) * 100.0;
-    let percentage_p23 = (duration_p23.as_micros() as f64 / sum_micros as f64) * 100.0;
-    let percentage_p24 = (duration_p24.as_micros() as f64 / sum_micros as f64) * 100.0;
-    let percentage_p3 = (duration_p3.as_micros() as f64 / sum_micros as f64) * 100.0;
-
     content.push_str(&format_duration(
         " > Phase 1.1: Factorization ICFL  ",
-        &duration_p11,
-        Some(percentage_p11),
+        &execution_timing.duration_p11,
+        Some(execution_timing.prop_p11 * 100.0),
     ));
     content.push_str(&format_duration(
         " > Phase 1.2: Factorization Custom",
-        &duration_p12,
-        Some(percentage_p12),
+        &execution_timing.duration_p12,
+        Some(execution_timing.prop_p12 * 100.0),
     ));
     content.push_str(&format_duration(
         " > Phase 2.1: Trie Create         ",
-        &duration_p21,
-        Some(percentage_p21),
+        &execution_timing.duration_p21,
+        Some(execution_timing.prop_p21 * 100.0),
     ));
     content.push_str(&format_duration(
         " > Phase 2.2: Trie Merge rankings ",
-        &duration_p22,
-        Some(percentage_p22),
+        &execution_timing.duration_p22,
+        Some(execution_timing.prop_p22 * 100.0),
     ));
     content.push_str(&format_duration(
         " > Phase 2.3: Trie In-prefix merge",
-        &duration_p23,
-        Some(percentage_p23),
+        &execution_timing.duration_p23,
+        Some(execution_timing.prop_p23 * 100.0),
     ));
     content.push_str(&format_duration(
         " > Phase 2.4: Tree create         ",
-        &duration_p24,
-        Some(percentage_p24),
+        &execution_timing.duration_p24,
+        Some(execution_timing.prop_p24 * 100.0),
     ));
     content.push_str(&format_duration(
         " > Phase 3  : Suffix Array        ",
-        &duration_p3,
-        Some(percentage_p3),
+        &execution_timing.duration_p3,
+        Some(execution_timing.prop_p3 * 100.0),
     ));
 
     let mut file = File::create(filepath).expect("Unable to create file");

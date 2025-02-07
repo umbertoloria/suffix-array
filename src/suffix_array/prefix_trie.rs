@@ -8,6 +8,7 @@ pub fn create_prefix_trie(
     src_length: usize,
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
+    monitor: &mut Monitor,
 ) -> PrefixTrie {
     let custom_max_size =
         get_max_size(&custom_indexes, src_length).expect("custom_max_size is not valid");

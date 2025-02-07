@@ -2,9 +2,8 @@ use crate::files::fasta::get_fasta_content;
 use crate::files::paths::get_path_in_generated_folder;
 use crate::plot::plot::draw_plot_from_monitor;
 use crate::suffix_array::classic_suffix_array::compute_classic_suffix_array;
-use crate::suffix_array::monitor::Monitor;
+use crate::suffix_array::monitor::ExecutionInfo;
 use crate::suffix_array::new_suffix_array::{compute_innovative_suffix_array, DebugMode};
-use std::collections::HashMap;
 use std::time::Duration;
 
 // SUITE COMPLETE FOR CLASSIC VS INNOVATIVE COMPUTATION
@@ -36,7 +35,7 @@ pub fn suite_complete_on_fasta_file(
     println!();
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     let chunks_interval = (chunk_size_interval.0..chunk_size_interval.1 + 1).collect::<Vec<_>>();
-    let mut chunk_to_monitor = HashMap::new();
+    let mut chunk_size_and_execution_info_list = Vec::new();
     /*
     // TODO: Lethal with medium files on small PCs
     run_and_validate_test(
@@ -49,40 +48,38 @@ pub fn suite_complete_on_fasta_file(
     );
     */
     for &chunk_size in &chunks_interval {
-        let test_result_ok = run_and_validate_test(
+        let test_result = run_and_validate_test(
             fasta_file_name,
             debug_mode,
             src_str,
             &classic_suffix_array,
-            &mut chunk_to_monitor,
             Some(chunk_size),
         );
-        if test_result_ok {
+        chunk_size_and_execution_info_list.push((chunk_size, test_result.execution_info));
+        if test_result.ok {
             break;
         }
     }
 
     // Plots
-    let mut chunk_and_monitor_pairs = Vec::new();
-    for chunk_size in chunks_interval {
-        let monitor = chunk_to_monitor.remove(&chunk_size).unwrap();
-        chunk_and_monitor_pairs.push((chunk_size, monitor));
-    }
-    draw_plot_from_monitor(fasta_file_name, chunk_and_monitor_pairs);
+    draw_plot_from_monitor(fasta_file_name, chunk_size_and_execution_info_list);
 }
 
+pub struct RunAndValidateTestOutput {
+    execution_info: ExecutionInfo,
+    ok: bool,
+}
 fn run_and_validate_test(
     fasta_file_name: &str,
     debug_mode: DebugMode,
     src_str: &str,
     classic_suffix_array: &Vec<usize>,
-    chunk_to_monitor: &mut HashMap<usize, Monitor>,
     chunk_size: Option<usize>,
-) -> bool {
+) -> RunAndValidateTestOutput {
     let innovative_suffix_array_computation =
         compute_innovative_suffix_array(fasta_file_name, src_str, chunk_size, debug_mode);
     let suffix_array = innovative_suffix_array_computation.suffix_array;
-    let monitor = innovative_suffix_array_computation.monitor;
+    let (execution_timing, execution_outcome) = innovative_suffix_array_computation.execution_info;
 
     let chunk_size_or_zero = if let Some(chunk_size) = chunk_size {
         chunk_size
@@ -97,45 +94,44 @@ fn run_and_validate_test(
     }
     print_duration(
         " > Duration phases                ",
-        &monitor.get_sum_phases_duration(),
+        &execution_timing.sum_duration_only_phases,
     );
     print_duration(
         " > Duration (with extra)          ",
-        &monitor.get_whole_process_duration_included_extra(),
+        &execution_timing.whole_duration,
     );
     print_duration(
         " > Phase 1.1: Factorization ICFL  ",
-        &monitor.get_phase1_1_icfl_factorization_duration(),
+        &execution_timing.duration_p11,
     );
     print_duration(
         " > Phase 1.2: Factorization Custom",
-        &monitor.get_phase1_2_custom_factorization_duration(),
+        &execution_timing.duration_p12,
     );
     print_duration(
         " > Phase 2.1: Trie Create         ",
-        &monitor.get_phase2_1_prefix_trie_create_duration(),
+        &execution_timing.duration_p21,
     );
     print_duration(
         " > Phase 2.2: Trie Merge rankings ",
-        &monitor.get_phase2_2_prefix_trie_merge_rankings_duration(),
+        &execution_timing.duration_p22,
     );
     print_duration(
         " > Phase 2.3: Trie In-prefix merge",
-        &monitor.get_phase2_3_prefix_trie_in_prefix_merge_duration(),
+        &execution_timing.duration_p23,
     );
     print_duration(
         " > Phase 2.4: Tree create         ",
-        &monitor.get_phase2_4_prefix_tree_create_duration(),
+        &execution_timing.duration_p24,
     );
     print_duration(
         " > Phase 3  : Suffix Array        ",
-        &monitor.get_phase3_suffix_array_compose_duration(),
+        &execution_timing.duration_p3,
     );
     if debug_mode == DebugMode::Overview || debug_mode == DebugMode::Verbose {
-        monitor.print();
+        execution_outcome.print();
     }
     // println!(" > Suffix Array: {:?}", wbsa);
-    chunk_to_monitor.insert(chunk_size_or_zero, monitor);
 
     // VERIFICATION
     let mut success = true;
@@ -154,15 +150,21 @@ fn run_and_validate_test(
             i += 1;
         }
     }
+
+    let mut result = RunAndValidateTestOutput {
+        ok: false,
+        execution_info: (execution_timing, execution_outcome),
+    };
+
     if success {
         // println!("Wanna Be Suffix Array is PERFECT :)");
     } else {
         println!(" > Suffix Array: {:?}", suffix_array);
         println!("Wanna Be Suffix Array is WRONG!!! :(");
-
-        return true;
+        result.ok = true;
     }
-    false
+
+    result
 }
 
 fn print_duration(prefix: &str, duration: &Duration) {
