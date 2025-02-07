@@ -235,7 +235,14 @@ pub fn draw_plot_from_monitor(
         i_block_of_columns += 1;
     }
 
-    let bar_plot = BarPlot::new(3600, 1400, format!("Diagram: {}", fasta_file_name));
+    let bar_plot = BarPlot::new(
+        3600,
+        1400,
+        format!(
+            "Diagram: {}, Chunk Size from {} to {}",
+            fasta_file_name, min_chunk_size, max_chunk_size
+        ),
+    );
     bar_plot.draw(
         get_path_for_plot_file(fasta_file_name, min_chunk_size, max_chunk_size),
         num_cols_per_data_item,
