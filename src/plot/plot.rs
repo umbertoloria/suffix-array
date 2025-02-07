@@ -10,8 +10,8 @@ pub fn draw_plot_from_monitor(
     fasta_file_name: &str,
     chunk_size_and_execution_info_list: Vec<(usize, ExecutionInfo)>,
 ) {
-    // Duration Composite + Chunk Size + Duration + 4 monitor parameters.
-    let num_cols_per_data_item: u32 = 1 + 2 + 4;
+    // Duration Composite + Chunk Size + Duration + 4 monitor parameters + gap.
+    let num_cols_per_data_item: u32 = 1 + 2 + 4 + 1;
 
     let mut groups_of_bars = Vec::new();
 
@@ -104,72 +104,70 @@ pub fn draw_plot_from_monitor(
         }
     }
 
-    let min_height = 300;
-    let max_height = 10000;
-    let leeway_height_for_displaying_values = max_height - min_height;
+    let diagram_min_y_drawn_for_bar = 300;
+    let diagram_max_y = 10000;
+    let leeway_height_for_placing_ys = diagram_max_y - diagram_min_y_drawn_for_bar;
 
-    let mut i = 0;
-    while i < execution_generics_list.len() {
-        let monitor_value_for_chunk_size = &execution_generics_list[i];
-        let record = &records[i];
+    let mut i_block_of_columns = 0;
+    while i_block_of_columns < execution_generics_list.len() {
+        let monitor_value_for_chunk_size = &execution_generics_list[i_block_of_columns];
+
+        let execution_timing = &monitor_value_for_chunk_size.execution_timing;
+        let ratios = vec![
+            execution_timing.prop_p11,
+            execution_timing.prop_p12,
+            execution_timing.prop_p21,
+            execution_timing.prop_p22,
+            execution_timing.prop_p23,
+            execution_timing.prop_p24,
+            execution_timing.prop_p3,
+            execution_timing.prop_extra,
+        ];
+
+        let record = &records[i_block_of_columns];
         let chunk_size = record[1];
         let mut group_of_bars = GroupOfBars::new();
+
+        let mut curr_x = chunk_size * num_cols_per_data_item;
 
         // Composite Bar: durations spread in full height
         {
             let mut composite_bar = SingleBar::new();
             let mut curr_y_bottom = 0;
 
-            let execution_timing = &monitor_value_for_chunk_size.execution_timing;
-            let props = vec![
-                execution_timing.prop_p11,
-                execution_timing.prop_p12,
-                execution_timing.prop_p21,
-                execution_timing.prop_p22,
-                execution_timing.prop_p23,
-                execution_timing.prop_p24,
-                execution_timing.prop_p3,
-                execution_timing.prop_extra,
-            ];
-            let mut j = 0;
-            for prop in props {
-                let proportional_value = (prop * (max_height as f64)) as i32;
-                let single_bar_rectangle = SingleBarRectangle::new(
-                    chunk_size * num_cols_per_data_item,
-                    curr_y_bottom,
-                    curr_y_bottom + proportional_value,
-                    colors_for_partial_durations[j],
+            let mut i_ratio = 0;
+            for ratio in &ratios {
+                let proportional_value = (ratio * (diagram_max_y as f64)) as i32;
+                composite_bar.add_rectangle(
+                    //
+                    SingleBarRectangle::new(
+                        curr_x,
+                        curr_y_bottom,
+                        curr_y_bottom + proportional_value,
+                        colors_for_partial_durations[i_ratio],
+                    ),
                 );
-                composite_bar.add_rectangle(single_bar_rectangle);
                 curr_y_bottom += proportional_value;
-                j += 1;
+
+                i_ratio += 1;
             }
+
             group_of_bars.add_bar(composite_bar);
+            curr_x += 1;
         }
+
+        let mut i_column_in_this_block = 0;
 
         // Composite Bar: durations spread in actual height
         {
             let mut composite_bar = SingleBar::new();
             let mut curr_y_bottom = 0;
 
-            let execution_timing = &monitor_value_for_chunk_size.execution_timing;
-            let props = vec![
-                execution_timing.prop_p11,
-                execution_timing.prop_p12,
-                execution_timing.prop_p21,
-                execution_timing.prop_p22,
-                execution_timing.prop_p23,
-                execution_timing.prop_p24,
-                execution_timing.prop_p3,
-                execution_timing.prop_extra,
-            ];
-            let mut j = 0;
-
-            let min_column = min_values[j];
-            let max_column = max_values[j];
+            let min_column = min_values[i_column_in_this_block];
+            let max_column = max_values[i_column_in_this_block];
             let diff_max_min_column = max_column - min_column;
 
-            let value = record[j];
+            let value = record[i_column_in_this_block];
             let percentage = if diff_max_min_column == 0 {
                 // If all data are the same, we use a 50% as default value.
                 0.5
@@ -177,31 +175,34 @@ pub fn draw_plot_from_monitor(
                 (value - min_column) as f64 / diff_max_min_column as f64
             };
             let this_max_height = // Value "min_height" is included.
-                min_height + (percentage * (leeway_height_for_displaying_values as f64)) as i32;
+                diagram_min_y_drawn_for_bar + (percentage * (leeway_height_for_placing_ys as f64)) as i32;
 
-            let mut jj = 0;
-            for prop in props {
-                let proportional_value = (prop * (this_max_height as f64)) as i32;
+            let mut i_ratio = 0;
+            for ratio in &ratios {
+                let proportional_value = (ratio * (this_max_height as f64)) as i32;
                 let single_bar_rectangle = SingleBarRectangle::new(
-                    chunk_size * num_cols_per_data_item + 1,
+                    curr_x,
                     curr_y_bottom,
                     curr_y_bottom + proportional_value,
-                    colors_for_partial_durations[jj],
+                    colors_for_partial_durations[i_ratio],
                 );
                 composite_bar.add_rectangle(single_bar_rectangle);
                 curr_y_bottom += proportional_value;
-                jj += 1;
+                i_ratio += 1;
             }
+
             group_of_bars.add_bar(composite_bar);
+            curr_x += 1;
+            i_column_in_this_block += 1;
         }
 
         // Single Bars
-        for j in 1..record.len() {
-            let min_column = min_values[j];
-            let max_column = max_values[j];
+        while i_column_in_this_block < record.len() {
+            let min_column = min_values[i_column_in_this_block];
+            let max_column = max_values[i_column_in_this_block];
             let diff_max_min_column = max_column - min_column;
 
-            let value = record[j];
+            let value = record[i_column_in_this_block];
             let percentage = if diff_max_min_column == 0 {
                 // If all data are the same, we use a 50% as default value.
                 0.5
@@ -209,32 +210,36 @@ pub fn draw_plot_from_monitor(
                 (value - min_column) as f64 / diff_max_min_column as f64
             };
             let proportional_value = // Value "min_height" is included.
-                min_height + (percentage * (leeway_height_for_displaying_values as f64)) as i32;
+                diagram_min_y_drawn_for_bar + (percentage * (leeway_height_for_placing_ys as f64)) as i32;
 
             let mut single_bar = SingleBar::new();
             single_bar.add_rectangle(
                 //
                 SingleBarRectangle::new(
-                    chunk_size * num_cols_per_data_item + 1 + (j as u32),
+                    //
+                    curr_x,
                     0,
                     proportional_value,
-                    colors[j],
+                    colors[i_column_in_this_block],
                 ),
             );
             group_of_bars.add_bar(single_bar);
+
+            curr_x += 1;
+            i_column_in_this_block += 1;
         }
         groups_of_bars.push(group_of_bars);
 
-        i += 1;
+        i_block_of_columns += 1;
     }
 
-    let bar_plot = BarPlot::new(3600, 1400, format!("Prefix Trie: {}", fasta_file_name));
+    let bar_plot = BarPlot::new(3600, 1400, format!("Diagram: {}", fasta_file_name));
     bar_plot.draw(
         format!("./plots/plot-{}.png", fasta_file_name),
         num_cols_per_data_item,
         min_x,
         max_x,
-        max_height,
+        diagram_max_y,
         groups_of_bars,
     );
 }

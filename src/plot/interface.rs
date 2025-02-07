@@ -18,11 +18,8 @@ impl SingleBarRectangle {
             color,
         }
     }
-    pub fn create_rectangle(
-        &self,
-        margin_right: Option<u32>,
-    ) -> Rectangle<(SegmentValue<u32>, i32)> {
-        create_rectangle_bar(self.x, self.y_bottom, self.y_top, self.color, margin_right)
+    pub fn create_rectangle(&self) -> Rectangle<(SegmentValue<u32>, i32)> {
+        create_rectangle_bar(self.x, self.y_bottom, self.y_top, self.color)
     }
 }
 
@@ -39,13 +36,10 @@ impl SingleBar {
     pub fn add_rectangle(&mut self, rectangle: SingleBarRectangle) {
         self.rectangles.push(rectangle);
     }
-    pub fn create_rectangle(
-        &self,
-        margin_right: Option<u32>,
-    ) -> Vec<Rectangle<(SegmentValue<u32>, i32)>> {
+    pub fn create_rectangle(&self) -> Vec<Rectangle<(SegmentValue<u32>, i32)>> {
         let mut result = Vec::new();
         for rectangle in &self.rectangles {
-            let main_rectangle = rectangle.create_rectangle(margin_right);
+            let main_rectangle = rectangle.create_rectangle();
             result.push(main_rectangle);
         }
         result

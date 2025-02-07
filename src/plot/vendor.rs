@@ -37,12 +37,7 @@ pub fn draw_plot(
     for group_of_bars in groups_of_bars {
         for i in 0..group_of_bars.get_bars_count() {
             let bar = group_of_bars.get_bar(i);
-            let margin_right = if i == group_of_bars.get_bars_count() - 1 {
-                Some(5)
-            } else {
-                None
-            };
-            let rectangle_bars = bar.create_rectangle(margin_right);
+            let rectangle_bars = bar.create_rectangle();
             for rectangle_bar in rectangle_bars {
                 flat_bars.push(rectangle_bar);
             }
@@ -56,7 +51,6 @@ pub fn create_rectangle_bar(
     min_y: i32,
     max_y: i32,
     color: RGBColor,
-    margin_right: Option<u32>,
 ) -> Rectangle<(SegmentValue<u32>, i32)> {
     let mut bar = Rectangle::new(
         [
@@ -66,10 +60,6 @@ pub fn create_rectangle_bar(
         ],
         color.filled(),
     );
-    if let Some(margin_right) = margin_right {
-        bar.set_margin(0, 0, 2, margin_right);
-    } else {
-        bar.set_margin(0, 0, 2, 2);
-    }
+    bar.set_margin(0, 0, 2, 2);
     bar
 }
