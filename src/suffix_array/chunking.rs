@@ -85,6 +85,7 @@ pub fn get_custom_factors_and_more(
         icfl_factor_list,
     )
 }
+/*
 pub fn get_icfl_factors_and_more_avoiding_custom_factorization(
     src_length: usize,
     icfl_indexes: &Vec<usize>,
@@ -116,6 +117,7 @@ pub fn get_icfl_factors_and_more_avoiding_custom_factorization(
 
     (custom_indexes, is_custom_vec, icfl_factor_list)
 }
+*/
 
 pub fn get_max_size(factor_indexes: &Vec<usize>, src_length: usize) -> Option<usize> {
     let mut result = None;

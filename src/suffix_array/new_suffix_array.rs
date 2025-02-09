@@ -4,10 +4,7 @@ use crate::files::paths::{
     get_path_for_project_prefix_tree_file, get_path_for_project_prefix_trie_file,
     get_path_for_project_suffix_array_file,
 };
-use crate::suffix_array::chunking::{
-    get_custom_factors_and_more, get_icfl_factors_and_more_avoiding_custom_factorization,
-    get_indexes_from_factors,
-};
+use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
 use crate::suffix_array::monitor::{
     log_monitor_after_process_ended, log_prefix_trie, ExecutionInfo, Monitor,
 };
@@ -16,6 +13,7 @@ use crate::suffix_array::prefix_tree::{
     make_sure_directory_exist,
 };
 use crate::suffix_array::prefix_trie::create_prefix_trie;
+use std::process::exit;
 
 // INNOVATIVE SUFFIX ARRAY
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -57,12 +55,16 @@ pub fn compute_innovative_suffix_array(
         is_custom_vec = is_custom_vec_;
         icfl_factor_list = icfl_factor_list_;
     } else {
-        // FIXME: Disable this code since will burn your little laptop :_(
+        println!("Lethal with medium files on small PCs => STOP");
+        exit(0x0100);
+        // TODO: Disable this code since will burn your little laptop :_(
+        /*
         let (custom_indexes_, is_custom_vec_, icfl_factor_list_) =
             get_icfl_factors_and_more_avoiding_custom_factorization(src_length, &icfl_indexes);
         custom_indexes = custom_indexes_;
         is_custom_vec = is_custom_vec_;
         icfl_factor_list = icfl_factor_list_;
+        */
     }
 
     // Prefix Trie Structure create

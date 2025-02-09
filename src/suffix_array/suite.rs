@@ -37,17 +37,18 @@ pub fn suite_complete_on_fasta_file(
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     let chunks_interval = (chunk_size_interval.0..chunk_size_interval.1 + 1).collect::<Vec<_>>();
     let mut chunk_size_and_execution_info_list = Vec::new();
-    /*
-    // TODO: Lethal with medium files on small PCs
-    run_and_validate_test(
-        fasta_file_name,
-        debug_mode,
-        src_str,
-        &classic_suffix_array,
-        &mut chunk_data,
-        None,
-    );
-    */
+    /*if run_also_without_custom_factorization {
+        // TODO: Lethal with medium files on small PCs
+        run_and_validate_test(
+            fasta_file_name,
+            perform_logging,
+            debug_mode,
+            src_str,
+            &classic_suffix_array,
+            None,
+        );
+        // TODO: Add into to plot
+    }*/
     for &chunk_size in &chunks_interval {
         let test_result = run_and_validate_test(
             fasta_file_name,
