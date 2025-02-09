@@ -4,7 +4,10 @@ use crate::files::paths::{
     get_path_for_project_prefix_tree_file, get_path_for_project_prefix_trie_file,
     get_path_for_project_suffix_array_file,
 };
-use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
+use crate::suffix_array::chunking::{
+    get_custom_factors_and_more, get_icfl_factors_and_more_avoiding_custom_factorization,
+    get_indexes_from_factors,
+};
 use crate::suffix_array::monitor::{
     log_monitor_after_process_ended, log_prefix_trie, ExecutionInfo, Monitor,
 };
@@ -48,37 +51,18 @@ pub fn compute_innovative_suffix_array(
     let mut is_custom_vec = Vec::new();
     let mut icfl_factor_list = Vec::new();
     if let Some(chunk_size) = chunk_size {
-        let (
-            //
-            custom_indexes_,
-            is_custom_vec_,
-            icfl_factor_list_,
-        ) = get_custom_factors_and_more(&icfl_indexes, chunk_size, src_length);
+        let (custom_indexes_, is_custom_vec_, icfl_factor_list_) =
+            get_custom_factors_and_more(&icfl_indexes, chunk_size, src_length);
         custom_indexes = custom_indexes_;
         is_custom_vec = is_custom_vec_;
         icfl_factor_list = icfl_factor_list_;
     } else {
         // FIXME: Disable this code since will burn your little laptop :_(
-        for i in 0..icfl_indexes.len() {
-            let cur_factor_index = icfl_indexes[i];
-
-            // Curr Factor Size
-            let cur_factor_size = if i < icfl_indexes.len() - 1 {
-                icfl_indexes[i + 1]
-            } else {
-                src_length
-            } - cur_factor_index;
-
-            // Updating "custom_indexes"
-            custom_indexes.push(cur_factor_index);
-
-            // Updating "is_custom_vec"
-            // Updating "icfl_factor_list"
-            for _ in 0..cur_factor_size {
-                is_custom_vec.push(false);
-                icfl_factor_list.push(i);
-            }
-        }
+        let (custom_indexes_, is_custom_vec_, icfl_factor_list_) =
+            get_icfl_factors_and_more_avoiding_custom_factorization(src_length, &icfl_indexes);
+        custom_indexes = custom_indexes_;
+        is_custom_vec = is_custom_vec_;
+        icfl_factor_list = icfl_factor_list_;
     }
 
     // Prefix Trie Structure create
