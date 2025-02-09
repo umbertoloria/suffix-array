@@ -170,11 +170,12 @@ pub fn compute_innovative_suffix_array(
 
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
-        prefix_tree.print();
+        prefix_tree.print(str);
     }
     if perform_logging {
         log_prefix_tree(
             &prefix_tree,
+            str,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
         );
     }
@@ -183,7 +184,7 @@ pub fn compute_innovative_suffix_array(
     monitor.phase3_suffix_array_compose_start();
     let mut sa = Vec::new();
     // prefix_trie.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
-    prefix_tree.prepare_get_common_prefix_partition(&mut sa, debug_mode == DebugMode::Verbose);
+    prefix_tree.prepare_get_common_prefix_partition(&mut sa, str, debug_mode == DebugMode::Verbose);
     monitor.phase3_suffix_array_compose_stop();
 
     // +
