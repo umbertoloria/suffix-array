@@ -1,4 +1,4 @@
-use crate::suffix_array::prefix_trie::PrefixTrie;
+use crate::suffix_array::prefix_trie::{PrefixTrie, WbsaIndexes};
 use std::fs::{create_dir_all, File};
 use std::io::Write;
 
@@ -119,19 +119,24 @@ impl PrefixTreeNode {
         result
     }
 }
-pub fn create_prefix_tree_from_prefix_trie(root_trie: PrefixTrie, wbsa: &Vec<usize>) -> PrefixTree {
+pub fn create_prefix_tree_from_prefix_trie(
+    root_trie: PrefixTrie,
+    wbsa: &Vec<usize>,
+    wbsa_indexes: &mut WbsaIndexes,
+) -> PrefixTree {
     let mut tree = PrefixTree {
-        children: create_prefix_tree_from_trie_deep(root_trie, wbsa),
+        children: create_prefix_tree_from_trie_deep(root_trie, wbsa, wbsa_indexes),
     };
     tree
 }
 fn create_prefix_tree_from_trie_deep(
     real_node: PrefixTrie,
     wbsa: &Vec<usize>,
+    wbsa_indexes: &mut WbsaIndexes,
 ) -> Vec<PrefixTreeNode> {
     let mut result = Vec::new();
 
-    let rankings = real_node.get_real_rankings(wbsa);
+    let rankings = real_node.get_real_rankings(wbsa, wbsa_indexes);
     if rankings.len() > 0 {
         // This Node has Rankings, so we consider it.
         let mut node = PrefixTreeNode {
@@ -142,14 +147,14 @@ fn create_prefix_tree_from_trie_deep(
             max_father: real_node.max_father,
         };
         for (_, son) in real_node.sons {
-            let nodes_list = create_prefix_tree_from_trie_deep(son, wbsa);
+            let nodes_list = create_prefix_tree_from_trie_deep(son, wbsa, wbsa_indexes);
             node.children.extend(nodes_list);
         }
         result.push(node);
     } else {
         // This Node is a Bridge, so we consider its Children (skipping Child Bridges).
         for (_, son) in real_node.sons {
-            let nodes_list = create_prefix_tree_from_trie_deep(son, wbsa);
+            let nodes_list = create_prefix_tree_from_trie_deep(son, wbsa, wbsa_indexes);
             result.extend(nodes_list);
         }
     }

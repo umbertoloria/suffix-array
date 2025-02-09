@@ -1,29 +1,22 @@
 use crate::suffix_array::chunking::get_max_size;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
+pub type WbsaIndexes = HashMap<usize, (usize, usize)>;
 pub fn create_prefix_trie(
     src: &str,
     src_length: usize,
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
+    wbsa_indexes: &mut WbsaIndexes,
     monitor: &mut Monitor,
 ) -> PrefixTrie {
     let custom_max_size =
         get_max_size(&custom_indexes, src_length).expect("custom_max_size is not valid");
 
-    let mut root = PrefixTrie {
-        suffix_len: 0,
-        sons: BTreeMap::new(),
-        rankings_canonical: Vec::new(),
-        rankings_custom: Vec::new(),
-        wbsa_p: 0,
-        wbsa_q: 0,
-        min_father: None,
-        max_father: None,
-        rankings_forced: None,
-    };
+    let mut root = PrefixTrie::new(0, 0, wbsa_indexes);
+    let mut next_node_index = 1;
 
     let custom_indexes_len = custom_indexes.len();
     let last_custom_factor_index = custom_indexes[custom_indexes_len - 1];
@@ -42,6 +35,8 @@ pub fn create_prefix_trie(
                 &mut root,
                 curr_suffix_length,
                 custom_factor_local_suffix_index,
+                wbsa_indexes,
+                &mut next_node_index,
                 monitor,
             );
         }
@@ -59,6 +54,8 @@ pub fn create_prefix_trie(
                     &mut root,
                     curr_suffix_length,
                     custom_factor_local_suffix_index,
+                    wbsa_indexes,
+                    &mut next_node_index,
                     monitor,
                 );
             }
@@ -74,6 +71,8 @@ fn add_node_to_prefix_trie(
     root: &mut PrefixTrie,
     curr_suffix_length: usize,
     custom_factor_local_suffix_index: usize,
+    wbsa_indexes: &mut WbsaIndexes,
+    next_node_index: &mut usize,
     monitor: &mut Monitor,
 ) {
     let local_suffix = &src
@@ -90,18 +89,9 @@ fn add_node_to_prefix_trie(
         if !curr_node.sons.contains_key(&curr_letter) {
             curr_node.sons.insert(
                 curr_letter,
-                PrefixTrie {
-                    suffix_len: i_chars_of_suffix + 1,
-                    sons: BTreeMap::new(),
-                    rankings_canonical: Vec::new(),
-                    rankings_custom: Vec::new(),
-                    wbsa_p: 0,
-                    wbsa_q: 0,
-                    min_father: None,
-                    max_father: None,
-                    rankings_forced: None,
-                },
+                PrefixTrie::new(*next_node_index, i_chars_of_suffix + 1, wbsa_indexes),
             );
+            *next_node_index += 1;
         }
         curr_node = curr_node.sons.get_mut(&curr_letter).unwrap();
 
@@ -119,6 +109,7 @@ fn add_node_to_prefix_trie(
 }
 
 pub struct PrefixTrie {
+    pub index: usize,
     pub suffix_len: usize,
     // TODO: Try to use HashMap but keeping chars sorted
     pub sons: BTreeMap<char, PrefixTrie>,
@@ -131,23 +122,44 @@ pub struct PrefixTrie {
     pub rankings_forced: Option<Vec<usize>>,
 }
 impl PrefixTrie {
+    // Constructor
+    pub fn new(index: usize, suffix_len: usize, wbsa_indexes: &mut WbsaIndexes) -> Self {
+        wbsa_indexes.insert(index, (0, 0));
+        Self {
+            index,
+            suffix_len,
+            sons: BTreeMap::new(),
+            rankings_canonical: Vec::new(),
+            rankings_custom: Vec::new(),
+            wbsa_p: 0,
+            wbsa_q: 0,
+            min_father: None,
+            max_father: None,
+            rankings_forced: None,
+        }
+    }
     // Getters
-    fn get_buff_index_left(&self) -> usize {
-        self.wbsa_p
+    fn get_buff_index_left(&self, wbsa_indexes: &WbsaIndexes) -> usize {
+        wbsa_indexes.get(&self.index).unwrap().0
+        // self.wbsa_p // TODO: Remove "wbsa_p" and "wbsa_q"?
     }
-    fn get_buff_index_right_excl(&self) -> usize {
-        self.wbsa_q
+    fn get_buff_index_right_excl(&self, wbsa_indexes: &WbsaIndexes) -> usize {
+        wbsa_indexes.get(&self.index).unwrap().1
+        // self.wbsa_q
     }
-    fn get_rankings_count(&self) -> usize {
-        self.get_buff_index_right_excl() - self.get_buff_index_left()
+    fn get_rankings_count(&self, wbsa_indexes: &WbsaIndexes) -> usize {
+        self.get_buff_index_right_excl(wbsa_indexes) - self.get_buff_index_left(wbsa_indexes)
     }
-    fn get_max_buff_index_right_excl_from_righted_child(&self) -> usize {
+    fn get_max_buff_index_right_excl_from_righted_child(
+        &self,
+        wbsa_indexes: &WbsaIndexes,
+    ) -> usize {
         if self.sons.is_empty() {
-            self.get_buff_index_right_excl()
+            self.get_buff_index_right_excl(wbsa_indexes)
         } else {
             let sons = &self.sons.values().collect::<Vec<_>>();
             let last_son = sons[sons.len() - 1];
-            last_son.get_max_buff_index_right_excl_from_righted_child()
+            last_son.get_max_buff_index_right_excl_from_righted_child(wbsa_indexes)
         }
         /*
         // TODO: Maybe this code is faster
@@ -173,11 +185,11 @@ impl PrefixTrie {
         oracle
         */
     }
-    fn get_first_ls_index(&self, wbsa: &Vec<usize>) -> usize {
-        wbsa[self.get_buff_index_left()]
+    fn get_first_ls_index(&self, wbsa: &Vec<usize>, wbsa_indexes: &WbsaIndexes) -> usize {
+        wbsa[self.get_buff_index_left(wbsa_indexes)]
     }
-    fn get_rankings<'a>(&self, wbsa: &'a Vec<usize>) -> &'a [usize] {
-        &wbsa[self.get_buff_index_left()..self.get_buff_index_right_excl()]
+    fn get_rankings<'a>(&self, wbsa: &'a Vec<usize>, wbsa_indexes: &WbsaIndexes) -> &'a [usize] {
+        &wbsa[self.get_buff_index_left(wbsa_indexes)..self.get_buff_index_right_excl(wbsa_indexes)]
     }
     /*
     fn get_string_from_first_ranking_with_length<'a>(
@@ -204,12 +216,18 @@ impl PrefixTrie {
             node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
         }
     }
-    pub fn print_with_wbsa(&self, tabs_offset: usize, prefix: String, wbsa: &Vec<usize>) {
+    pub fn print_with_wbsa(
+        &self,
+        tabs_offset: usize,
+        prefix: String,
+        wbsa: &Vec<usize>,
+        wbsa_indexes: &WbsaIndexes,
+    ) {
         println!(
             "{}\"{}\" {:?}   min={}, MAX={}",
             "\t".repeat(tabs_offset),
             prefix,
-            self.get_real_rankings(wbsa),
+            self.get_real_rankings(wbsa, wbsa_indexes),
             if let Some(x) = self.min_father {
                 format!("{}", x)
             } else {
@@ -222,7 +240,12 @@ impl PrefixTrie {
             },
         );
         for (char_key, node) in &self.sons {
-            node.print_with_wbsa(tabs_offset + 1, format!("{}{}", prefix, char_key), wbsa);
+            node.print_with_wbsa(
+                tabs_offset + 1,
+                format!("{}{}", prefix, char_key),
+                wbsa,
+                wbsa_indexes,
+            );
         }
     }
 
@@ -231,6 +254,7 @@ impl PrefixTrie {
         &mut self,
         src: &str,
         wbsa: &mut Vec<usize>,
+        wbsa_indexes: &mut WbsaIndexes,
         depths: &mut Vec<usize>,
         wbsa_start_from_index: usize,
     ) -> usize {
@@ -245,6 +269,7 @@ impl PrefixTrie {
 
         let mut p = wbsa_start_from_index;
         self.wbsa_p = p;
+        let bkp_p = p;
         if !new_rankings.is_empty() {
             // TODO: Monitor string compare
             sort_pair_vector_of_indexed_strings(&mut new_rankings);
@@ -255,16 +280,19 @@ impl PrefixTrie {
             }
         }
         self.wbsa_q = p;
+        wbsa_indexes.insert(self.index, (bkp_p, p));
 
         // Depth
-        for i in self.get_buff_index_left()..self.get_buff_index_right_excl() {
+        for i in
+            self.get_buff_index_left(wbsa_indexes)..self.get_buff_index_right_excl(wbsa_indexes)
+        {
             let ls_index = wbsa[i];
             depths[ls_index] = self.suffix_len;
         }
 
         // Recursive calls...
         for (_, son) in &mut self.sons {
-            let new_p = son.merge_rankings_and_sort_recursive(src, wbsa, depths, p);
+            let new_p = son.merge_rankings_and_sort_recursive(src, wbsa, wbsa_indexes, depths, p);
             p = new_p;
         }
 
@@ -274,6 +302,7 @@ impl PrefixTrie {
         &mut self,
         str: &str,
         wbsa: &mut Vec<usize>,
+        wbsa_indexes: &mut WbsaIndexes,
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -287,6 +316,7 @@ impl PrefixTrie {
                 son.in_prefix_merge(
                     str,
                     wbsa,
+                    wbsa_indexes,
                     depths,
                     icfl_indexes,
                     is_custom_vec,
@@ -298,12 +328,13 @@ impl PrefixTrie {
             return;
         }
 
-        if self.get_rankings_count() == 0 {
+        if self.get_rankings_count(wbsa_indexes) == 0 {
             // This is a Bridge Node.
             for son in self.sons.values_mut() {
                 son.in_prefix_merge(
                     str,
                     wbsa,
+                    wbsa_indexes,
                     depths,
                     icfl_indexes,
                     is_custom_vec,
@@ -316,11 +347,12 @@ impl PrefixTrie {
         }
 
         // Node with Rankings.
-        let this_ranking = self.get_real_rankings(wbsa);
+        let this_ranking = self.get_real_rankings(wbsa, wbsa_indexes);
         for son in self.sons.values_mut() {
             son.in_prefix_merge_deep(
                 str,
                 wbsa,
+                wbsa_indexes,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
@@ -335,6 +367,7 @@ impl PrefixTrie {
         &mut self,
         str: &str,
         wbsa: &mut Vec<usize>,
+        wbsa_indexes: &mut WbsaIndexes,
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -345,12 +378,13 @@ impl PrefixTrie {
     ) {
         // Parent has to *ALWAYS* have rankings.
 
-        if self.get_rankings_count() == 0 {
+        if self.get_rankings_count(wbsa_indexes) == 0 {
             // This is a Bridge Node.
             for son in self.sons.values_mut() {
                 son.in_prefix_merge_deep(
                     str,
                     wbsa,
+                    wbsa_indexes,
                     depths,
                     icfl_indexes,
                     is_custom_vec,
@@ -368,7 +402,7 @@ impl PrefixTrie {
         let parent_ls_length = depths[parent_first_ls_index];
         let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
 
-        let this_rankings = self.get_real_rankings(wbsa);
+        let this_rankings = self.get_real_rankings(wbsa, wbsa_indexes);
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
@@ -519,11 +553,12 @@ impl PrefixTrie {
         }
 
         // Now it's your turn to be the parent.
-        let this_rankings = self.get_real_rankings(wbsa);
+        let this_rankings = self.get_real_rankings(wbsa, wbsa_indexes);
         for son in self.sons.values_mut() {
             son.in_prefix_merge_deep(
                 str,
                 wbsa,
+                wbsa_indexes,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
@@ -534,12 +569,12 @@ impl PrefixTrie {
             );
         }
     }
-    pub fn get_real_rankings(&self, wbsa: &Vec<usize>) -> Vec<usize> {
+    pub fn get_real_rankings(&self, wbsa: &Vec<usize>, wbsa_indexes: &WbsaIndexes) -> Vec<usize> {
         if let Some(rankings) = &self.rankings_forced {
             // FIXME: Avoid cloning
             rankings.clone()
         } else {
-            self.get_rankings(wbsa).to_vec()
+            self.get_rankings(wbsa, wbsa_indexes).to_vec()
         }
     }
     fn rules(
