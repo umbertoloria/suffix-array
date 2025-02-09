@@ -46,40 +46,37 @@ pub fn compute_innovative_suffix_array(
     monitor.phase1_2_custom_factorization_start();
     let mut custom_indexes = Vec::new();
     let mut is_custom_vec = Vec::new();
-    let mut factor_list = Vec::new();
+    let mut icfl_factor_list = Vec::new();
     if let Some(chunk_size) = chunk_size {
         let (
             //
             custom_indexes_,
             is_custom_vec_,
-            factor_list_,
+            icfl_factor_list_,
         ) = get_custom_factors_and_more(&icfl_indexes, chunk_size, src_length);
         custom_indexes = custom_indexes_;
         is_custom_vec = is_custom_vec_;
-        factor_list = factor_list_;
-        // let custom_factors = get_custom_factor_strings_from_custom_indexes(str, &custom_indexes);
-        // println!("{:?}", custom_factors);
+        icfl_factor_list = icfl_factor_list_;
     } else {
-        // TODO: Test this
+        // FIXME: Disable this code since will burn your little laptop :_(
         for i in 0..icfl_indexes.len() {
             let cur_factor_index = icfl_indexes[i];
 
             // Curr Factor Size
-            let next_factor_index = if i < icfl_indexes.len() - 1 {
+            let cur_factor_size = if i < icfl_indexes.len() - 1 {
                 icfl_indexes[i + 1]
             } else {
                 src_length
-            };
-            let cur_factor_size = next_factor_index - cur_factor_index;
+            } - cur_factor_index;
 
             // Updating "custom_indexes"
             custom_indexes.push(cur_factor_index);
 
             // Updating "is_custom_vec"
-            // Updating "factor_list"
+            // Updating "icfl_factor_list"
             for _ in 0..cur_factor_size {
                 is_custom_vec.push(false);
-                factor_list.push(i);
+                icfl_factor_list.push(i);
             }
         }
     }
@@ -130,7 +127,7 @@ pub fn compute_innovative_suffix_array(
             src_length,
             &icfl_indexes,
             &custom_indexes,
-            &factor_list,
+            &icfl_factor_list,
             &is_custom_vec,
             &depths,
         );
@@ -149,7 +146,7 @@ pub fn compute_innovative_suffix_array(
         &mut depths,
         &icfl_indexes,
         &is_custom_vec,
-        &factor_list,
+        &icfl_factor_list,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
@@ -162,7 +159,7 @@ pub fn compute_innovative_suffix_array(
         str,
         &icfl_indexes,
         &is_custom_vec,
-        &factor_list,
+        &icfl_factor_list,
     );
     match debug_mode {
         DebugMode::Overview => {
@@ -236,7 +233,7 @@ fn print_for_human_like_debug(
     src_length: usize,
     icfl_indexes: &Vec<usize>,
     custom_indexes: &Vec<usize>,
-    factor_list: &Vec<usize>,
+    icfl_factor_list: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
     depths: &Vec<usize>,
 ) {
@@ -252,7 +249,7 @@ fn print_for_human_like_debug(
     println!();
     // ICFL FACTORS
     for i in 0..src_length {
-        print!(" {:2} ", factor_list[i]);
+        print!(" {:2} ", icfl_factor_list[i]);
     }
     println!("   <= ICFL FACTORS {:?}", icfl_indexes);
     let mut i = 0;
@@ -264,7 +261,7 @@ fn print_for_human_like_debug(
 
     i = 0;
     while i < src_length {
-        print!("  {} ", if is_custom_vec[i] { "1" } else { " " });
+        print!("  {} ", if is_custom_vec[i] { "x" } else { " " });
         i += 1;
     }
     println!("   <= IS IN CUSTOM FACTOR");

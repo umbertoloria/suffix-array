@@ -23,21 +23,20 @@ pub fn get_custom_factors_and_more(
     //                                     ICFL Factor, so it's a Local Suffix of ICFL Factor.
     // Factor List: [Source Char Index] => ICFL Factor Index of that
     let mut is_custom_vec = Vec::with_capacity(src_length);
-    let mut factor_list = Vec::with_capacity(src_length);
+    let mut icfl_factor_list = Vec::with_capacity(src_length);
 
     for i in 0..icfl_indexes.len() {
         let cur_factor_index = icfl_indexes[i];
 
         // Curr Factor Size
-        let next_factor_index = if i < icfl_indexes.len() - 1 {
+        let cur_factor_size = if i < icfl_indexes.len() - 1 {
             icfl_indexes[i + 1]
         } else {
             src_length
-        };
-        let cur_factor_size = next_factor_index - cur_factor_index;
+        } - cur_factor_index;
 
         // Updating "custom_indexes"
-        // Es. on the 2nd factor "B": cur_factor_index=3, next_factor_index=4, cur_factor_size=1
+        // Es. on the 2nd factor "B": cur_factor_index=3, cur_factor_size=1
         if cur_factor_size < chunk_size {
             // Es. on the 2nd factor "B": no space to perform chunking
             custom_indexes.push(cur_factor_index);
@@ -54,7 +53,7 @@ pub fn get_custom_factors_and_more(
                 // index of a chunk, so it'll be considered in the while statement below.
             }
             let mut cur_chunk_index = cur_factor_index + first_chunk_index_offset;
-            while cur_chunk_index < next_factor_index {
+            while cur_chunk_index < cur_factor_index + cur_factor_size {
                 custom_indexes.push(cur_chunk_index);
                 cur_chunk_index += chunk_size;
             }
@@ -73,9 +72,9 @@ pub fn get_custom_factors_and_more(
             remaining_chars_in_icfl_factor -= 1;
         }
 
-        // Updating "factor_list"
+        // Updating "icfl_factor_list"
         for _ in 0..cur_factor_size {
-            factor_list.push(i);
+            icfl_factor_list.push(i);
         }
     }
 
@@ -83,28 +82,8 @@ pub fn get_custom_factors_and_more(
         //
         custom_indexes,
         is_custom_vec,
-        factor_list,
+        icfl_factor_list,
     )
-}
-
-pub fn get_custom_factor_strings_from_custom_indexes(
-    src: &str,
-    custom_indexes: &Vec<usize>,
-) -> Vec<String> {
-    let mut result = Vec::with_capacity(custom_indexes.len());
-    let mut i = 0;
-    while i < custom_indexes.len() - 1 {
-        let cur_factor_index = custom_indexes[i];
-        let next_factor_index = custom_indexes[i + 1];
-        let slice = &src[cur_factor_index..next_factor_index];
-        result.push(slice.into());
-        i += 1;
-    }
-    let cur_factor_index = custom_indexes[i];
-    let next_factor_index = src.len();
-    let slice = &src[cur_factor_index..next_factor_index];
-    result.push(slice.into());
-    result
 }
 
 pub fn get_max_size(factor_indexes: &Vec<usize>, src_length: usize) -> Option<usize> {

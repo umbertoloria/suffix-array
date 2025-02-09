@@ -254,7 +254,7 @@ impl PrefixTrie {
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
-        factor_list: &Vec<usize>,
+        icfl_factor_list: &Vec<usize>,
         monitor: &mut Monitor,
         verbose: bool,
     ) {
@@ -267,7 +267,7 @@ impl PrefixTrie {
                     depths,
                     icfl_indexes,
                     is_custom_vec,
-                    factor_list,
+                    icfl_factor_list,
                     monitor,
                     verbose,
                 );
@@ -284,7 +284,7 @@ impl PrefixTrie {
                     depths,
                     icfl_indexes,
                     is_custom_vec,
-                    factor_list,
+                    icfl_factor_list,
                     monitor,
                     verbose,
                 );
@@ -301,7 +301,7 @@ impl PrefixTrie {
                 depths,
                 icfl_indexes,
                 is_custom_vec,
-                factor_list,
+                icfl_factor_list,
                 &this_ranking,
                 monitor,
                 verbose,
@@ -315,7 +315,7 @@ impl PrefixTrie {
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
-        factor_list: &Vec<usize>,
+        icfl_factor_list: &Vec<usize>,
         parent_rankings: &Vec<usize>,
         monitor: &mut Monitor,
         verbose: bool,
@@ -331,7 +331,7 @@ impl PrefixTrie {
                     depths,
                     icfl_indexes,
                     is_custom_vec,
-                    factor_list,
+                    icfl_factor_list,
                     parent_rankings,
                     monitor,
                     verbose,
@@ -418,7 +418,7 @@ impl PrefixTrie {
                             str,
                             icfl_indexes,
                             &is_custom_vec,
-                            &factor_list,
+                            &icfl_factor_list,
                             false,
                             monitor,
                         );
@@ -501,7 +501,7 @@ impl PrefixTrie {
                 depths,
                 icfl_indexes,
                 is_custom_vec,
-                factor_list,
+                icfl_factor_list,
                 &this_rankings,
                 monitor,
                 verbose,
@@ -523,7 +523,7 @@ impl PrefixTrie {
         src: &str,
         icfl_list: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
-        factor_list: &Vec<usize>,
+        icfl_factor_list: &Vec<usize>,
         monitor: &mut Monitor,
     ) -> bool {
         let icfl_list_size = icfl_list.len();
@@ -539,7 +539,7 @@ impl PrefixTrie {
             }
         } else if is_custom_vec[x] {
             monitor.new_compare_one_ls_in_custom_factor();
-            if factor_list[x] <= factor_list[y] {
+            if icfl_factor_list[x] <= icfl_factor_list[y] {
                 monitor.new_compare_using_rules();
                 if y >= icfl_list[icfl_list_size - 1] {
                     true
@@ -558,7 +558,7 @@ impl PrefixTrie {
             }
         } else if is_custom_vec[y] {
             monitor.new_compare_one_ls_in_custom_factor();
-            if factor_list[y] <= factor_list[x] {
+            if icfl_factor_list[y] <= icfl_factor_list[x] {
                 monitor.new_compare_using_rules();
                 if x >= icfl_list[icfl_list_size - 1] {
                     false
@@ -578,7 +578,7 @@ impl PrefixTrie {
         } else if x >= icfl_list[icfl_list_size - 1] && y >= icfl_list[icfl_list_size - 1] {
             monitor.new_compare_using_rules();
             false
-        } else if factor_list[x] == factor_list[y] {
+        } else if icfl_factor_list[x] == icfl_factor_list[y] {
             monitor.new_compare_using_rules();
             true
         } else {
@@ -618,7 +618,7 @@ impl PrefixTrie {
         src: &str,
         icfl_list: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
-        factor_list: &Vec<usize>,
+        icfl_factor_list: &Vec<usize>,
         slow_check: bool,
         monitor: &mut Monitor,
     ) -> bool {
@@ -630,7 +630,7 @@ impl PrefixTrie {
                 src,
                 icfl_list,
                 is_custom_vec,
-                factor_list,
+                icfl_factor_list,
                 monitor,
             )
         } else {
@@ -649,7 +649,7 @@ impl PrefixTrie {
                 src,
                 icfl_list,
                 is_custom_vec,
-                factor_list,
+                icfl_factor_list,
                 monitor,
             );
             if given != oracle {
