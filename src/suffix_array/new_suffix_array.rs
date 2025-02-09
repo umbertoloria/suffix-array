@@ -5,6 +5,7 @@ use crate::files::paths::{
     get_path_for_project_suffix_array_file,
 };
 use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
+use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::{
     log_monitor_after_process_ended, log_prefix_trie, ExecutionInfo, Monitor,
 };
@@ -136,6 +137,7 @@ pub fn compute_innovative_suffix_array(
     // -
 
     monitor.phase2_3_prefix_trie_in_prefix_merge_start();
+    let mut compare_cache = CompareCache::new();
     prefix_trie.in_prefix_merge(
         str,
         &mut wbsa,
@@ -144,6 +146,7 @@ pub fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &icfl_factor_list,
+        &mut compare_cache,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
@@ -176,7 +179,8 @@ pub fn compute_innovative_suffix_array(
     // -
 
     monitor.phase2_4_prefix_tree_create_start();
-    let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie, &mut wbsa, &mut wbsa_indexes);
+    let mut prefix_tree =
+        create_prefix_tree_from_prefix_trie(prefix_trie, &mut wbsa, &mut wbsa_indexes);
     monitor.phase2_4_prefix_tree_create_stop();
 
     // +

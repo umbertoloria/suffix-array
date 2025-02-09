@@ -6,3 +6,4 @@ pub mod prefix_tree;
 pub mod prefix_trie;
 pub mod sorter;
 pub mod suite;
+mod compare_cache;

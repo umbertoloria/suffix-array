@@ -1,4 +1,5 @@
 use crate::suffix_array::chunking::get_max_size;
+use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::collections::{BTreeMap, HashMap};
@@ -346,6 +347,7 @@ impl PrefixTrie {
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
+        compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
     ) {
@@ -360,6 +362,7 @@ impl PrefixTrie {
                     icfl_indexes,
                     is_custom_vec,
                     icfl_factor_list,
+                    compare_cache,
                     monitor,
                     verbose,
                 );
@@ -378,6 +381,7 @@ impl PrefixTrie {
                     icfl_indexes,
                     is_custom_vec,
                     icfl_factor_list,
+                    compare_cache,
                     monitor,
                     verbose,
                 );
@@ -397,6 +401,7 @@ impl PrefixTrie {
                 is_custom_vec,
                 icfl_factor_list,
                 &this_ranking,
+                compare_cache,
                 monitor,
                 verbose,
             );
@@ -412,6 +417,7 @@ impl PrefixTrie {
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
         parent_rankings: &Vec<usize>,
+        compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
     ) {
@@ -429,6 +435,7 @@ impl PrefixTrie {
                     is_custom_vec,
                     icfl_factor_list,
                     parent_rankings,
+                    compare_cache,
                     monitor,
                     verbose,
                 );
@@ -518,8 +525,9 @@ impl PrefixTrie {
                             icfl_indexes,
                             &is_custom_vec,
                             &icfl_factor_list,
-                            false,
+                            compare_cache,
                             monitor,
+                            false,
                         );
                         if !result_rules {
                             if verbose {
@@ -603,6 +611,7 @@ impl PrefixTrie {
                 is_custom_vec,
                 icfl_factor_list,
                 &this_rankings,
+                compare_cache,
                 monitor,
                 verbose,
             );
@@ -624,20 +633,26 @@ impl PrefixTrie {
         icfl_list: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
+        compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
     ) -> bool {
-        // TODO: Monitor string compare
         let icfl_list_size = icfl_list.len();
         if is_custom_vec[x] && is_custom_vec[y] {
             monitor.new_compare_of_two_ls_in_custom_factors();
             monitor.new_compare_using_actual_string_compare();
-            let cmp1 = &src[y + child_offset..];
+            compare_cache.compare_1_before_2(
+                //
+                src,
+                y + child_offset,
+                x + child_offset,
+            )
+            /*let cmp1 = &src[y + child_offset..];
             let cmp2 = &src[x + child_offset..];
             if cmp1 < cmp2 {
                 true
             } else {
                 false
-            }
+            }*/
         } else if is_custom_vec[x] {
             monitor.new_compare_one_ls_in_custom_factor();
             if icfl_factor_list[x] <= icfl_factor_list[y] {
@@ -649,13 +664,19 @@ impl PrefixTrie {
                 }
             } else {
                 monitor.new_compare_using_actual_string_compare();
-                let cmp1 = &src[y + child_offset..];
+                compare_cache.compare_1_before_2(
+                    //
+                    src,
+                    y + child_offset,
+                    x + child_offset,
+                )
+                /*let cmp1 = &src[y + child_offset..];
                 let cmp2 = &src[x + child_offset..];
                 if cmp1 < cmp2 {
                     true
                 } else {
                     false
-                }
+                }*/
             }
         } else if is_custom_vec[y] {
             monitor.new_compare_one_ls_in_custom_factor();
@@ -668,13 +689,19 @@ impl PrefixTrie {
                 }
             } else {
                 monitor.new_compare_using_actual_string_compare();
-                let cmp1 = &src[y + child_offset..];
+                compare_cache.compare_1_before_2(
+                    //
+                    src,
+                    y + child_offset,
+                    x + child_offset,
+                )
+                /*let cmp1 = &src[y + child_offset..];
                 let cmp2 = &src[x + child_offset..];
                 if cmp1 < cmp2 {
                     true
                 } else {
                     false
-                }
+                }*/
             }
         } else if x >= icfl_list[icfl_list_size - 1] && y >= icfl_list[icfl_list_size - 1] {
             monitor.new_compare_using_rules();
@@ -688,26 +715,38 @@ impl PrefixTrie {
                 false
             } else if y >= icfl_list[icfl_list_size - 1] {
                 monitor.new_compare_using_actual_string_compare();
-                let cmp1 = &src[y + child_offset..];
+                compare_cache.compare_1_before_2(
+                    //
+                    src,
+                    y + child_offset,
+                    x + child_offset,
+                )
+                /*let cmp1 = &src[y + child_offset..];
                 let cmp2 = &src[x + child_offset..];
                 if cmp1 < cmp2 {
                     true
                 } else {
                     false
-                }
+                }*/
             } else {
                 if x > y {
                     monitor.new_compare_using_rules();
                     true
                 } else {
                     monitor.new_compare_using_actual_string_compare();
-                    let cmp1 = &src[y + child_offset..];
+                    compare_cache.compare_1_before_2(
+                        //
+                        src,
+                        y + child_offset,
+                        x + child_offset,
+                    )
+                    /*let cmp1 = &src[y + child_offset..];
                     let cmp2 = &src[x + child_offset..];
                     if cmp1 < cmp2 {
                         true
                     } else {
                         false
-                    }
+                    }*/
                 }
             }
         }
@@ -720,8 +759,9 @@ impl PrefixTrie {
         icfl_list: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
-        slow_check: bool,
+        compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
+        slow_check: bool,
     ) -> bool {
         if !slow_check {
             Self::rules(
@@ -732,6 +772,7 @@ impl PrefixTrie {
                 icfl_list,
                 is_custom_vec,
                 icfl_factor_list,
+                compare_cache,
                 monitor,
             )
         } else {
@@ -751,6 +792,7 @@ impl PrefixTrie {
                 icfl_list,
                 is_custom_vec,
                 icfl_factor_list,
+                compare_cache,
                 monitor,
             );
             if given != oracle {
