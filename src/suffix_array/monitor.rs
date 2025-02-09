@@ -228,11 +228,11 @@ fn log_prefix_trie_recursive(
     let mut rankings = node.get_real_rankings(wbsa);
     if !rankings.is_empty() {
         line.push_str(" [");
-        let last_ranking = rankings.pop().unwrap();
-        for ranking in rankings {
+        for i in 0..rankings.len() - 1 {
+            let ranking = rankings[i];
             line.push_str(&format!("{}, ", ranking));
         }
-        line.push_str(&format!("{}]", last_ranking));
+        line.push_str(&format!("{}]", rankings[rankings.len() - 1]));
     }
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");

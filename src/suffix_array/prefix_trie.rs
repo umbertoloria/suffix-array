@@ -246,7 +246,7 @@ impl PrefixTrie {
         let mut p = wbsa_start_from_index;
         self.wbsa_p = p;
         if !new_rankings.is_empty() {
-            // TODO: Maybe sorting is sometimes avoidable
+            // TODO: Monitor string compare
             sort_pair_vector_of_indexed_strings(&mut new_rankings);
             // Update list only if strings were actually sorted and moved.
             for (index, _) in new_rankings {
@@ -368,7 +368,7 @@ impl PrefixTrie {
         let parent_ls_length = depths[parent_first_ls_index];
         let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
 
-        let this_rankings = self.get_rankings(wbsa);
+        let this_rankings = self.get_real_rankings(wbsa);
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
@@ -428,7 +428,7 @@ impl PrefixTrie {
                 i_parent = self.min_father.unwrap();
                 let mut j_this = 0;
 
-                let mut result = Vec::new();
+                let mut new_rankings = Vec::new();
                 if let Some(max_father) = self.max_father {
                     if verbose {
                         println!("   > start comparing, window=[{},{})", i_parent, max_father);
@@ -457,7 +457,7 @@ impl PrefixTrie {
                                         [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
                                 );
                             }
-                            result.push(curr_parent_ls_index);
+                            new_rankings.push(curr_parent_ls_index);
                             i_parent += 1;
                         } else {
                             if verbose {
@@ -468,7 +468,7 @@ impl PrefixTrie {
                                         [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
                                 );
                             }
-                            result.push(curr_this_ls_index);
+                            new_rankings.push(curr_this_ls_index);
                             j_this += 1;
                         }
                     }
@@ -491,7 +491,7 @@ impl PrefixTrie {
                             child_offset
                         );
                     }
-                    result.push(curr_this_ls_index);
+                    new_rankings.push(curr_this_ls_index);
                     j_this += 1;
                 }
                 if let Some(max_father) = self.max_father {
@@ -506,7 +506,7 @@ impl PrefixTrie {
                                 child_offset
                             );
                         }
-                        result.push(curr_parent_ls_index);
+                        new_rankings.push(curr_parent_ls_index);
                         i_parent += 1;
                     }
                 } else {
@@ -514,7 +514,7 @@ impl PrefixTrie {
                         println!("     > no parent rankings left to add");
                     }
                 }
-                self.rankings_forced = Some(result);
+                self.rankings_forced = Some(new_rankings);
             }
         }
 
