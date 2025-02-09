@@ -110,12 +110,13 @@ impl PrefixTreeNode {
 }
 pub fn create_prefix_tree_from_prefix_trie(root_trie: PrefixTrie, wbsa: &Vec<usize>) -> PrefixTree {
     let mut tree = PrefixTree {
-        children: create_prefix_tree_from_trie_deep(&root_trie, wbsa),
+        children: create_prefix_tree_from_trie_deep(root_trie, "", wbsa),
     };
     tree
 }
 fn create_prefix_tree_from_trie_deep(
-    real_node: &PrefixTrie,
+    real_node: PrefixTrie,
+    real_node_label: &str,
     wbsa: &Vec<usize>,
 ) -> Vec<PrefixTreeNode> {
     let mut result = Vec::new();
@@ -124,22 +125,25 @@ fn create_prefix_tree_from_trie_deep(
     if rankings.len() > 0 {
         // This Node has Rankings, so we consider it.
         let mut node = PrefixTreeNode {
-            label: real_node.label.clone(), // TODO: Avoid cloning
+            // label: real_node.label.clone(),
+            label: String::from(real_node_label), // TODO: Avoid allocating here
             suffix_len: real_node.suffix_len,
             children: Vec::new(),
             rankings,
             min_father: real_node.min_father,
             max_father: real_node.max_father,
         };
-        for son in real_node.sons.values() {
-            let nodes_list = create_prefix_tree_from_trie_deep(son, wbsa);
+        for (char_key, son) in real_node.sons {
+            let son_node_label = format!("{}{}", real_node_label, char_key);
+            let nodes_list = create_prefix_tree_from_trie_deep(son, &son_node_label, wbsa);
             node.children.extend(nodes_list);
         }
         result.push(node);
     } else {
         // This Node is a Bridge, so we consider its Children (skipping Child Bridges).
-        for child in real_node.sons.values() {
-            let nodes_list = create_prefix_tree_from_trie_deep(child, wbsa);
+        for (char_key, son) in real_node.sons {
+            let son_node_label = format!("{}{}", real_node_label, char_key);
+            let nodes_list = create_prefix_tree_from_trie_deep(son, &son_node_label, wbsa);
             result.extend(nodes_list);
         }
     }

@@ -14,7 +14,7 @@ pub fn create_prefix_trie(
         get_max_size(&custom_indexes, src_length).expect("custom_max_size is not valid");
 
     let mut root = PrefixTrie {
-        label: "".into(),
+        // label: "".into(),
         suffix_len: 0,
         sons: BTreeMap::new(),
         rankings_canonical: Vec::new(),
@@ -92,7 +92,7 @@ fn add_node_to_prefix_trie(
             curr_node.sons.insert(
                 curr_letter,
                 PrefixTrie {
-                    label: format!("{}{}", curr_node.label, curr_letter),
+                    // label: format!("{}{}", curr_node.label, curr_letter),
                     suffix_len: i_chars_of_suffix + 1,
                     sons: BTreeMap::new(),
                     rankings_canonical: Vec::new(),
@@ -121,7 +121,7 @@ fn add_node_to_prefix_trie(
 }
 
 pub struct PrefixTrie {
-    pub label: String,
+    // pub label: String,
     pub suffix_len: usize,
     // TODO: Try to use HashMap but keeping chars sorted
     pub sons: BTreeMap<char, PrefixTrie>,

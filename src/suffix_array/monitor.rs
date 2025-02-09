@@ -208,15 +208,23 @@ impl MonitorInterval {
 }
 
 // PREFIX TRIE LOGGER
-pub fn log_prefix_trie(prefix_trie: &PrefixTrie, wbsa: &Vec<usize>, filepath: String) {
+pub fn log_prefix_trie(root: &PrefixTrie, wbsa: &Vec<usize>, filepath: String) {
     let mut file = File::create(filepath).expect("Unable to create file");
-    for (_, son) in &prefix_trie.sons {
-        log_prefix_trie_recursive(son, wbsa, &mut file, 0);
+    for (char_key, son) in &root.sons {
+        let son_label = &format!("{}", char_key);
+        log_prefix_trie_recursive(son, son_label, wbsa, &mut file, 0);
     }
     file.flush().expect("Unable to flush file");
 }
-fn log_prefix_trie_recursive(node: &PrefixTrie, wbsa: &Vec<usize>, file: &mut File, level: usize) {
-    let mut line = format!("{}{}", " ".repeat(level), node.label);
+fn log_prefix_trie_recursive(
+    node: &PrefixTrie,
+    node_label: &str,
+    wbsa: &Vec<usize>,
+    file: &mut File,
+    level: usize,
+) {
+    // let mut line = format!("{}{}", " ".repeat(level), node.label);
+    let mut line = format!("{}{}", " ".repeat(level), node_label);
     let mut rankings = node.get_real_rankings(wbsa);
     if !rankings.is_empty() {
         line.push_str(" [");
@@ -228,8 +236,9 @@ fn log_prefix_trie_recursive(node: &PrefixTrie, wbsa: &Vec<usize>, file: &mut Fi
     }
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");
-    for (_, son) in &node.sons {
-        log_prefix_trie_recursive(son, wbsa, file, level + 1);
+    for (char_key, son) in &node.sons {
+        let son_label = &format!("{}{}", node_label, char_key);
+        log_prefix_trie_recursive(son, son_label, wbsa, file, level + 1);
     }
 }
 
