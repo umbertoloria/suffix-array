@@ -252,34 +252,73 @@ impl PrefixTrie {
     // Tree transformation
     pub fn merge_rankings_and_sort_recursive(
         &mut self,
-        src: &str,
+        str: &str,
         wbsa: &mut Vec<usize>,
         wbsa_indexes: &mut WbsaIndexes,
         depths: &mut Vec<usize>,
         wbsa_start_from_index: usize,
     ) -> usize {
-        // Single "rankings" list
-        let mut new_rankings = Vec::new();
-        for &local_suffix_index in &self.rankings_canonical {
-            new_rankings.push((local_suffix_index, &src[local_suffix_index..]));
+        // Here we sort the Rankings Custom (all real Global Suffixes) and then try to merge the
+        // two lists Rankings Canonical Rankings Custom (Sorted) by doing a pair-comparison.
+        // We don't sort Rankings Canonical because that list already contains Global Suffixes in
+        // the right order (unlike Ranking Custom, that we have to sort).
+        let mut sorted_rankings_custom = Vec::new();
+        if !self.rankings_custom.is_empty() {
+            let mut sorted_rankings_custom_pairs_list = Vec::new();
+            for &local_suffix_index in &self.rankings_custom {
+                sorted_rankings_custom_pairs_list
+                    .push((local_suffix_index, &str[local_suffix_index..]));
+            }
+            // TODO: Monitor string compare
+            sort_pair_vector_of_indexed_strings(&mut sorted_rankings_custom_pairs_list);
+            for (custom_gs_index, _) in sorted_rankings_custom_pairs_list {
+                sorted_rankings_custom.push(custom_gs_index);
+            }
         }
-        for &local_suffix_index in &self.rankings_custom {
-            new_rankings.push((local_suffix_index, &src[local_suffix_index..]));
+        // OK, now Rankings Customs is sorted as well. Rankings Canonical was already sorted. Now we
+        // perform the merge between these lists.
+        let mut unified_rankings = Vec::new();
+        let mut i_canonical = 0;
+        let mut i_custom = 0;
+        while i_canonical < self.rankings_canonical.len() && i_custom < sorted_rankings_custom.len()
+        {
+            let canonical_gs_index = self.rankings_canonical[i_canonical];
+            let canonical_gs = &str[canonical_gs_index..];
+
+            let custom_gs_index = sorted_rankings_custom[i_custom];
+            let custom_gs = &str[custom_gs_index..];
+
+            if canonical_gs < custom_gs {
+                unified_rankings.push(canonical_gs_index);
+                i_canonical += 1;
+            } else {
+                // Case "equals" should never happen.
+                unified_rankings.push(custom_gs_index);
+                i_custom += 1;
+            }
+        }
+        while i_canonical < self.rankings_canonical.len() {
+            let canonical_gs_index = self.rankings_canonical[i_canonical];
+            unified_rankings.push(canonical_gs_index);
+            i_canonical += 1;
+        }
+        while i_custom < sorted_rankings_custom.len() {
+            let custom_gs_index = sorted_rankings_custom[i_custom];
+            unified_rankings.push(custom_gs_index);
+            i_custom += 1;
         }
 
         let mut p = wbsa_start_from_index;
-        self.wbsa_p = p;
+        self.wbsa_p = p; // TODO: Useless to update "self.wbsa_p"
         let bkp_p = p;
-        if !new_rankings.is_empty() {
-            // TODO: Monitor string compare
-            sort_pair_vector_of_indexed_strings(&mut new_rankings);
+        if !unified_rankings.is_empty() {
             // Update list only if strings were actually sorted and moved.
-            for (index, _) in new_rankings {
+            for index in unified_rankings {
                 wbsa[p] = index;
                 p += 1;
             }
         }
-        self.wbsa_q = p;
+        self.wbsa_q = p; // TODO: Useless to update "self.wbsa_q"
         wbsa_indexes.insert(self.index, (bkp_p, p));
 
         // Depth
@@ -292,7 +331,7 @@ impl PrefixTrie {
 
         // Recursive calls...
         for (_, son) in &mut self.sons {
-            let new_p = son.merge_rankings_and_sort_recursive(src, wbsa, wbsa_indexes, depths, p);
+            let new_p = son.merge_rankings_and_sort_recursive(str, wbsa, wbsa_indexes, depths, p);
             p = new_p;
         }
 
