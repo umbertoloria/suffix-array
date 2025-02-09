@@ -27,33 +27,16 @@ pub fn create_prefix_trie(
     };
 
     let custom_indexes_len = custom_indexes.len();
+    let last_custom_factor_index = custom_indexes[custom_indexes_len - 1];
+    let last_custom_factor_size = src_length - last_custom_factor_index;
 
     for curr_suffix_length in 1..custom_max_size + 1 {
         // Every iteration looks for all Custom Factors whose length is <= "curr_suffix_length" and,
         // if there exist, takes their Local Suffixes of "curr_suffix_length" length.
-        let mut ordered_list_of_custom_factor_local_suffix_index = Vec::new();
 
         // Last Custom Factor
-        let curr_custom_factor_len = src_length - custom_indexes[custom_indexes_len - 1];
-        if curr_suffix_length <= curr_custom_factor_len {
+        if curr_suffix_length <= last_custom_factor_size {
             let custom_factor_local_suffix_index = src_length - curr_suffix_length;
-            ordered_list_of_custom_factor_local_suffix_index.push(custom_factor_local_suffix_index);
-        }
-
-        // All Custom Factors from first to second-last
-        for i_custom_factor in 0..custom_indexes_len - 1 {
-            let curr_custom_factor_len =
-                custom_indexes[i_custom_factor + 1] - custom_indexes[i_custom_factor];
-            if curr_suffix_length <= curr_custom_factor_len {
-                let custom_factor_local_suffix_index =
-                    custom_indexes[i_custom_factor + 1] - curr_suffix_length;
-                ordered_list_of_custom_factor_local_suffix_index
-                    .push(custom_factor_local_suffix_index);
-            }
-        }
-
-        // Filling "rankings_canonical" or "rankings_custom".
-        for custom_factor_local_suffix_index in ordered_list_of_custom_factor_local_suffix_index {
             add_node_to_prefix_trie(
                 src,
                 is_custom_vec,
@@ -61,6 +44,23 @@ pub fn create_prefix_trie(
                 curr_suffix_length,
                 custom_factor_local_suffix_index,
             );
+        }
+
+        // All Custom Factors from first to second-last
+        for i_custom_factor in 0..custom_indexes_len - 1 {
+            let curr_custom_factor_size =
+                custom_indexes[i_custom_factor + 1] - custom_indexes[i_custom_factor];
+            if curr_suffix_length <= curr_custom_factor_size {
+                let custom_factor_local_suffix_index =
+                    custom_indexes[i_custom_factor + 1] - curr_suffix_length;
+                add_node_to_prefix_trie(
+                    src,
+                    is_custom_vec,
+                    &mut root,
+                    curr_suffix_length,
+                    custom_factor_local_suffix_index,
+                );
+            }
         }
     }
 
