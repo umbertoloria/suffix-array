@@ -14,7 +14,6 @@ pub fn create_prefix_trie(
         get_max_size(&custom_indexes, src_length).expect("custom_max_size is not valid");
 
     let mut root = PrefixTrie {
-        // label: "".into(),
         suffix_len: 0,
         sons: BTreeMap::new(),
         rankings_canonical: Vec::new(),
@@ -92,7 +91,6 @@ fn add_node_to_prefix_trie(
             curr_node.sons.insert(
                 curr_letter,
                 PrefixTrie {
-                    // label: format!("{}{}", curr_node.label, curr_letter),
                     suffix_len: i_chars_of_suffix + 1,
                     sons: BTreeMap::new(),
                     rankings_canonical: Vec::new(),
@@ -121,7 +119,6 @@ fn add_node_to_prefix_trie(
 }
 
 pub struct PrefixTrie {
-    // pub label: String,
     pub suffix_len: usize,
     // TODO: Try to use HashMap but keeping chars sorted
     pub sons: BTreeMap<char, PrefixTrie>,
@@ -152,6 +149,29 @@ impl PrefixTrie {
             let last_son = sons[sons.len() - 1];
             last_son.get_max_buff_index_right_excl_from_righted_child()
         }
+        /*
+        // TODO: Maybe this code is faster
+        let mut oracle = 0;
+        if self.sons.is_empty() {
+            oracle = self.get_buff_index_right_excl()
+        } else {
+            let sons = &self.sons.values().collect::<Vec<_>>();
+            let last_son = sons[sons.len() - 1];
+            oracle = last_son.get_max_buff_index_right_excl_from_righted_child()
+        }
+        let mut test = 0;
+        if let Some((_, last_son)) = self.sons.last_key_value() {
+            test = last_son.get_max_buff_index_right_excl_from_righted_child()
+        } else {
+            test = self.get_buff_index_right_excl()
+        }
+        if oracle == test {
+            println!("yes: {} and {}", oracle, test);
+        } else {
+            println!("**************** should be {} but is {}", oracle, test);
+        }
+        oracle
+        */
     }
     fn get_first_ls_index(&self, wbsa: &Vec<usize>) -> usize {
         wbsa[self.get_buff_index_left()]
@@ -159,6 +179,7 @@ impl PrefixTrie {
     fn get_rankings<'a>(&self, wbsa: &'a Vec<usize>) -> &'a [usize] {
         &wbsa[self.get_buff_index_left()..self.get_buff_index_right_excl()]
     }
+    /*
     fn get_string_from_first_ranking_with_length<'a>(
         &self,
         wbsa: &Vec<usize>,
@@ -168,6 +189,7 @@ impl PrefixTrie {
         let child_ls_index = self.get_first_ls_index(wbsa);
         &str[child_ls_index..child_ls_index + string_length]
     }
+    */
 
     // Prints
     pub fn print(&self, tabs_offset: usize, prefix: String) {
@@ -176,7 +198,6 @@ impl PrefixTrie {
             "\t".repeat(tabs_offset),
             tabs_offset,
             prefix,
-            // self.label,
             format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom),
         );
         for (char_key, node) in &self.sons {
@@ -188,7 +209,6 @@ impl PrefixTrie {
             "{}\"{}\" {:?}   min={}, MAX={}",
             "\t".repeat(tabs_offset),
             prefix,
-            // self.label,
             self.get_real_rankings(wbsa),
             if let Some(x) = self.min_father {
                 format!("{}", x)
@@ -366,6 +386,7 @@ impl PrefixTrie {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
+            // TODO: Monitor string compare
             if curr_parent_ls < this_ls {
                 // Go ahead, this part of Parent Rankings has LSs that are < than Curr LS.
                 i_parent += 1;
@@ -384,6 +405,7 @@ impl PrefixTrie {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
+            // TODO: Monitor string compare
             if curr_parent_ls > this_ls {
                 // This means "max_father"=None.
                 // There's no Window for Comparing Rankings using "RULES".
@@ -392,6 +414,7 @@ impl PrefixTrie {
                     let curr_parent_ls_index = parent_rankings[i_parent];
                     let curr_parent_ls = &str[curr_parent_ls_index
                         ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
+                    // TODO: Monitor string compare
                     if curr_parent_ls == this_ls {
                         // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
                         self.max_father = Some(i_parent + 1);
@@ -529,6 +552,7 @@ impl PrefixTrie {
         icfl_factor_list: &Vec<usize>,
         monitor: &mut Monitor,
     ) -> bool {
+        // TODO: Monitor string compare
         let icfl_list_size = icfl_list.len();
         if is_custom_vec[x] && is_custom_vec[y] {
             monitor.new_compare_of_two_ls_in_custom_factors();
