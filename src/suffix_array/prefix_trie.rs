@@ -43,6 +43,7 @@ pub fn create_prefix_trie(
                 &mut root,
                 curr_suffix_length,
                 custom_factor_local_suffix_index,
+                monitor,
             );
         }
 
@@ -59,6 +60,7 @@ pub fn create_prefix_trie(
                     &mut root,
                     curr_suffix_length,
                     custom_factor_local_suffix_index,
+                    monitor,
                 );
             }
         }
@@ -73,6 +75,7 @@ fn add_node_to_prefix_trie(
     root: &mut PrefixTrie,
     curr_suffix_length: usize,
     custom_factor_local_suffix_index: usize,
+    monitor: &mut Monitor,
 ) {
     let local_suffix = &src
         [custom_factor_local_suffix_index..custom_factor_local_suffix_index + curr_suffix_length];
@@ -84,8 +87,8 @@ fn add_node_to_prefix_trie(
     while i_chars_of_suffix < curr_suffix_length {
         let curr_letter = chars_local_suffix[i_chars_of_suffix];
 
+        // Remember: using "curr_node.sons.entry(curr_letter).or_insert(" is slower.
         if !curr_node.sons.contains_key(&curr_letter) {
-            // First time "curr_node" node deals with "curr_letter".
             curr_node.sons.insert(
                 curr_letter,
                 PrefixTrie {
