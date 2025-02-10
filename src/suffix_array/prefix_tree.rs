@@ -9,18 +9,17 @@ pub struct PrefixTree {
     pub children: Vec<PrefixTreeNode>,
 }
 impl PrefixTree {
-    pub fn print(&self, str: &str) {
+    pub fn print(&self, str: &str, prog_sa: &ProgSuffixArray) {
         println!("PrefixTree:");
         for child in &self.children {
-            child.print(str, 1);
+            child.print(str, prog_sa, 1);
         }
     }
 
     pub fn in_prefix_merge(
         &mut self,
         str: &str,
-        // wbsa: &mut Vec<usize>,
-        // wbsa_indexes: &mut WbsaIndexes,
+        prog_sa: &mut ProgSuffixArray,
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -32,8 +31,7 @@ impl PrefixTree {
         for child in &mut self.children {
             child.in_prefix_merge(
                 str,
-                // wbsa,
-                // wbsa_indexes,
+                prog_sa,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
@@ -48,10 +46,11 @@ impl PrefixTree {
         &mut self,
         sa: &mut Vec<usize>,
         str: &str,
+        prog_sa: &ProgSuffixArray,
         verbose: bool,
     ) {
-        for first_layer_son in &mut self.children {
-            sa.extend(first_layer_son.get_common_prefix_partition(str, verbose));
+        for first_layer_child in &mut self.children {
+            sa.extend(first_layer_child.get_common_prefix_partition(str, prog_sa, verbose));
         }
     }
 }
@@ -59,21 +58,31 @@ pub struct PrefixTreeNode {
     pub index: usize,
     pub suffix_len: usize,
     pub children: Vec<PrefixTreeNode>,
-    pub rankings: Vec<usize>,
+    pub rankings_forced: Option<Vec<usize>>,
     pub min_father: Option<usize>,
     pub max_father: Option<usize>,
 }
 impl PrefixTreeNode {
-    fn get_label<'a>(&self, str: &'a str) -> &'a str {
-        let first_ranking = self.rankings[0];
+    fn get_rankings(&self, prog_sa: &ProgSuffixArray) -> Vec<usize> {
+        // FIXME: Avoid cloning stuff
+        if let Some(rankings_forced) = &self.rankings_forced {
+            rankings_forced.to_vec()
+        } else {
+            prog_sa.get_rankings(self.index).to_vec()
+        }
+    }
+
+    fn get_label_from_first_ranking<'a>(&self, str: &'a str, rankings: &Vec<usize>) -> &'a str {
+        let first_ranking = rankings[0];
         &str[first_ranking..first_ranking + self.suffix_len]
     }
-    pub fn print(&self, str: &str, tabs_offset: usize) {
+    pub fn print(&self, str: &str, prog_sa: &ProgSuffixArray, tabs_offset: usize) {
+        let rankings = self.get_rankings(prog_sa);
         println!(
             "{}\"{}\" {:?}   m={} M={}",
             "\t".repeat(tabs_offset),
-            self.get_label(str),
-            self.rankings,
+            self.get_label_from_first_ranking(str, &rankings),
+            rankings,
             if let Some(x) = self.min_father {
                 format!("{}", x)
             } else {
@@ -86,14 +95,13 @@ impl PrefixTreeNode {
             },
         );
         for child in &self.children {
-            child.print(str, tabs_offset + 1);
+            child.print(str, prog_sa, tabs_offset + 1);
         }
     }
     fn in_prefix_merge(
         &mut self,
         str: &str,
-        // wbsa: &mut Vec<usize>,
-        // wbsa_indexes: &mut WbsaIndexes,
+        prog_sa: &mut ProgSuffixArray,
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -102,12 +110,11 @@ impl PrefixTreeNode {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        let this_ranking = &self.rankings;
+        let this_ranking = self.get_rankings(prog_sa);
         for child in &mut self.children {
             child.in_prefix_merge_deep(
                 str,
-                // wbsa,
-                // wbsa_indexes,
+                prog_sa,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
@@ -122,8 +129,7 @@ impl PrefixTreeNode {
     fn in_prefix_merge_deep(
         &mut self,
         str: &str,
-        // wbsa: &mut Vec<usize>,
-        // wbsa_indexes: &mut WbsaIndexes,
+        prog_sa: &mut ProgSuffixArray,
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -138,7 +144,7 @@ impl PrefixTreeNode {
         let parent_ls_length = depths[parent_first_ls_index];
         let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
 
-        let this_rankings = &self.rankings;
+        let this_rankings = &self.get_rankings(prog_sa);
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
@@ -233,7 +239,7 @@ impl PrefixTreeNode {
                         } else {
                             if verbose {
                                 println!(
-                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: son wins",
+                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
                                     &str
                                         [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
                                         [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
@@ -285,17 +291,17 @@ impl PrefixTreeNode {
                         println!("     > no parent rankings left to add");
                     }
                 }
-                self.rankings = new_rankings;
+                // FIXME: Update in Progressive Suffix Array
+                self.rankings_forced = Some(new_rankings);
             }
         }
 
         // Now it's your turn to be the parent.
-        let this_rankings = &self.rankings;
+        let this_rankings = self.get_rankings(prog_sa);
         for child in &mut self.children {
             child.in_prefix_merge_deep(
                 str,
-                // wbsa,
-                // wbsa_indexes,
+                prog_sa,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
@@ -487,20 +493,26 @@ impl PrefixTreeNode {
             }
         }
     }
-    fn get_common_prefix_partition(&mut self, str: &str, verbose: bool) -> Vec<usize> {
+    fn get_common_prefix_partition(
+        &mut self,
+        str: &str,
+        prog_sa: &ProgSuffixArray,
+        verbose: bool,
+    ) -> Vec<usize> {
         let mut result: Vec<usize> = Vec::new();
 
-        let common = &self.rankings;
+        let common = self.get_rankings(prog_sa);
 
         if self.children.is_empty() {
             result.extend(common);
             if verbose {
+                let rankings = self.get_rankings(prog_sa);
                 println!(
                     "Node {} (m={:?}, M={:?}) {:?} => {:?}",
-                    self.get_label(str),
+                    self.get_label_from_first_ranking(str, &rankings),
                     self.min_father,
                     self.max_father,
-                    self.rankings,
+                    rankings,
                     result
                 );
             }
@@ -508,21 +520,21 @@ impl PrefixTreeNode {
         }
 
         let mut position = 0;
-        for son in &mut self.children {
-            let temp = son.get_common_prefix_partition(str, verbose);
-            if let Some(min_father) = son.min_father {
+        for child in &mut self.children {
+            let temp = child.get_common_prefix_partition(str, prog_sa, verbose);
+            if let Some(min_father) = child.min_father {
                 if verbose {
                     println!(
-                        "Here self=?? and son=??",
+                        "Here self=?? and child=??",
                         // self.get_label(str),
-                        // son.get_label(str)
+                        // child.get_label(str)
                     );
                 }
                 if min_father >= position {
                     result.extend(&common[position..min_father]);
                 }
                 result.extend(temp);
-                if let Some(max_father) = son.max_father {
+                if let Some(max_father) = child.max_father {
                     position = max_father;
                 } else {
                     position = min_father;
@@ -537,12 +549,13 @@ impl PrefixTreeNode {
         result.extend(&common[position..]);
 
         if verbose {
+            let rankings = self.get_rankings(prog_sa);
             println!(
                 "Node {} (m={:?}, M={:?}) {:?} => {:?}",
-                self.get_label(str),
+                self.get_label_from_first_ranking(str, &rankings),
                 self.min_father,
                 self.max_father,
-                self.rankings,
+                rankings,
                 result
             );
         }
@@ -570,16 +583,20 @@ fn create_prefix_tree_from_trie_deep(
 
     if real_node.rankings_final.len() > 0 {
         // This Node has Rankings, so we consider it.
+
+        // Create Prefix Tree Node
+        prog_sa.assign_rankings_to_node_index(next_node_index, real_node.rankings_final);
         let mut node = PrefixTreeNode {
             index: next_node_index,
             suffix_len: real_node.suffix_len,
             children: Vec::new(),
-            rankings: real_node.rankings_final,
+            rankings_forced: None,
             min_father: None,
             max_father: None,
         };
         next_node_index += 1;
 
+        // Add children
         for (_, son) in real_node.sons {
             let (nodes_list, next_node_index_) =
                 create_prefix_tree_from_trie_deep(son, prog_sa, next_node_index);
@@ -601,29 +618,42 @@ fn create_prefix_tree_from_trie_deep(
 }
 
 // PREFIX TREE LOGGER
-pub fn log_prefix_tree(prefix_tree: &PrefixTree, str: &str, filepath: String) {
+pub fn log_prefix_tree(
+    prefix_tree: &PrefixTree,
+    str: &str,
+    prog_sa: &ProgSuffixArray,
+    filepath: String,
+) {
     let mut file = File::create(filepath).expect("Unable to create file");
     for child in &prefix_tree.children {
-        log_prefix_tree_recursive(child, str, &mut file, 0);
+        log_prefix_tree_recursive(child, str, prog_sa, &mut file, 0);
     }
     file.flush().expect("Unable to flush file");
 }
-fn log_prefix_tree_recursive(node: &PrefixTreeNode, str: &str, file: &mut File, level: usize) {
-    let mut line = format!("{}{}", " ".repeat(level), node.get_label(str));
-    let rankings = &node.rankings;
-    if !rankings.is_empty() {
-        line.push_str(" [");
-        let last_ranking = rankings[rankings.len() - 1];
-        for i in 0..rankings.len() - 1 {
-            let ranking = rankings[i];
-            line.push_str(&format!("{}, ", ranking));
-        }
-        line.push_str(&format!("{}]", last_ranking));
+fn log_prefix_tree_recursive(
+    node: &PrefixTreeNode,
+    str: &str,
+    prog_sa: &ProgSuffixArray,
+    file: &mut File,
+    level: usize,
+) {
+    let rankings = &node.get_rankings(prog_sa);
+    let mut line = format!(
+        "{}{}",
+        " ".repeat(level),
+        node.get_label_from_first_ranking(str, rankings)
+    );
+    line.push_str(" [");
+    let last_ranking = rankings[rankings.len() - 1];
+    for i in 0..rankings.len() - 1 {
+        let ranking = rankings[i];
+        line.push_str(&format!("{}, ", ranking));
     }
+    line.push_str(&format!("{}]", last_ranking));
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");
     for child in &node.children {
-        log_prefix_tree_recursive(child, str, file, level + 1);
+        log_prefix_tree_recursive(child, str, prog_sa, file, level + 1);
     }
 }
 

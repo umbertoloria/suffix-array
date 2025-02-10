@@ -133,8 +133,7 @@ pub fn compute_innovative_suffix_array(
     let mut compare_cache = CompareCache::new();
     prefix_tree.in_prefix_merge(
         str,
-        // &mut wbsa,
-        // &mut wbsa_indexes,
+        &mut prog_sa,
         &mut depths,
         &icfl_indexes,
         &is_custom_vec,
@@ -167,12 +166,13 @@ pub fn compute_innovative_suffix_array(
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         println!("After IN_PREFIX_MERGE");
-        prefix_tree.print(str);
+        prefix_tree.print(str, &prog_sa);
     }
     if perform_logging {
         log_prefix_tree(
             &prefix_tree,
             str,
+            &prog_sa,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
         );
     }
@@ -180,7 +180,12 @@ pub fn compute_innovative_suffix_array(
 
     monitor.phase3_suffix_array_compose_start();
     let mut sa = Vec::new();
-    prefix_tree.prepare_get_common_prefix_partition(&mut sa, str, debug_mode == DebugMode::Verbose);
+    prefix_tree.prepare_get_common_prefix_partition(
+        &mut sa,
+        str,
+        &prog_sa,
+        debug_mode == DebugMode::Verbose,
+    );
     monitor.phase3_suffix_array_compose_stop();
 
     // +
