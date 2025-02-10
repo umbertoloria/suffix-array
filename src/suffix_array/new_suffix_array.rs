@@ -6,14 +6,12 @@ use crate::files::paths::{
 };
 use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
 use crate::suffix_array::compare_cache::CompareCache;
-use crate::suffix_array::monitor::{
-    log_monitor_after_process_ended, log_prefix_trie, ExecutionInfo, Monitor,
-};
+use crate::suffix_array::monitor::{log_monitor_after_process_ended, ExecutionInfo, Monitor};
 use crate::suffix_array::prefix_tree::{
     create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
     make_sure_directory_exist,
 };
-use crate::suffix_array::prefix_trie::create_prefix_trie;
+use crate::suffix_array::prefix_trie::{create_prefix_trie, log_prefix_trie};
 use std::process::exit;
 
 // INNOVATIVE SUFFIX ARRAY

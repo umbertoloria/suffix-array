@@ -1,4 +1,3 @@
-use crate::suffix_array::prefix_trie::PrefixTrie;
 use std::fs::File;
 use std::io::Write;
 use std::time::{Duration, Instant};
@@ -204,35 +203,6 @@ impl MonitorInterval {
             }
         }
         None
-    }
-}
-
-// PREFIX TRIE LOGGER
-pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
-    let mut file = File::create(filepath).expect("Unable to create file");
-    for (char_key, son) in &root.sons {
-        let son_label = &format!("{}", char_key);
-        log_prefix_trie_recursive(son, son_label, &mut file, 0);
-    }
-    file.flush().expect("Unable to flush file");
-}
-fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut File, level: usize) {
-    // let mut line = format!("{}{}", " ".repeat(level), node.label);
-    let mut line = format!("{}{}", " ".repeat(level), node_label);
-    let mut rankings = node.get_rankings();
-    if !rankings.is_empty() {
-        line.push_str(" [");
-        for i in 0..rankings.len() - 1 {
-            let ranking = rankings[i];
-            line.push_str(&format!("{}, ", ranking));
-        }
-        line.push_str(&format!("{}]", rankings[rankings.len() - 1]));
-    }
-    line.push_str("\n");
-    file.write(line.as_bytes()).expect("Unable to write line");
-    for (char_key, son) in &node.sons {
-        let son_label = &format!("{}{}", node_label, char_key);
-        log_prefix_trie_recursive(son, son_label, file, level + 1);
     }
 }
 

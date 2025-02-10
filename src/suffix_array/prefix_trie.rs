@@ -2,6 +2,8 @@ use crate::suffix_array::chunking::get_max_size;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::Write;
 
 // pub type WbsaIndexes = HashMap<usize, (usize, usize)>;
 pub fn create_prefix_trie(
@@ -134,7 +136,7 @@ impl PrefixTrie {
     /*
     fn get_buff_index_left(&self, wbsa_indexes: &WbsaIndexes) -> usize {
         wbsa_indexes.get(&self.index).unwrap().0
-        // self.wbsa_p // TODO: Remove "wbsa_p" and "wbsa_q"?
+        // self.wbsa_p
     }
     fn get_buff_index_right_excl(&self, wbsa_indexes: &WbsaIndexes) -> usize {
         wbsa_indexes.get(&self.index).unwrap().1
@@ -148,9 +150,11 @@ impl PrefixTrie {
         &wbsa[self.get_buff_index_left(wbsa_indexes)..self.get_buff_index_right_excl(wbsa_indexes)]
     }
     */
+    /*
     pub fn get_rankings(&self) -> &Vec<usize> {
         &self.rankings_final
     }
+    */
 
     // Prints
     pub fn print(&self, tabs_offset: usize, prefix: String) {
@@ -255,5 +259,34 @@ impl PrefixTrie {
         }
 
         // p
+    }
+}
+
+// PREFIX TRIE LOGGER
+pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
+    let mut file = File::create(filepath).expect("Unable to create file");
+    for (char_key, son) in &root.sons {
+        let son_label = &format!("{}", char_key);
+        log_prefix_trie_recursive(son, son_label, &mut file, 0);
+    }
+    file.flush().expect("Unable to flush file");
+}
+fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut File, level: usize) {
+    // let mut line = format!("{}{}", " ".repeat(level), node.label);
+    let mut line = format!("{}{}", " ".repeat(level), node_label);
+    let mut rankings = &node.rankings_final;
+    if !rankings.is_empty() {
+        line.push_str(" [");
+        for i in 0..rankings.len() - 1 {
+            let ranking = rankings[i];
+            line.push_str(&format!("{}, ", ranking));
+        }
+        line.push_str(&format!("{}]", rankings[rankings.len() - 1]));
+    }
+    line.push_str("\n");
+    file.write(line.as_bytes()).expect("Unable to write line");
+    for (char_key, son) in &node.sons {
+        let son_label = &format!("{}{}", node_label, char_key);
+        log_prefix_trie_recursive(son, son_label, file, level + 1);
     }
 }
