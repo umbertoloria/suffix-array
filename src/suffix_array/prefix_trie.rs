@@ -11,6 +11,7 @@ pub fn create_prefix_trie(
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
     wbsa_indexes: &mut WbsaIndexes,
+    depths: &mut Vec<usize>,
     monitor: &mut Monitor,
 ) -> PrefixTrie {
     let custom_max_size =
@@ -37,6 +38,7 @@ pub fn create_prefix_trie(
                 curr_suffix_length,
                 custom_factor_local_suffix_index,
                 wbsa_indexes,
+                depths,
                 &mut next_node_index,
                 monitor,
             );
@@ -56,6 +58,7 @@ pub fn create_prefix_trie(
                     curr_suffix_length,
                     custom_factor_local_suffix_index,
                     wbsa_indexes,
+                    depths,
                     &mut next_node_index,
                     monitor,
                 );
@@ -73,6 +76,7 @@ fn add_node_to_prefix_trie(
     curr_suffix_length: usize,
     custom_factor_local_suffix_index: usize,
     wbsa_indexes: &mut WbsaIndexes,
+    depths: &mut Vec<usize>,
     next_node_index: &mut usize,
     monitor: &mut Monitor,
 ) {
@@ -107,6 +111,7 @@ fn add_node_to_prefix_trie(
             .rankings_canonical
             .push(custom_factor_local_suffix_index);
     }
+    depths[custom_factor_local_suffix_index] = curr_node.suffix_len;
 }
 
 pub struct PrefixTrie {
@@ -256,7 +261,6 @@ impl PrefixTrie {
         str: &str,
         wbsa: &mut Vec<usize>,
         wbsa_indexes: &mut WbsaIndexes,
-        depths: &mut Vec<usize>,
         wbsa_start_from_index: usize,
     ) -> usize {
         // Here we sort the Rankings Custom (all real Global Suffixes) and then try to merge the
@@ -322,17 +326,9 @@ impl PrefixTrie {
         self.wbsa_q = p; // TODO: Useless to update "self.wbsa_q"
         wbsa_indexes.insert(self.index, (bkp_p, p));
 
-        // Depth
-        for i in
-            self.get_buff_index_left(wbsa_indexes)..self.get_buff_index_right_excl(wbsa_indexes)
-        {
-            let ls_index = wbsa[i];
-            depths[ls_index] = self.suffix_len;
-        }
-
         // Recursive calls...
         for (_, son) in &mut self.sons {
-            let new_p = son.merge_rankings_and_sort_recursive(str, wbsa, wbsa_indexes, depths, p);
+            let new_p = son.merge_rankings_and_sort_recursive(str, wbsa, wbsa_indexes, p);
             p = new_p;
         }
 

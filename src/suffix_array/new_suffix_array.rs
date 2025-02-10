@@ -72,12 +72,14 @@ pub fn compute_innovative_suffix_array(
     // Prefix Trie Structure create
     monitor.phase2_1_prefix_trie_create_start();
     let mut wbsa_indexes = HashMap::new();
+    let mut depths = vec![0usize; src_length];
     let mut prefix_trie = create_prefix_trie(
         str,
         src_length,
         &custom_indexes,
         &is_custom_vec,
         &mut wbsa_indexes,
+        &mut depths,
         &mut monitor,
     );
     monitor.phase2_1_prefix_trie_create_stop();
@@ -92,14 +94,7 @@ pub fn compute_innovative_suffix_array(
     // Merge Rankings (Canonical and Custom)
     monitor.phase2_2_prefix_trie_merge_rankings_start();
     let mut wbsa = (0..src_length).collect::<Vec<_>>();
-    let mut depths = vec![0usize; src_length];
-    prefix_trie.merge_rankings_and_sort_recursive(
-        str,
-        &mut wbsa,
-        &mut wbsa_indexes,
-        &mut depths,
-        0,
-    );
+    prefix_trie.merge_rankings_and_sort_recursive(str, &mut wbsa, &mut wbsa_indexes, 0);
     monitor.phase2_2_prefix_trie_merge_rankings_stop();
 
     // +
