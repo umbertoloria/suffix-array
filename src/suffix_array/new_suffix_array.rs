@@ -129,6 +129,13 @@ pub fn compute_innovative_suffix_array(
     let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie, &mut prog_sa);
     monitor.phase2_3_prefix_tree_create_stop();
 
+    // +
+    if debug_mode == DebugMode::Verbose {
+        println!("Before IN_PREFIX_MERGE");
+        prefix_tree.print(str, &prog_sa);
+    }
+    // -
+
     monitor.phase2_4_prefix_tree_in_prefix_merge_start();
     let mut compare_cache = CompareCache::new();
     prefix_tree.in_prefix_merge(
@@ -167,6 +174,7 @@ pub fn compute_innovative_suffix_array(
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         println!("After IN_PREFIX_MERGE");
         prefix_tree.print(str, &prog_sa);
+        prog_sa.print();
     }
     if perform_logging {
         log_prefix_tree(
@@ -179,13 +187,14 @@ pub fn compute_innovative_suffix_array(
     // -
 
     monitor.phase3_suffix_array_compose_start();
-    let mut sa = Vec::new();
+    /*let mut sa = Vec::new();
     prefix_tree.prepare_get_common_prefix_partition(
         &mut sa,
         str,
         &prog_sa,
         debug_mode == DebugMode::Verbose,
-    );
+    );*/
+    let sa = prog_sa.save_sa();
     monitor.phase3_suffix_array_compose_stop();
 
     // +

@@ -58,21 +58,15 @@ pub struct PrefixTreeNode {
     pub index: usize,
     pub suffix_len: usize,
     pub children: Vec<PrefixTreeNode>,
-    pub rankings_forced: Option<Vec<usize>>,
     pub min_father: Option<usize>,
     pub max_father: Option<usize>,
 }
 impl PrefixTreeNode {
-    fn get_rankings(&self, prog_sa: &ProgSuffixArray) -> Vec<usize> {
-        // FIXME: Avoid cloning stuff
-        if let Some(rankings_forced) = &self.rankings_forced {
-            rankings_forced.to_vec()
-        } else {
-            prog_sa.get_rankings(self.index).to_vec()
-        }
+    fn get_rankings<'a>(&self, prog_sa: &'a ProgSuffixArray) -> &'a [usize] {
+        prog_sa.get_rankings(self.index)
     }
 
-    fn get_label_from_first_ranking<'a>(&self, str: &'a str, rankings: &Vec<usize>) -> &'a str {
+    fn get_label_from_first_ranking<'a>(&self, str: &'a str, rankings: &[usize]) -> &'a str {
         let first_ranking = rankings[0];
         &str[first_ranking..first_ranking + self.suffix_len]
     }
@@ -110,16 +104,19 @@ impl PrefixTreeNode {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        let this_ranking = self.get_rankings(prog_sa);
+        // First layer. Here we have "A", "C", "G", "T".
+        let mut start_from_this_p = prog_sa.get_rankings_p_q(self.index).0;
         for child in &mut self.children {
-            child.in_prefix_merge_deep(
+            // Second layer.
+            start_from_this_p = child.in_prefix_merge_deep(
                 str,
                 prog_sa,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
                 icfl_factor_list,
-                &this_ranking,
+                self.index,
+                start_from_this_p,
                 compare_cache,
                 monitor,
                 verbose,
@@ -134,32 +131,42 @@ impl PrefixTreeNode {
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
-        parent_rankings: &Vec<usize>,
+        parent_index: usize,
+        start_from_parent_p: usize,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
-    ) {
-        // Compare this node's rankings with parent's rankings.
-        let parent_first_ls_index = parent_rankings[0];
-        let parent_ls_length = depths[parent_first_ls_index];
-        let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
+    ) -> usize {
+        // TODO: Don't start from the beginning of Parent Rankings if you're not the First Child
 
-        let this_rankings = &self.get_rankings(prog_sa);
-        let this_first_ls_index = this_rankings[0];
+        // Compare this node's rankings with parent's rankings.
+        let (parent_p, parent_q) = prog_sa.get_rankings_p_q(parent_index);
+
+        // MERGE RANKINGS
+        // FIXME: sarebbe utile controllare "start_from_parent_p" rispetto a "parent_p"?
+        let mut i_parent = start_from_parent_p;
+
+        // let this_rankings = &self.get_rankings(prog_sa); // FIXME
+        let (this_p, this_q) = prog_sa.get_rankings_p_q(self.index);
+        let this_first_ls_index = prog_sa.get_ls_index(this_p);
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
         if verbose {
+            // FIXME: sistema output
+            let parent_first_ls_index = prog_sa.get_ls_index(parent_p);
+            let parent_ls_length = depths[parent_first_ls_index];
+            let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
+            // let parent_rankings = prog_sa.get_rankings(parent_index); // FIXME
+            let parent_rankings = prog_sa.get_rankings_manual(i_parent, parent_q);
+            let this_rankings = prog_sa.get_rankings(self.index);
             println!(
                 "Compare parent ({}) {:?} with curr ({}) {:?}",
                 parent_ls, parent_rankings, this_ls, this_rankings
             );
         }
 
-        // MERGE RANKINGS
-        let mut i_parent = 0;
-
-        while i_parent < parent_rankings.len() {
-            let curr_parent_ls_index = parent_rankings[i_parent];
+        while i_parent < parent_q {
+            let curr_parent_ls_index = prog_sa.get_ls_index(i_parent);
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
             // TODO: Monitor string compare
@@ -168,32 +175,37 @@ impl PrefixTreeNode {
                 i_parent += 1;
             } else {
                 // Found a Parent LS that is >= Curr LS.
-                self.min_father = Some(i_parent);
+                // self.min_father = Some(i_parent); // FIXME
+                self.min_father = Some(i_parent - parent_p);
                 break;
             }
         }
-        if i_parent >= parent_rankings.len() {
+        if i_parent >= parent_q {
             // This means "min_father"=None and "max_father"=None.
         } else {
             // From here, we have a "min_father" value.
 
             // let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
-            let curr_parent_ls_index = parent_rankings[i_parent];
+            let curr_parent_ls_index = prog_sa.get_ls_index(i_parent);
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
             // TODO: Monitor string compare
             if curr_parent_ls > this_ls {
                 // This means "max_father"=None.
                 // There's no Window for Comparing Rankings using "RULES".
+                // prog_sa.update_rankings_child();
+                // FIXME: deve essere operazione un po' diversa da "update_rankings_child"
+                // FIXME: keep going from here...
             } else {
-                while i_parent < parent_rankings.len() {
-                    let curr_parent_ls_index = parent_rankings[i_parent];
+                while i_parent < parent_q {
+                    let curr_parent_ls_index = prog_sa.get_ls_index(i_parent);
                     let curr_parent_ls = &str[curr_parent_ls_index
                         ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
                     // TODO: Monitor string compare
                     if curr_parent_ls == this_ls {
                         // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
-                        self.max_father = Some(i_parent + 1);
+                        // self.max_father = Some(i_parent + 1); // FIXME
+                        self.max_father = Some(i_parent - parent_p + 1);
                         i_parent += 1;
                     } else {
                         // Found a Parent LS that is > Curr LS.
@@ -201,17 +213,18 @@ impl PrefixTreeNode {
                     }
                 }
 
-                i_parent = self.min_father.unwrap();
-                let mut j_this = 0;
+                // i_parent = self.min_father.unwrap(); // FIXME
+                i_parent = self.min_father.unwrap() + parent_p;
+                let mut j_this = this_p;
 
                 let mut new_rankings = Vec::new();
-                if let Some(max_father) = self.max_father {
+                if let Some(mut max_father) = self.max_father {
                     if verbose {
                         println!("   > start comparing, window=[{},{})", i_parent, max_father);
                     }
-                    while i_parent < max_father && j_this < this_rankings.len() {
-                        let curr_parent_ls_index = parent_rankings[i_parent];
-                        let curr_this_ls_index = this_rankings[j_this];
+                    while i_parent < max_father && j_this < this_q {
+                        let curr_parent_ls_index = prog_sa.get_ls_index(i_parent);
+                        let curr_this_ls_index = prog_sa.get_ls_index(j_this);
                         let child_offset = self.suffix_len; // Could be inline.
                         let result_rules = Self::rules_safe(
                             curr_parent_ls_index,
@@ -233,9 +246,18 @@ impl PrefixTreeNode {
                                         [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
                                         [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
                                 );
+                                prog_sa.print(); // FIXME
                             }
-                            new_rankings.push(curr_parent_ls_index);
-                            i_parent += 1;
+                            prog_sa.update_rankings_child(
+                                self.index,
+                                j_this,
+                                parent_index,
+                                i_parent,
+                            );
+                            max_father -= 1; // FIXME: ripercussioni?
+                                             // new_rankings.push(curr_parent_ls_index); // FIXME
+                                             // i_parent += 1;
+                            prog_sa.print(); // FIXME
                         } else {
                             if verbose {
                                 println!(
@@ -244,21 +266,22 @@ impl PrefixTreeNode {
                                         [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
                                         [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
                                 );
+                                prog_sa.print(); // FIXME
                             }
-                            new_rankings.push(curr_this_ls_index);
+                            // new_rankings.push(curr_this_ls_index); // FIXME
                             j_this += 1;
                         }
                     }
                 }
-                if j_this < this_rankings.len() {
+                if j_this < this_q {
                     // Enters in following while.
                 } else {
                     if verbose {
                         println!("     > no child rankings left to add");
                     }
                 }
-                while j_this < this_rankings.len() {
-                    let curr_this_ls_index = this_rankings[j_this];
+                while j_this < this_q {
+                    let curr_this_ls_index = prog_sa.get_ls_index(j_this);
                     let child_offset = self.suffix_len; // Could be inline.
                     if verbose {
                         println!(
@@ -272,8 +295,9 @@ impl PrefixTreeNode {
                     j_this += 1;
                 }
                 if let Some(max_father) = self.max_father {
-                    while i_parent < max_father {
-                        let curr_parent_ls_index = parent_rankings[i_parent];
+                    let mut max_i_parent = parent_p + max_father;
+                    while i_parent < max_i_parent {
+                        let curr_parent_ls_index = prog_sa.get_ls_index(i_parent);
                         let child_offset = self.suffix_len; // Could be inline.
                         if verbose {
                             println!(
@@ -283,35 +307,39 @@ impl PrefixTreeNode {
                                 child_offset
                             );
                         }
-                        new_rankings.push(curr_parent_ls_index);
-                        i_parent += 1;
+                        prog_sa.update_rankings_child(self.index, j_this, parent_index, i_parent);
+                        // new_rankings.push(curr_parent_ls_index);
+                        // i_parent += 1;
+                        max_i_parent -= 1;
+                        prog_sa.print();
                     }
                 } else {
                     if verbose {
                         println!("     > no parent rankings left to add");
                     }
                 }
-                // FIXME: Update in Progressive Suffix Array
-                self.rankings_forced = Some(new_rankings);
             }
         }
 
         // Now it's your turn to be the parent.
-        let this_rankings = self.get_rankings(prog_sa);
+        let mut start_from_this_p = prog_sa.get_rankings_p_q(self.index).0;
         for child in &mut self.children {
-            child.in_prefix_merge_deep(
+            start_from_this_p = child.in_prefix_merge_deep(
                 str,
                 prog_sa,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
                 icfl_factor_list,
-                &this_rankings,
+                self.index,
+                start_from_this_p,
                 compare_cache,
                 monitor,
                 verbose,
             );
         }
+
+        i_parent
     }
     fn rules_safe(
         x: usize,
@@ -590,7 +618,6 @@ fn create_prefix_tree_from_trie_deep(
             index: next_node_index,
             suffix_len: real_node.suffix_len,
             children: Vec::new(),
-            rankings_forced: None,
             min_father: None,
             max_father: None,
         };
