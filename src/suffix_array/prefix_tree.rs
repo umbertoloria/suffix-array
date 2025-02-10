@@ -565,13 +565,13 @@ fn create_prefix_tree_from_trie_deep(
 ) -> Vec<PrefixTreeNode> {
     let mut result = Vec::new();
 
-    let rankings = real_node.get_real_rankings(wbsa, wbsa_indexes);
+    let rankings = real_node.get_rankings(wbsa, wbsa_indexes);
     if rankings.len() > 0 {
         // This Node has Rankings, so we consider it.
         let mut node = PrefixTreeNode {
             suffix_len: real_node.suffix_len,
             children: Vec::new(),
-            rankings,
+            rankings: rankings.to_vec(), // FIXME: Avoid allocating new memory
             min_father: real_node.min_father,
             max_father: real_node.max_father,
         };

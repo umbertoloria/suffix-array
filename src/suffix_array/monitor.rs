@@ -231,7 +231,7 @@ fn log_prefix_trie_recursive(
 ) {
     // let mut line = format!("{}{}", " ".repeat(level), node.label);
     let mut line = format!("{}{}", " ".repeat(level), node_label);
-    let mut rankings = node.get_real_rankings(wbsa, wbsa_indexes);
+    let mut rankings = node.get_rankings(wbsa, wbsa_indexes);
     if !rankings.is_empty() {
         line.push_str(" [");
         for i in 0..rankings.len() - 1 {
