@@ -120,10 +120,8 @@ pub struct PrefixTrie {
     pub sons: BTreeMap<char, PrefixTrie>,
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
-    pub wbsa_p: usize, // Incl.
-    pub wbsa_q: usize, // Excl.
-    pub min_father: Option<usize>,
-    pub max_father: Option<usize>,
+    // pub wbsa_p: usize, // Incl.
+    // pub wbsa_q: usize, // Excl.
 }
 impl PrefixTrie {
     // Constructor
@@ -135,10 +133,8 @@ impl PrefixTrie {
             sons: BTreeMap::new(),
             rankings_canonical: Vec::new(),
             rankings_custom: Vec::new(),
-            wbsa_p: 0,
-            wbsa_q: 0,
-            min_father: None,
-            max_father: None,
+            // wbsa_p: 0,
+            // wbsa_q: 0,
         }
     }
     // Getters
@@ -150,47 +146,6 @@ impl PrefixTrie {
         wbsa_indexes.get(&self.index).unwrap().1
         // self.wbsa_q
     }
-    fn get_rankings_count(&self, wbsa_indexes: &WbsaIndexes) -> usize {
-        self.get_buff_index_right_excl(wbsa_indexes) - self.get_buff_index_left(wbsa_indexes)
-    }
-    fn get_max_buff_index_right_excl_from_righted_child(
-        &self,
-        wbsa_indexes: &WbsaIndexes,
-    ) -> usize {
-        if self.sons.is_empty() {
-            self.get_buff_index_right_excl(wbsa_indexes)
-        } else {
-            let sons = &self.sons.values().collect::<Vec<_>>();
-            let last_son = sons[sons.len() - 1];
-            last_son.get_max_buff_index_right_excl_from_righted_child(wbsa_indexes)
-        }
-        /*
-        // TODO: Maybe this code is faster
-        let mut oracle = 0;
-        if self.sons.is_empty() {
-            oracle = self.get_buff_index_right_excl()
-        } else {
-            let sons = &self.sons.values().collect::<Vec<_>>();
-            let last_son = sons[sons.len() - 1];
-            oracle = last_son.get_max_buff_index_right_excl_from_righted_child()
-        }
-        let mut test = 0;
-        if let Some((_, last_son)) = self.sons.last_key_value() {
-            test = last_son.get_max_buff_index_right_excl_from_righted_child()
-        } else {
-            test = self.get_buff_index_right_excl()
-        }
-        if oracle == test {
-            println!("yes: {} and {}", oracle, test);
-        } else {
-            println!("**************** should be {} but is {}", oracle, test);
-        }
-        oracle
-        */
-    }
-    fn get_first_ls_index(&self, wbsa: &Vec<usize>, wbsa_indexes: &WbsaIndexes) -> usize {
-        wbsa[self.get_buff_index_left(wbsa_indexes)]
-    }
     pub fn get_rankings<'a>(
         &self,
         wbsa: &'a Vec<usize>,
@@ -198,17 +153,6 @@ impl PrefixTrie {
     ) -> &'a [usize] {
         &wbsa[self.get_buff_index_left(wbsa_indexes)..self.get_buff_index_right_excl(wbsa_indexes)]
     }
-    /*
-    fn get_string_from_first_ranking_with_length<'a>(
-        &self,
-        wbsa: &Vec<usize>,
-        str: &'a str,
-        string_length: usize,
-    ) -> &'a str {
-        let child_ls_index = self.get_first_ls_index(wbsa);
-        &str[child_ls_index..child_ls_index + string_length]
-    }
-    */
 
     // Prints
     pub fn print(&self, tabs_offset: usize, prefix: String) {
@@ -231,20 +175,10 @@ impl PrefixTrie {
         wbsa_indexes: &WbsaIndexes,
     ) {
         println!(
-            "{}\"{}\" {:?}   min={}, MAX={}",
+            "{}\"{}\" {:?}",
             "\t".repeat(tabs_offset),
             prefix,
             self.get_rankings(wbsa, wbsa_indexes),
-            if let Some(x) = self.min_father {
-                format!("{}", x)
-            } else {
-                "-1".into()
-            },
-            if let Some(x) = self.max_father {
-                format!("{}", x)
-            } else {
-                "-1".into()
-            },
         );
         for (char_key, node) in &self.sons {
             node.print_with_wbsa(
@@ -315,7 +249,7 @@ impl PrefixTrie {
         }
 
         let mut p = wbsa_start_from_index;
-        self.wbsa_p = p; // TODO: Useless to update "self.wbsa_p"
+        // self.wbsa_p = p;
         let bkp_p = p;
         if !unified_rankings.is_empty() {
             // Update list only if strings were actually sorted and moved.
@@ -324,7 +258,7 @@ impl PrefixTrie {
                 p += 1;
             }
         }
-        self.wbsa_q = p; // TODO: Useless to update "self.wbsa_q"
+        // self.wbsa_q = p;
         wbsa_indexes.insert(self.index, (bkp_p, p));
 
         // Recursive calls...
