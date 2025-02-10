@@ -1,6 +1,6 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_trie::{PrefixTrie, WbsaIndexes};
+use crate::suffix_array::prefix_trie::PrefixTrie;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
 
@@ -18,8 +18,8 @@ impl PrefixTree {
     pub fn in_prefix_merge(
         &mut self,
         str: &str,
-        wbsa: &mut Vec<usize>,
-        wbsa_indexes: &mut WbsaIndexes,
+        // wbsa: &mut Vec<usize>,
+        // wbsa_indexes: &mut WbsaIndexes,
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -31,8 +31,8 @@ impl PrefixTree {
         for child in &mut self.children {
             child.in_prefix_merge(
                 str,
-                wbsa,
-                wbsa_indexes,
+                // wbsa,
+                // wbsa_indexes,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
@@ -90,8 +90,8 @@ impl PrefixTreeNode {
     fn in_prefix_merge(
         &mut self,
         str: &str,
-        wbsa: &mut Vec<usize>,
-        wbsa_indexes: &mut WbsaIndexes,
+        // wbsa: &mut Vec<usize>,
+        // wbsa_indexes: &mut WbsaIndexes,
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -104,8 +104,8 @@ impl PrefixTreeNode {
         for child in &mut self.children {
             child.in_prefix_merge_deep(
                 str,
-                wbsa,
-                wbsa_indexes,
+                // wbsa,
+                // wbsa_indexes,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
@@ -120,8 +120,8 @@ impl PrefixTreeNode {
     fn in_prefix_merge_deep(
         &mut self,
         str: &str,
-        wbsa: &mut Vec<usize>,
-        wbsa_indexes: &mut WbsaIndexes,
+        // wbsa: &mut Vec<usize>,
+        // wbsa_indexes: &mut WbsaIndexes,
         depths: &mut Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -292,8 +292,8 @@ impl PrefixTreeNode {
         for child in &mut self.children {
             child.in_prefix_merge_deep(
                 str,
-                wbsa,
-                wbsa_indexes,
+                // wbsa,
+                // wbsa_indexes,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
@@ -548,42 +548,34 @@ impl PrefixTreeNode {
         result
     }
 }
-pub fn create_prefix_tree_from_prefix_trie(
-    root_trie: PrefixTrie,
-    wbsa: &Vec<usize>,
-    wbsa_indexes: &mut WbsaIndexes,
-) -> PrefixTree {
+pub fn create_prefix_tree_from_prefix_trie(root_trie: PrefixTrie) -> PrefixTree {
     let mut tree = PrefixTree {
-        children: create_prefix_tree_from_trie_deep(root_trie, wbsa, wbsa_indexes),
+        children: create_prefix_tree_from_trie_deep(root_trie),
     };
     tree
 }
-fn create_prefix_tree_from_trie_deep(
-    real_node: PrefixTrie,
-    wbsa: &Vec<usize>,
-    wbsa_indexes: &mut WbsaIndexes,
-) -> Vec<PrefixTreeNode> {
+fn create_prefix_tree_from_trie_deep(real_node: PrefixTrie) -> Vec<PrefixTreeNode> {
     let mut result = Vec::new();
 
-    let rankings = real_node.get_rankings(wbsa, wbsa_indexes);
+    let rankings = real_node.get_rankings();
     if rankings.len() > 0 {
         // This Node has Rankings, so we consider it.
         let mut node = PrefixTreeNode {
             suffix_len: real_node.suffix_len,
             children: Vec::new(),
             rankings: rankings.to_vec(), // FIXME: Avoid allocating new memory
-            min_father: real_node.min_father,
-            max_father: real_node.max_father,
+            min_father: None,
+            max_father: None,
         };
         for (_, son) in real_node.sons {
-            let nodes_list = create_prefix_tree_from_trie_deep(son, wbsa, wbsa_indexes);
+            let nodes_list = create_prefix_tree_from_trie_deep(son);
             node.children.extend(nodes_list);
         }
         result.push(node);
     } else {
         // This Node is a Bridge, so we consider its Children (skipping Child Bridges).
         for (_, son) in real_node.sons {
-            let nodes_list = create_prefix_tree_from_trie_deep(son, wbsa, wbsa_indexes);
+            let nodes_list = create_prefix_tree_from_trie_deep(son);
             result.extend(nodes_list);
         }
     }

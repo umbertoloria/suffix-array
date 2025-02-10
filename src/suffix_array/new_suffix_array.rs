@@ -71,14 +71,14 @@ pub fn compute_innovative_suffix_array(
 
     // Prefix Trie Structure create
     monitor.phase2_1_prefix_trie_create_start();
-    let mut wbsa_indexes = HashMap::new();
+    // let mut wbsa_indexes = HashMap::new();
     let mut depths = vec![0usize; src_length];
     let mut prefix_trie = create_prefix_trie(
         str,
         src_length,
         &custom_indexes,
         &is_custom_vec,
-        &mut wbsa_indexes,
+        // &mut wbsa_indexes,
         &mut depths,
         &mut monitor,
     );
@@ -93,8 +93,9 @@ pub fn compute_innovative_suffix_array(
 
     // Merge Rankings (Canonical and Custom)
     monitor.phase2_2_prefix_trie_merge_rankings_start();
-    let mut wbsa = (0..src_length).collect::<Vec<_>>();
-    prefix_trie.merge_rankings_and_sort_recursive(str, &mut wbsa, &mut wbsa_indexes, 0);
+    // let mut wbsa = (0..src_length).collect::<Vec<_>>();
+    // prefix_trie.merge_rankings_and_sort_recursive(str, &mut wbsa, &mut wbsa_indexes, 0);
+    prefix_trie.merge_rankings_and_sort_recursive(str);
     monitor.phase2_2_prefix_trie_merge_rankings_stop();
 
     // +
@@ -107,8 +108,8 @@ pub fn compute_innovative_suffix_array(
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_prefix_trie(
             &prefix_trie,
-            &wbsa,
-            &wbsa_indexes,
+            // &wbsa,
+            // &wbsa_indexes,
             get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
         );
     }
@@ -127,21 +128,20 @@ pub fn compute_innovative_suffix_array(
 
     if debug_mode == DebugMode::Verbose {
         println!("Before SHRINK");
-        prefix_trie.print_with_wbsa(0, "".into(), &wbsa, &wbsa_indexes);
+        prefix_trie.print_merged(0, "".into());
     }
     // -
 
     monitor.phase2_3_prefix_tree_create_start();
-    let mut prefix_tree =
-        create_prefix_tree_from_prefix_trie(prefix_trie, &mut wbsa, &mut wbsa_indexes);
+    let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie);
     monitor.phase2_3_prefix_tree_create_stop();
 
     monitor.phase2_4_prefix_tree_in_prefix_merge_start();
     let mut compare_cache = CompareCache::new();
     prefix_tree.in_prefix_merge(
         str,
-        &mut wbsa,
-        &mut wbsa_indexes,
+        // &mut wbsa,
+        // &mut wbsa_indexes,
         &mut depths,
         &icfl_indexes,
         &is_custom_vec,

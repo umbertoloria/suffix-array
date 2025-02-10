@@ -59,7 +59,7 @@ pub fn suite_complete_on_fasta_file(
             Some(chunk_size),
         );
         chunk_size_and_execution_info_list.push((chunk_size, test_result.execution_info));
-        if test_result.ok {
+        if test_result.failed {
             break;
         }
     }
@@ -70,7 +70,7 @@ pub fn suite_complete_on_fasta_file(
 
 pub struct RunAndValidateTestOutput {
     execution_info: ExecutionInfo,
-    ok: bool,
+    failed: bool,
 }
 fn run_and_validate_test(
     fasta_file_name: &str,
@@ -161,7 +161,7 @@ fn run_and_validate_test(
     }
 
     let mut result = RunAndValidateTestOutput {
-        ok: false,
+        failed: false,
         execution_info: (execution_timing, execution_outcome),
     };
 
@@ -170,7 +170,7 @@ fn run_and_validate_test(
     } else {
         println!(" > Suffix Array: {:?}", suffix_array);
         println!("Wanna Be Suffix Array is WRONG!!! :(");
-        result.ok = true;
+        result.failed = true;
     }
 
     result

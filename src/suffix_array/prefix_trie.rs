@@ -1,22 +1,22 @@
 use crate::suffix_array::chunking::get_max_size;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
-pub type WbsaIndexes = HashMap<usize, (usize, usize)>;
+// pub type WbsaIndexes = HashMap<usize, (usize, usize)>;
 pub fn create_prefix_trie(
     src: &str,
     src_length: usize,
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
-    wbsa_indexes: &mut WbsaIndexes,
+    // wbsa_indexes: &mut WbsaIndexes,
     depths: &mut Vec<usize>,
     monitor: &mut Monitor,
 ) -> PrefixTrie {
     let custom_max_size =
         get_max_size(&custom_indexes, src_length).expect("custom_max_size is not valid");
 
-    let mut root = PrefixTrie::new(0, 0, wbsa_indexes);
+    let mut root = PrefixTrie::new(0, 0);
     let mut next_node_index = 1;
 
     let custom_indexes_len = custom_indexes.len();
@@ -36,7 +36,7 @@ pub fn create_prefix_trie(
                 &mut root,
                 curr_suffix_length,
                 custom_factor_local_suffix_index,
-                wbsa_indexes,
+                // wbsa_indexes,
                 depths,
                 &mut next_node_index,
                 monitor,
@@ -56,7 +56,7 @@ pub fn create_prefix_trie(
                     &mut root,
                     curr_suffix_length,
                     custom_factor_local_suffix_index,
-                    wbsa_indexes,
+                    // wbsa_indexes,
                     depths,
                     &mut next_node_index,
                     monitor,
@@ -74,7 +74,6 @@ fn add_node_to_prefix_trie(
     root: &mut PrefixTrie,
     curr_suffix_length: usize,
     custom_factor_local_suffix_index: usize,
-    wbsa_indexes: &mut WbsaIndexes,
     depths: &mut Vec<usize>,
     next_node_index: &mut usize,
     monitor: &mut Monitor,
@@ -93,7 +92,7 @@ fn add_node_to_prefix_trie(
         if !curr_node.sons.contains_key(&curr_letter) {
             curr_node.sons.insert(
                 curr_letter,
-                PrefixTrie::new(*next_node_index, i_chars_of_suffix + 1, wbsa_indexes),
+                PrefixTrie::new(*next_node_index, i_chars_of_suffix + 1),
             );
             *next_node_index += 1;
         }
@@ -120,24 +119,27 @@ pub struct PrefixTrie {
     pub sons: BTreeMap<char, PrefixTrie>,
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
+    pub rankings_final: Vec<usize>,
     // pub wbsa_p: usize, // Incl.
     // pub wbsa_q: usize, // Excl.
 }
 impl PrefixTrie {
     // Constructor
-    pub fn new(index: usize, suffix_len: usize, wbsa_indexes: &mut WbsaIndexes) -> Self {
-        wbsa_indexes.insert(index, (0, 0));
+    pub fn new(index: usize, suffix_len: usize) -> Self {
+        // wbsa_indexes.insert(index, (0, 0));
         Self {
             index,
             suffix_len,
             sons: BTreeMap::new(),
             rankings_canonical: Vec::new(),
             rankings_custom: Vec::new(),
+            rankings_final: Vec::new(),
             // wbsa_p: 0,
             // wbsa_q: 0,
         }
     }
     // Getters
+    /*
     fn get_buff_index_left(&self, wbsa_indexes: &WbsaIndexes) -> usize {
         wbsa_indexes.get(&self.index).unwrap().0
         // self.wbsa_p // TODO: Remove "wbsa_p" and "wbsa_q"?
@@ -153,6 +155,10 @@ impl PrefixTrie {
     ) -> &'a [usize] {
         &wbsa[self.get_buff_index_left(wbsa_indexes)..self.get_buff_index_right_excl(wbsa_indexes)]
     }
+    */
+    pub fn get_rankings(&self) -> &Vec<usize> {
+        &self.rankings_final
+    }
 
     // Prints
     pub fn print(&self, tabs_offset: usize, prefix: String) {
@@ -167,25 +173,26 @@ impl PrefixTrie {
             node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
         }
     }
-    pub fn print_with_wbsa(
+    pub fn print_merged(
         &self,
         tabs_offset: usize,
         prefix: String,
-        wbsa: &Vec<usize>,
-        wbsa_indexes: &WbsaIndexes,
+        // wbsa: &Vec<usize>,
+        // wbsa_indexes: &WbsaIndexes,
     ) {
         println!(
             "{}\"{}\" {:?}",
             "\t".repeat(tabs_offset),
             prefix,
-            self.get_rankings(wbsa, wbsa_indexes),
+            // self.get_rankings(wbsa, wbsa_indexes),
+            self.rankings_final,
         );
         for (char_key, node) in &self.sons {
-            node.print_with_wbsa(
+            node.print_merged(
                 tabs_offset + 1,
                 format!("{}{}", prefix, char_key),
-                wbsa,
-                wbsa_indexes,
+                // wbsa,
+                // wbsa_indexes,
             );
         }
     }
@@ -194,10 +201,10 @@ impl PrefixTrie {
     pub fn merge_rankings_and_sort_recursive(
         &mut self,
         str: &str,
-        wbsa: &mut Vec<usize>,
-        wbsa_indexes: &mut WbsaIndexes,
-        wbsa_start_from_index: usize,
-    ) -> usize {
+        // wbsa: &mut Vec<usize>,
+        // wbsa_indexes: &mut WbsaIndexes,
+        // wbsa_start_from_index: usize,
+    ) {
         // Here we sort the Rankings Custom (all real Global Suffixes) and then try to merge the
         // two lists Rankings Canonical Rankings Custom (Sorted) by doing a pair-comparison.
         // We don't sort Rankings Canonical because that list already contains Global Suffixes in
@@ -217,7 +224,8 @@ impl PrefixTrie {
         }
         // OK, now Rankings Customs is sorted as well. Rankings Canonical was already sorted. Now we
         // perform the merge between these lists.
-        let mut unified_rankings = Vec::new();
+        let mut unified_rankings = &mut self.rankings_final;
+        unified_rankings.reserve(self.rankings_canonical.len() + sorted_rankings_custom.len());
         let mut i_canonical = 0;
         let mut i_custom = 0;
         while i_canonical < self.rankings_canonical.len() && i_custom < sorted_rankings_custom.len()
@@ -248,6 +256,7 @@ impl PrefixTrie {
             i_custom += 1;
         }
 
+        /*
         let mut p = wbsa_start_from_index;
         // self.wbsa_p = p;
         let bkp_p = p;
@@ -260,13 +269,17 @@ impl PrefixTrie {
         }
         // self.wbsa_q = p;
         wbsa_indexes.insert(self.index, (bkp_p, p));
+        */
 
         // Recursive calls...
         for (_, son) in &mut self.sons {
+            son.merge_rankings_and_sort_recursive(str);
+            /*
             let new_p = son.merge_rankings_and_sort_recursive(str, wbsa, wbsa_indexes, p);
             p = new_p;
+            */
         }
 
-        p
+        // p
     }
 }
