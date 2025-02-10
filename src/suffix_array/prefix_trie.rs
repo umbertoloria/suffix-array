@@ -5,7 +5,6 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Write;
 
-// pub type WbsaIndexes = HashMap<usize, (usize, usize)>;
 pub fn create_prefix_trie(
     src: &str,
     src_length: usize,

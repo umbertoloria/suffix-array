@@ -12,6 +12,7 @@ use crate::suffix_array::prefix_tree::{
     make_sure_directory_exist,
 };
 use crate::suffix_array::prefix_trie::{create_prefix_trie, log_prefix_trie};
+use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use std::process::exit;
 
 // INNOVATIVE SUFFIX ARRAY
@@ -124,9 +125,8 @@ pub fn compute_innovative_suffix_array(
     // -
 
     monitor.phase2_3_prefix_tree_create_start();
-    // let mut wbsa = (0..src_length).collect::<Vec<_>>();
-    // let mut wbsa_indexes = HashMap::new();
-    let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie);
+    let mut prog_sa = ProgSuffixArray::new(src_length);
+    let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie, &mut prog_sa);
     monitor.phase2_3_prefix_tree_create_stop();
 
     monitor.phase2_4_prefix_tree_in_prefix_merge_start();

@@ -1,6 +1,7 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::prefix_trie::PrefixTrie;
+use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
 
@@ -55,6 +56,7 @@ impl PrefixTree {
     }
 }
 pub struct PrefixTreeNode {
+    pub index: usize,
     pub suffix_len: usize,
     pub children: Vec<PrefixTreeNode>,
     pub rankings: Vec<usize>,
@@ -548,38 +550,54 @@ impl PrefixTreeNode {
         result
     }
 }
-pub fn create_prefix_tree_from_prefix_trie(root_trie: PrefixTrie) -> PrefixTree {
+pub fn create_prefix_tree_from_prefix_trie(
+    root_trie: PrefixTrie,
+    prog_sa: &mut ProgSuffixArray,
+) -> PrefixTree {
+    let (nodes_list, _) = create_prefix_tree_from_trie_deep(root_trie, prog_sa, 0);
     let mut tree = PrefixTree {
-        children: create_prefix_tree_from_trie_deep(root_trie),
+        children: nodes_list,
     };
     tree
 }
-fn create_prefix_tree_from_trie_deep(real_node: PrefixTrie) -> Vec<PrefixTreeNode> {
+fn create_prefix_tree_from_trie_deep(
+    real_node: PrefixTrie,
+    prog_sa: &mut ProgSuffixArray,
+    next_node_index: usize,
+) -> (Vec<PrefixTreeNode>, usize) {
     let mut result = Vec::new();
+    let mut next_node_index = next_node_index;
 
     if real_node.rankings_final.len() > 0 {
         // This Node has Rankings, so we consider it.
         let mut node = PrefixTreeNode {
+            index: next_node_index,
             suffix_len: real_node.suffix_len,
             children: Vec::new(),
             rankings: real_node.rankings_final,
             min_father: None,
             max_father: None,
         };
+        next_node_index += 1;
+
         for (_, son) in real_node.sons {
-            let nodes_list = create_prefix_tree_from_trie_deep(son);
+            let (nodes_list, next_node_index_) =
+                create_prefix_tree_from_trie_deep(son, prog_sa, next_node_index);
             node.children.extend(nodes_list);
+            next_node_index = next_node_index_;
         }
         result.push(node);
     } else {
         // This Node is a Bridge, so we consider its Children (skipping Child Bridges).
         for (_, son) in real_node.sons {
-            let nodes_list = create_prefix_tree_from_trie_deep(son);
+            let (nodes_list, next_node_index_) =
+                create_prefix_tree_from_trie_deep(son, prog_sa, next_node_index);
             result.extend(nodes_list);
+            next_node_index = next_node_index_;
         }
     }
 
-    result
+    (result, next_node_index)
 }
 
 // PREFIX TREE LOGGER

@@ -1,9 +1,10 @@
 pub mod chunking;
 pub mod classic_suffix_array;
+pub mod compare_cache;
 pub mod monitor;
 pub mod new_suffix_array;
 pub mod prefix_tree;
 pub mod prefix_trie;
+pub mod prog_suffix_array;
 pub mod sorter;
 pub mod suite;
-mod compare_cache;
