@@ -1,5 +1,4 @@
 use crate::suffix_array::chunking::get_max_size;
-use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::collections::{BTreeMap, HashMap};
@@ -334,6 +333,7 @@ impl PrefixTrie {
 
         p
     }
+    /*
     pub fn in_prefix_merge(
         &mut self,
         str: &str,
@@ -613,6 +613,7 @@ impl PrefixTrie {
             );
         }
     }
+    */
     pub fn get_real_rankings(&self, wbsa: &Vec<usize>, wbsa_indexes: &WbsaIndexes) -> Vec<usize> {
         if let Some(rankings) = &self.rankings_forced {
             // FIXME: Avoid cloning
@@ -621,6 +622,7 @@ impl PrefixTrie {
             self.get_rankings(wbsa, wbsa_indexes).to_vec()
         }
     }
+    /*
     fn rules(
         x: usize,
         y: usize,
@@ -801,8 +803,5 @@ impl PrefixTrie {
             oracle
         }
     }
-}
-fn print_with_offset(level: usize, str: String) {
-    // TODO: Move from here
-    println!("{} {}", "  ".repeat(level), str);
+    */
 }

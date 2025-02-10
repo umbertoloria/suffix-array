@@ -131,9 +131,14 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
-    monitor.phase2_3_prefix_trie_in_prefix_merge_start();
+    monitor.phase2_3_prefix_tree_create_start();
+    let mut prefix_tree =
+        create_prefix_tree_from_prefix_trie(prefix_trie, &mut wbsa, &mut wbsa_indexes);
+    monitor.phase2_3_prefix_tree_create_stop();
+
+    monitor.phase2_4_prefix_tree_in_prefix_merge_start();
     let mut compare_cache = CompareCache::new();
-    prefix_trie.in_prefix_merge(
+    prefix_tree.in_prefix_merge(
         str,
         &mut wbsa,
         &mut wbsa_indexes,
@@ -145,10 +150,10 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
-    monitor.phase2_3_prefix_trie_in_prefix_merge_stop();
+    monitor.phase2_4_prefix_tree_in_prefix_merge_stop();
 
     /*
-    prefix_trie.shrink_bottom_up(
+    prefix_tree.shrink_bottom_up(
         &mut wbsa,
         &mut depths,
         str,
@@ -159,7 +164,7 @@ pub fn compute_innovative_suffix_array(
     match debug_mode {
         DebugMode::Overview => {
             println!("After SHRINK");
-            prefix_trie.print_with_wbsa(0, "".into(), &wbsa);
+            prefix_tree.print(str);
             println!("{:?}", wbsa);
         }
         _ => {}
@@ -169,17 +174,6 @@ pub fn compute_innovative_suffix_array(
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         println!("After IN_PREFIX_MERGE");
-        prefix_trie.print_with_wbsa(0, "".into(), &wbsa, &wbsa_indexes);
-    }
-    // -
-
-    monitor.phase2_4_prefix_tree_create_start();
-    let mut prefix_tree =
-        create_prefix_tree_from_prefix_trie(prefix_trie, &mut wbsa, &mut wbsa_indexes);
-    monitor.phase2_4_prefix_tree_create_stop();
-
-    // +
-    if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         prefix_tree.print(str);
     }
     if perform_logging {
@@ -193,7 +187,6 @@ pub fn compute_innovative_suffix_array(
 
     monitor.phase3_suffix_array_compose_start();
     let mut sa = Vec::new();
-    // prefix_trie.dump_onto_wbsa(&mut wbsa, &mut sa, 0);
     prefix_tree.prepare_get_common_prefix_partition(&mut sa, str, debug_mode == DebugMode::Verbose);
     monitor.phase3_suffix_array_compose_stop();
 

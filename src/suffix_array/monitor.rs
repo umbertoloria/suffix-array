@@ -11,8 +11,8 @@ pub struct Monitor {
     pub p12_custom: MonitorInterval,
     pub p21_trie_create: MonitorInterval,
     pub p22_trie_merge_rankings: MonitorInterval,
-    pub p23_trie_in_prefix_merge: MonitorInterval,
-    pub p24_tree_create: MonitorInterval,
+    pub p23_tree_create: MonitorInterval,
+    pub p24_tree_in_prefix_merge: MonitorInterval,
     pub p3_sa_compose: MonitorInterval,
 
     // Values
@@ -29,8 +29,8 @@ impl Monitor {
             p12_custom: MonitorInterval::new(),
             p21_trie_create: MonitorInterval::new(),
             p22_trie_merge_rankings: MonitorInterval::new(),
-            p23_trie_in_prefix_merge: MonitorInterval::new(),
-            p24_tree_create: MonitorInterval::new(),
+            p23_tree_create: MonitorInterval::new(),
+            p24_tree_in_prefix_merge: MonitorInterval::new(),
             p3_sa_compose: MonitorInterval::new(),
             compares_with_two_cfs: 0,
             compares_with_one_cf: 0,
@@ -86,29 +86,29 @@ impl Monitor {
     }
 
     // Phase 2.3
-    pub fn phase2_3_prefix_trie_in_prefix_merge_start(&mut self) {
+    pub fn phase2_3_prefix_tree_create_start(&mut self) {
         let now = Instant::now();
-        self.p23_trie_in_prefix_merge.set_start(now);
+        self.p23_tree_create.set_start(now);
     }
-    pub fn phase2_3_prefix_trie_in_prefix_merge_stop(&mut self) {
+    pub fn phase2_3_prefix_tree_create_stop(&mut self) {
         let now = Instant::now();
-        self.p23_trie_in_prefix_merge.set_end(now);
+        self.p23_tree_create.set_end(now);
     }
-    pub fn get_phase2_3_prefix_trie_in_prefix_merge_duration(&self) -> Duration {
-        self.p23_trie_in_prefix_merge.get_duration().unwrap()
+    pub fn get_phase2_3_prefix_tree_create_duration(&self) -> Duration {
+        self.p23_tree_create.get_duration().unwrap()
     }
 
     // Phase 2.4
-    pub fn phase2_4_prefix_tree_create_start(&mut self) {
+    pub fn phase2_4_prefix_tree_in_prefix_merge_start(&mut self) {
         let now = Instant::now();
-        self.p24_tree_create.set_start(now);
+        self.p24_tree_in_prefix_merge.set_start(now);
     }
-    pub fn phase2_4_prefix_tree_create_stop(&mut self) {
+    pub fn phase2_4_prefix_tree_in_prefix_merge_stop(&mut self) {
         let now = Instant::now();
-        self.p24_tree_create.set_end(now);
+        self.p24_tree_in_prefix_merge.set_end(now);
     }
-    pub fn get_phase2_4_prefix_tree_create_duration(&self) -> Duration {
-        self.p24_tree_create.get_duration().unwrap()
+    pub fn get_phase2_4_prefix_tree_in_prefix_merge_duration(&self) -> Duration {
+        self.p24_tree_in_prefix_merge.get_duration().unwrap()
     }
 
     // Phase 3
@@ -163,8 +163,8 @@ impl Monitor {
             self.get_phase1_2_custom_factorization_duration(),
             self.get_phase2_1_prefix_trie_create_duration(),
             self.get_phase2_2_prefix_trie_merge_rankings_duration(),
-            self.get_phase2_3_prefix_trie_in_prefix_merge_duration(),
-            self.get_phase2_4_prefix_tree_create_duration(),
+            self.get_phase2_3_prefix_tree_create_duration(),
+            self.get_phase2_4_prefix_tree_in_prefix_merge_duration(),
             self.get_phase3_suffix_array_compose_duration(),
             self.get_whole_process_duration_included_extra(),
         )
