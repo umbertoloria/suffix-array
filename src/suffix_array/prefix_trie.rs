@@ -9,7 +9,6 @@ pub fn create_prefix_trie(
     src_length: usize,
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
-    // wbsa_indexes: &mut WbsaIndexes,
     depths: &mut Vec<usize>,
     monitor: &mut Monitor,
 ) -> PrefixTrie {
@@ -36,7 +35,6 @@ pub fn create_prefix_trie(
                 &mut root,
                 curr_suffix_length,
                 custom_factor_local_suffix_index,
-                // wbsa_indexes,
                 depths,
                 &mut next_node_index,
                 monitor,
@@ -56,7 +54,6 @@ pub fn create_prefix_trie(
                     &mut root,
                     curr_suffix_length,
                     custom_factor_local_suffix_index,
-                    // wbsa_indexes,
                     depths,
                     &mut next_node_index,
                     monitor,
@@ -120,13 +117,10 @@ pub struct PrefixTrie {
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
     pub rankings_final: Vec<usize>,
-    // pub wbsa_p: usize, // Incl.
-    // pub wbsa_q: usize, // Excl.
 }
 impl PrefixTrie {
     // Constructor
     pub fn new(index: usize, suffix_len: usize) -> Self {
-        // wbsa_indexes.insert(index, (0, 0));
         Self {
             index,
             suffix_len,
@@ -134,8 +128,6 @@ impl PrefixTrie {
             rankings_canonical: Vec::new(),
             rankings_custom: Vec::new(),
             rankings_final: Vec::new(),
-            // wbsa_p: 0,
-            // wbsa_q: 0,
         }
     }
     // Getters
@@ -173,38 +165,20 @@ impl PrefixTrie {
             node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
         }
     }
-    pub fn print_merged(
-        &self,
-        tabs_offset: usize,
-        prefix: String,
-        // wbsa: &Vec<usize>,
-        // wbsa_indexes: &WbsaIndexes,
-    ) {
+    pub fn print_merged(&self, tabs_offset: usize, prefix: String) {
         println!(
             "{}\"{}\" {:?}",
             "\t".repeat(tabs_offset),
             prefix,
-            // self.get_rankings(wbsa, wbsa_indexes),
             self.rankings_final,
         );
         for (char_key, node) in &self.sons {
-            node.print_merged(
-                tabs_offset + 1,
-                format!("{}{}", prefix, char_key),
-                // wbsa,
-                // wbsa_indexes,
-            );
+            node.print_merged(tabs_offset + 1, format!("{}{}", prefix, char_key));
         }
     }
 
     // Tree transformation
-    pub fn merge_rankings_and_sort_recursive(
-        &mut self,
-        str: &str,
-        // wbsa: &mut Vec<usize>,
-        // wbsa_indexes: &mut WbsaIndexes,
-        // wbsa_start_from_index: usize,
-    ) {
+    pub fn merge_rankings_and_sort_recursive(&mut self, str: &str) {
         // Here we sort the Rankings Custom (all real Global Suffixes) and then try to merge the
         // two lists Rankings Canonical Rankings Custom (Sorted) by doing a pair-comparison.
         // We don't sort Rankings Canonical because that list already contains Global Suffixes in
