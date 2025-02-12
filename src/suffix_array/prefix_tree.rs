@@ -326,7 +326,7 @@ impl PrefixTreeNode {
         slow_check: bool,
     ) -> bool {
         if !slow_check {
-            Self::rules(
+            let result = Self::rules(
                 x,
                 y,
                 child_offset,
@@ -336,7 +336,9 @@ impl PrefixTreeNode {
                 icfl_factor_list,
                 compare_cache,
                 monitor,
-            )
+            );
+            println!(" rules: x={x}, y={x}, outcome={result}");
+            result
         } else {
             let cmp1_father = &src[x + child_offset..];
             let cmp2_child = &src[y + child_offset..];
