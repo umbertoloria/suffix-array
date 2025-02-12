@@ -271,7 +271,6 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
     file.flush().expect("Unable to flush file");
 }
 fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut File, level: usize) {
-    // let mut line = format!("{}{}", " ".repeat(level), node.label);
     let mut line = format!("{}{}", " ".repeat(level), node_label);
     let mut rankings = &node.rankings_final;
     if !rankings.is_empty() {

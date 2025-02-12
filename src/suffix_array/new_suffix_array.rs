@@ -119,7 +119,7 @@ pub fn compute_innovative_suffix_array(
     }
 
     if debug_mode == DebugMode::Verbose {
-        println!("Before SHRINK");
+        println!("Before tree create");
         prefix_trie.print_merged(0, "".into());
     }
     // -
@@ -131,14 +131,14 @@ pub fn compute_innovative_suffix_array(
 
     // +
     if debug_mode == DebugMode::Verbose {
-        println!("Before IN_PREFIX_MERGE");
+        println!("Before SHRINK_UP");
         prefix_tree.print(str, &prog_sa);
     }
     // -
 
     monitor.phase2_4_prefix_tree_in_prefix_merge_start();
     let mut compare_cache = CompareCache::new();
-    prefix_tree.in_prefix_merge(
+    /*prefix_tree.in_prefix_merge( // FIXME
         str,
         &mut prog_sa,
         &mut depths,
@@ -148,31 +148,23 @@ pub fn compute_innovative_suffix_array(
         &mut compare_cache,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
+    );*/
+    prefix_tree.shrink_up(
+        str,
+        &mut prog_sa,
+        &mut depths,
+        &icfl_indexes,
+        &icfl_factor_list,
+        &is_custom_vec,
+        &mut compare_cache,
+        &mut monitor,
+        debug_mode == DebugMode::Verbose,
     );
     monitor.phase2_4_prefix_tree_in_prefix_merge_stop();
 
-    /*
-    prefix_tree.shrink_bottom_up(
-        &mut wbsa,
-        &mut depths,
-        str,
-        &icfl_indexes,
-        &is_custom_vec,
-        &icfl_factor_list,
-    );
-    match debug_mode {
-        DebugMode::Overview => {
-            println!("After SHRINK");
-            prefix_tree.print(str);
-            println!("{:?}", wbsa);
-        }
-        _ => {}
-    }
-    */
-
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
-        println!("After IN_PREFIX_MERGE");
+        println!("After SHRINK_UP");
         prefix_tree.print(str, &prog_sa);
         prog_sa.print();
     }

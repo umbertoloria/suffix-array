@@ -96,7 +96,7 @@ fn run_and_validate_test(
         0
     };
 
-    /*if chunk_size_or_zero > 0 {
+    if chunk_size_or_zero > 0 {
         println!("[CHUNK SIZE={chunk_size_or_zero}]");
     } else {
         println!("[NO CHUNKING]");
@@ -136,7 +136,7 @@ fn run_and_validate_test(
     print_duration(
         " > Phase 3  : Suffix Array        ",
         &execution_timing.duration_p3,
-    );*/
+    );
     if debug_mode == DebugMode::Overview || debug_mode == DebugMode::Verbose {
         execution_outcome.print();
     }

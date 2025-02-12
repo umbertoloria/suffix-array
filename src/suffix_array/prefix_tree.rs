@@ -4,6 +4,7 @@ use crate::suffix_array::prefix_trie::PrefixTrie;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
+use std::process::exit;
 
 pub struct PrefixTree {
     pub children: Vec<PrefixTreeNode>,
@@ -36,6 +37,32 @@ impl PrefixTree {
                 icfl_indexes,
                 is_custom_vec,
                 icfl_factor_list,
+                compare_cache,
+                monitor,
+                verbose,
+            );
+        }
+    }
+    pub fn shrink_up(
+        &mut self,
+        str: &str,
+        prog_sa: &mut ProgSuffixArray,
+        depths: &mut Vec<usize>,
+        icfl_indexes: &Vec<usize>,
+        icfl_factor_list: &Vec<usize>,
+        is_custom_vec: &Vec<bool>,
+        compare_cache: &mut CompareCache,
+        monitor: &mut Monitor,
+        verbose: bool,
+    ) {
+        for child in &mut self.children {
+            child.shrink_up(
+                str,
+                prog_sa,
+                depths,
+                icfl_indexes,
+                icfl_factor_list,
+                is_custom_vec,
                 compare_cache,
                 monitor,
                 verbose,
@@ -311,7 +338,9 @@ impl PrefixTreeNode {
                         // new_rankings.push(curr_parent_ls_index);
                         // i_parent += 1;
                         max_i_parent -= 1;
-                        prog_sa.print();
+                        if verbose {
+                            prog_sa.print();
+                        }
                     }
                 } else {
                     if verbose {
@@ -340,6 +369,262 @@ impl PrefixTreeNode {
         }
 
         i_parent
+    }
+    fn shrink_up(
+        &mut self,
+        str: &str,
+        prog_sa: &mut ProgSuffixArray,
+        depths: &mut Vec<usize>,
+        icfl_indexes: &Vec<usize>,
+        icfl_factor_list: &Vec<usize>,
+        is_custom_vec: &Vec<bool>,
+        compare_cache: &mut CompareCache,
+        monitor: &mut Monitor,
+        verbose: bool,
+    ) {
+        // This is a First Layer Node.
+
+        if verbose {
+            // FIXME: impr debug
+            self.print(str, prog_sa, 0);
+        }
+
+        let (this_p, _) = prog_sa.get_rankings_p_q(self.index);
+        let mut this_i = this_p;
+        for child in &mut self.children {
+            this_i = child.shrink_up_deep(
+                self.index,
+                this_i,
+                str,
+                prog_sa,
+                depths,
+                icfl_indexes,
+                icfl_factor_list,
+                is_custom_vec,
+                compare_cache,
+                monitor,
+                verbose,
+            );
+        }
+        self.children.clear();
+    }
+    fn shrink_up_deep(
+        &mut self,
+        parent_index: usize,
+        parent_i: usize,
+        str: &str,
+        prog_sa: &mut ProgSuffixArray,
+        depths: &mut Vec<usize>,
+        icfl_indexes: &Vec<usize>,
+        icfl_factor_list: &Vec<usize>,
+        is_custom_vec: &Vec<bool>,
+        compare_cache: &mut CompareCache,
+        monitor: &mut Monitor,
+        verbose: bool,
+    ) -> usize {
+        if verbose {
+            println!("### SHRINK UP DEEP");
+            println!(" : parent_index={parent_index} from parent_i={parent_i}");
+            println!(" : self.index={}", self.index);
+        }
+
+        // Manage children
+        let (this_p, _) = prog_sa.get_rankings_p_q(self.index);
+        let mut curr_this_i = this_p;
+        for child in &mut self.children {
+            curr_this_i = child.shrink_up_deep(
+                self.index,
+                curr_this_i,
+                str,
+                prog_sa,
+                depths,
+                icfl_indexes,
+                icfl_factor_list,
+                is_custom_vec,
+                compare_cache,
+                monitor,
+                verbose,
+            );
+        }
+
+        // Manage this with parent
+        if verbose {
+            // FIXME: impr debug
+            println!(" CHECKING FROM SELF NODE INDEX={}", self.index);
+        }
+        let mut curr_parent_i = parent_i;
+        let (_, parent_q) = prog_sa.get_rankings_p_q(parent_index);
+
+        // FIXME: they may be changed up...
+        let (this_p, this_q) = prog_sa.get_rankings_p_q(self.index);
+        let mut curr_this_i = this_p;
+
+        let this_ls_length = self.suffix_len;
+
+        // Skip all Parent LSs that are < than First This LS.
+        while curr_parent_i < parent_q && curr_this_i < this_q {
+            if verbose {
+                // FIXME: impr debug
+                println!(
+                    " Iteration: Parent I={}, This I={}, This LS Length={}",
+                    curr_parent_i, curr_this_i, this_ls_length
+                );
+                prog_sa.print();
+            }
+
+            let curr_parent_ls_index = prog_sa.get_ls_index(curr_parent_i);
+            let curr_parent_ls = &str[curr_parent_ls_index
+                ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
+
+            let curr_this_ls_index = prog_sa.get_ls_index(curr_this_i);
+            let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + this_ls_length];
+
+            // TODO: Monitor string compare
+            if curr_parent_ls < curr_this_ls {
+                // Go ahead, this part of Parent Rankings has LSs that are < than Curr LS.
+                curr_parent_i += 1;
+                if verbose {
+                    // FIXME: impr debug
+                    println!(" > Parent Curr LS is smaller: go check the next one");
+                }
+            } else {
+                // Found a Parent LS that is >= Curr LS.
+                if verbose {
+                    // FIXME: impr debug
+                    println!(" > Parent Curr LS >= This Curr LS found!");
+                }
+                break;
+            }
+        }
+        if curr_parent_i >= parent_q {
+            if verbose {
+                // FIXME: impr debug
+                println!("   > parent LSs finished: {curr_parent_i} => {parent_q}");
+                println!("   > all This Node LSs will be inserted at the end of Parent LSs list");
+            }
+            // FIXME: all Parent LSs < This Child LSs => this node's LSs will be inserted at the end
+            //  of the Parent LSs list
+            curr_parent_i =
+                prog_sa.update_rankings_parent_including_all_child_lss(parent_index, self.index);
+            if verbose {
+                prog_sa.print();
+                println!("   > from now (A), curr_parent_i={curr_parent_i}");
+            }
+            return curr_parent_i;
+        }
+        if curr_this_i >= this_q {
+            // FIXME: finiti This Child LSs, quindi dichiara inglobato e vai ad altri fratelli a dx
+            if verbose {
+                // FIXME: impr debug
+                println!("   > (***) finito child: {} => {}", curr_this_i, this_q);
+            }
+            return curr_parent_i;
+        }
+        // FIXME: da ora in poi, il Parent Curr LS >= This Curr LS
+        // FIXME: ok, abbiamo una prima coppia su cui usare "RULES"
+        while curr_parent_i < parent_q && curr_this_i < this_q {
+            let curr_parent_ls_index = prog_sa.get_ls_index(curr_parent_i);
+            let curr_parent_ls = &str[curr_parent_ls_index
+                ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
+
+            let curr_this_ls_index = prog_sa.get_ls_index(curr_this_i);
+            let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + this_ls_length];
+
+            // TODO: Monitor string compare
+            if curr_parent_ls > curr_this_ls {
+                if verbose {
+                    // println!(" > Parent Curr LS is greater, including all Self LSs before it"); // FIXME prev
+                    println!(" > Parent Curr LS \"{curr_parent_ls}\" ({curr_parent_i}) is greater than \"{curr_this_ls}\" ({curr_this_i}), including all Self LSs before it");
+                }
+
+                // FIXME: devi inglobare tutti i This LSs rimasti prima di questo Curr Parent LS, e
+                //  vedere il prossimo nodo a destra
+
+                if verbose {
+                    prog_sa.print();
+                }
+                let child_rankings_moved = prog_sa
+                    .update_rankings_parent_including_all_child_lss_before_curr_parent_ls(
+                        parent_index,
+                        curr_parent_i,
+                        self.index,
+                        verbose,
+                    );
+                if verbose {
+                    prog_sa.print();
+                }
+
+                // We return the new position of the Parent LS (the one that was at the left of all the
+                // items that we just moved).
+                curr_parent_i += child_rankings_moved;
+
+                if verbose {
+                    println!("   > from now (B), curr_parent_i={curr_parent_i}");
+                }
+
+                break;
+            } else if curr_parent_ls == curr_this_ls {
+                // FIXME: using rules to do comparison
+
+                // FIXME: ricorda che il confronto può skippare i primi elementi visto che abbiamo
+                //  appena fatto il confronto LS
+                let result_rules = Self::rules_safe(
+                    curr_parent_ls_index,
+                    curr_this_ls_index,
+                    this_ls_length,
+                    str,
+                    icfl_indexes,
+                    &is_custom_vec,
+                    &icfl_factor_list,
+                    compare_cache,
+                    monitor,
+                    false,
+                );
+                if !result_rules {
+                    if verbose {
+                        println!(
+                            "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
+                            curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, this_ls_length
+                        );
+                        prog_sa.print(); // FIXME
+                    }
+                    // FIXME: tutto ok, Parent Curr GS is < This Curr GS, to on...
+                    curr_parent_i += 1;
+                    if verbose {
+                        prog_sa.print(); // FIXME
+                    }
+                } else {
+                    if verbose {
+                        println!(
+                            "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
+                            curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, this_ls_length
+                        );
+                        prog_sa.print(); // FIXME
+                    }
+                    // FIXME: should swap Parent Curr I and This Curr I because:
+                    //  Parent Curr GS > This Curr GS
+                    prog_sa.update_rankings_child(
+                        self.index,
+                        curr_this_i,
+                        parent_index,
+                        curr_parent_i,
+                    );
+                    if verbose {
+                        prog_sa.print(); // FIXME
+                    }
+                    curr_parent_i += 1;
+                    curr_this_i += 1;
+                }
+            } else {
+                // FIXME: shuold never happen.
+                println!("********************");
+                exit(0x0100);
+            }
+        }
+
+        self.children.clear();
+
+        curr_parent_i
     }
     fn rules_safe(
         x: usize,
