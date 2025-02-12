@@ -490,8 +490,10 @@ impl PrefixTreeNode {
                 if verbose {
                     // FIXME: impr debug
                     println!(" > Parent Curr LS is smaller: go check the next one");
+
                     // FIXME: questo non andava, in console:
                     //  "e father="GA" [16] <-> child="GA" [26], child.suff.len=2: child w"
+                    //
                 }
             } else {
                 // Found a Parent LS that is >= Curr LS.
@@ -534,6 +536,9 @@ impl PrefixTreeNode {
             let deep_this_ls_length = this_ls_length;
             let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + deep_this_ls_length];
 
+            if parent_i == 22 {
+                println!("******************");
+            }
             let curr_parent_ls_index = prog_sa.get_ls_index(curr_parent_i);
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + deep_this_ls_length, str.len())];
@@ -605,6 +610,12 @@ impl PrefixTreeNode {
                     }
                 } else {
                     if verbose {
+                        if curr_parent_ls_index == 16 && curr_this_ls_index == 26 {
+                            println!("-----------------");
+                            println!(" 1. {}", depths[curr_parent_ls_index]);
+                            println!(" 2. {}", depths[curr_this_ls_index]);
+                            println!(" 3. deep_this_ls_length={}", deep_this_ls_length);
+                        }
                         println!(
                             "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
                             curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, deep_this_ls_length
