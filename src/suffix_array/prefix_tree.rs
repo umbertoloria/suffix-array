@@ -490,6 +490,8 @@ impl PrefixTreeNode {
                 if verbose {
                     // FIXME: impr debug
                     println!(" > Parent Curr LS is smaller: go check the next one");
+                    // FIXME: questo non andava, in console:
+                    //  "e father="GA" [16] <-> child="GA" [26], child.suff.len=2: child w"
                 }
             } else {
                 // Found a Parent LS that is >= Curr LS.
@@ -527,12 +529,14 @@ impl PrefixTreeNode {
         // FIXME: da ora in poi, il Parent Curr LS >= This Curr LS
         // FIXME: ok, abbiamo una prima coppia su cui usare "RULES"
         while curr_parent_i < parent_q && curr_this_i < this_q {
+            let curr_this_ls_index = prog_sa.get_ls_index(curr_this_i);
+            // let deep_this_ls_length = depths[curr_this_ls_index]; // FIXME: doesn't work...
+            let deep_this_ls_length = this_ls_length;
+            let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + deep_this_ls_length];
+
             let curr_parent_ls_index = prog_sa.get_ls_index(curr_parent_i);
             let curr_parent_ls = &str[curr_parent_ls_index
-                ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
-
-            let curr_this_ls_index = prog_sa.get_ls_index(curr_this_i);
-            let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + this_ls_length];
+                ..usize::min(curr_parent_ls_index + deep_this_ls_length, str.len())];
 
             // TODO: Monitor string compare
             if curr_parent_ls > curr_this_ls {
@@ -577,7 +581,7 @@ impl PrefixTreeNode {
                 let result_rules = Self::rules_safe(
                     curr_parent_ls_index,
                     curr_this_ls_index,
-                    this_ls_length,
+                    deep_this_ls_length, // FIXME: usa depths
                     str,
                     icfl_indexes,
                     &is_custom_vec,
@@ -590,7 +594,7 @@ impl PrefixTreeNode {
                     if verbose {
                         println!(
                             "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
-                            curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, this_ls_length
+                            curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, deep_this_ls_length
                         );
                         prog_sa.print(); // FIXME
                     }
@@ -603,7 +607,7 @@ impl PrefixTreeNode {
                     if verbose {
                         println!(
                             "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
-                            curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, this_ls_length
+                            curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, deep_this_ls_length
                         );
                         prog_sa.print(); // FIXME
                     }
