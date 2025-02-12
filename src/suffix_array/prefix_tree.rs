@@ -147,6 +147,11 @@ impl PrefixTreeNode {
         let this_rankings = &self.get_rankings(prog_sa);
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
+        let this_lab = self.get_label_from_first_ranking(str, this_rankings);
+        if this_lab == "GAACCTCGA" {
+            println!("------------------------");
+            println!(" 1. this_ls_length={}", this_ls_length);
+        }
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
         if verbose {
             println!(
