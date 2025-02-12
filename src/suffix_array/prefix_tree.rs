@@ -17,6 +17,7 @@ impl PrefixTree {
         }
     }
 
+    /*
     pub fn in_prefix_merge(
         &mut self,
         str: &str,
@@ -43,6 +44,7 @@ impl PrefixTree {
             );
         }
     }
+    */
     pub fn shrink_up(
         &mut self,
         str: &str,
@@ -119,6 +121,7 @@ impl PrefixTreeNode {
             child.print(str, prog_sa, tabs_offset + 1);
         }
     }
+    /*
     fn in_prefix_merge(
         &mut self,
         str: &str,
@@ -370,6 +373,7 @@ impl PrefixTreeNode {
 
         i_parent
     }
+    */
     fn shrink_up(
         &mut self,
         str: &str,
@@ -382,7 +386,7 @@ impl PrefixTreeNode {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        // This is a First Layer Node.
+        // First layer. Here we have "A", "C", "G", "T".
 
         if verbose {
             // FIXME: impr debug
@@ -453,7 +457,7 @@ impl PrefixTreeNode {
             println!(" CHECKING FROM SELF NODE INDEX={}", self.index);
         }
         let mut curr_parent_i = parent_i;
-        let (_, parent_q) = prog_sa.get_rankings_p_q(parent_index);
+        let (_, mut parent_q) = prog_sa.get_rankings_p_q(parent_index);
 
         // FIXME: they may be changed up...
         let (this_p, this_q) = prog_sa.get_rankings_p_q(self.index);
@@ -550,19 +554,21 @@ impl PrefixTreeNode {
                         self.index,
                         verbose,
                     );
-                if verbose {
-                    prog_sa.print();
-                }
+                // FIXME: bisogna aggiornare "parent_q" anche qui, perché è stato appena modificato
+                let (_, new_parent_q) = prog_sa.get_rankings_p_q(parent_index);
+                parent_q = new_parent_q;
 
                 // We return the new position of the Parent LS (the one that was at the left of all the
                 // items that we just moved).
                 curr_parent_i += child_rankings_moved;
+                curr_this_i += child_rankings_moved;
 
                 if verbose {
+                    prog_sa.print();
                     println!("   > from now (B), curr_parent_i={curr_parent_i}");
                 }
 
-                break;
+                // break; // FIXME: è saggio commentare questo?
             } else if curr_parent_ls == curr_this_ls {
                 // FIXME: using rules to do comparison
 
@@ -609,17 +615,55 @@ impl PrefixTreeNode {
                         parent_index,
                         curr_parent_i,
                     );
+                    // FIXME: bisogna aggiornare "parent_q" anche qui, perché è stato appena modificato
+                    let (_, new_parent_q) = prog_sa.get_rankings_p_q(parent_index);
+                    parent_q = new_parent_q;
+                    curr_parent_i += 1;
+                    curr_this_i += 1;
+
                     if verbose {
                         prog_sa.print(); // FIXME
                     }
-                    curr_parent_i += 1;
-                    curr_this_i += 1;
                 }
             } else {
                 // FIXME: shuold never happen.
                 println!("********************");
                 exit(0x0100);
             }
+        }
+        if curr_this_i < this_q {
+            // FIXME: qui ci siamo perché tutti i Parent LSs sono stati gestiti ma la lista di
+            //  This LSs non è ancora vuota. Ciò vuol dire che dobbiamo inglobare.
+
+            println!("   > having curr_this_i={curr_this_i} < this_q={this_q}");
+            println!("     (some remaining This Node LSs will be added at the end of Parent LSs)");
+            if verbose {
+                prog_sa.print();
+            }
+            let child_rankings_moved = prog_sa
+                .update_rankings_parent_including_all_child_lss_before_curr_parent_ls(
+                    parent_index,
+                    curr_parent_i,
+                    self.index,
+                    verbose,
+                );
+            // FIXME: bisogna aggiornare "parent_q" anche qui, perché è stato appena modificato
+            let (_, new_parent_q) = prog_sa.get_rankings_p_q(parent_index);
+            parent_q = new_parent_q;
+
+            // We return the new position of the Parent LS (the one that was at the left of all the
+            // items that we just moved).
+            curr_parent_i += child_rankings_moved;
+            curr_this_i += child_rankings_moved;
+
+            // FIXME: tecnicamente qui è inutile fare questi ultimi tre aggiornamenti, però...
+
+            if verbose {
+                prog_sa.print();
+                println!("   > from now (C), curr_parent_i={curr_parent_i}");
+            }
+        } else {
+            // All LSs of This Node have been inherited in Parent Node.
         }
 
         self.children.clear();

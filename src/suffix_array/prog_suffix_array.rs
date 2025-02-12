@@ -74,7 +74,11 @@ impl ProgSuffixArray {
         // FIXME: ...
 
         // Update indexes
-        self.qs[parent_index] += 1;
+        let mut i_node_index = parent_index;
+        while i_node_index < child_index {
+            self.qs[i_node_index] += 1;
+            i_node_index += 1;
+        }
         // FIXME: fare qualcosa se collassa con quello dopo? non credo...
         /*
         // FIXME: 2 draft
@@ -158,6 +162,8 @@ impl ProgSuffixArray {
         child_q
     }
     pub fn print(&self) {
+        // FIXME: for debugging
+        //  println!("{:?}", self.qs);
         // Head
         let mut curr_p = 0;
         for i in 0..self.qs.len() {
