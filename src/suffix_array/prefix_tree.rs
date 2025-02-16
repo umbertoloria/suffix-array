@@ -462,7 +462,13 @@ impl PrefixTreeNode {
         // FIXME: they may be changed up...
         let (this_p, this_q) = prog_sa.get_rankings_p_q(self.index);
         let mut curr_this_i = this_p;
-
+        if this_p == this_q {
+            // FIXME: node without rankings?
+            exit(0x0100);
+        }
+        // let this_ls_length = self.suffix_len;
+        let this_first_ls_index = prog_sa.get_ls_index(curr_this_i);
+        // let this_ls_length = depths[this_first_ls_index]; // FIXME: let's try
         let this_ls_length = self.suffix_len;
 
         // Skip all Parent LSs that are < than First This LS.
@@ -489,7 +495,10 @@ impl PrefixTreeNode {
                 curr_parent_i += 1;
                 if verbose {
                     // FIXME: impr debug
-                    println!(" > Parent Curr LS is smaller: go check the next one");
+                    println!(
+                        " > Parent Curr LS \"{}\" ({}) is smaller than \"{}\" ({}): go check the next one",
+                        curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index
+                    );
 
                     // FIXME: questo non andava, in console:
                     //  "e father="GA" [16] <-> child="GA" [26], child.suff.len=2: child w"
@@ -499,7 +508,10 @@ impl PrefixTreeNode {
                 // Found a Parent LS that is >= Curr LS.
                 if verbose {
                     // FIXME: impr debug
-                    println!(" > Parent Curr LS >= This Curr LS found!");
+                    println!(
+                        " > Parent Curr LS \"{}\" ({}) >= This Curr LS \"{}\" ({}): found!",
+                        curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index
+                    );
                 }
                 break;
             }
@@ -546,15 +558,17 @@ impl PrefixTreeNode {
             // TODO: Monitor string compare
             if curr_parent_ls > curr_this_ls {
                 if verbose {
-                    // println!(" > Parent Curr LS is greater, including all Self LSs before it"); // FIXME prev
-                    println!(" > Parent Curr LS \"{curr_parent_ls}\" ({curr_parent_i}) is greater than \"{curr_this_ls}\" ({curr_this_i}), including all Self LSs before it");
+                    println!(
+                        " > Parent Curr LS \"{}\" ({}) is greater than \"{}\" ({}), including all Self LSs before it",
+                        curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index
+                    );
                 }
 
                 // FIXME: devi inglobare tutti i This LSs rimasti prima di questo Curr Parent LS, e
                 //  vedere il prossimo nodo a destra
 
                 if verbose {
-                    prog_sa.print();
+                    // prog_sa.print();
                 }
                 let child_rankings_moved = prog_sa
                     .update_rankings_parent_including_all_child_lss_before_curr_parent_ls(
@@ -653,7 +667,7 @@ impl PrefixTreeNode {
             println!("   > having curr_this_i={curr_this_i} < this_q={this_q}");
             println!("     (some remaining This Node LSs will be added at the end of Parent LSs)");
             if verbose {
-                prog_sa.print();
+                // prog_sa.print();
             }
             let child_rankings_moved = prog_sa
                 .update_rankings_parent_including_all_child_lss_before_curr_parent_ls(

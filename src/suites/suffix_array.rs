@@ -11,7 +11,8 @@ pub fn main_suffix_array() {
     // let chunk_size_interval = (5, 22);
     // let chunk_size_interval = (4, 20);
     // let chunk_size_interval = (3, 50);
-    let chunk_size_interval = (9, 9);
+    let chunk_size_interval = (1, 8);
+    // let chunk_size_interval = (9, 9);
 
     // Perform Logging?
     let pl = true;

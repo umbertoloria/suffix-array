@@ -119,10 +119,12 @@ impl ProgSuffixArray {
         }
 
         if verbose {
+            /*
             // FIXME: impr debug
             println!("debug: ?->{}", parent_q);
             println!("     : {} => {}", child_p, child_q);
             println!("     : {:?}", app);
+            */
         }
 
         let mut i = 0;
