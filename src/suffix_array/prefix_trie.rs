@@ -28,7 +28,16 @@ pub fn create_prefix_trie(
         // Last Factor
         if curr_ls_size <= last_factor_size {
             let ls_index = src_length - curr_ls_size;
-            root.add_string(src, is_custom_vec, curr_ls_size, ls_index, depths, monitor);
+            let local_suffix = &src[ls_index..ls_index + curr_ls_size];
+            let chars_local_suffix = local_suffix.chars().collect::<Vec<_>>();
+            root.add_string(
+                ls_index,
+                curr_ls_size,
+                chars_local_suffix,
+                is_custom_vec,
+                depths,
+                monitor,
+            );
         }
 
         // All Factors from first to second-last
@@ -36,7 +45,16 @@ pub fn create_prefix_trie(
             let curr_factor_size = custom_indexes[i_factor + 1] - custom_indexes[i_factor];
             if curr_ls_size <= curr_factor_size {
                 let ls_index = custom_indexes[i_factor + 1] - curr_ls_size;
-                root.add_string(src, is_custom_vec, curr_ls_size, ls_index, depths, monitor);
+                let local_suffix = &src[ls_index..ls_index + curr_ls_size];
+                let chars_local_suffix = local_suffix.chars().collect::<Vec<_>>();
+                root.add_string(
+                    ls_index,
+                    curr_ls_size,
+                    chars_local_suffix,
+                    is_custom_vec,
+                    depths,
+                    monitor,
+                );
             }
         }
     }
@@ -114,16 +132,13 @@ impl PrefixTrie {
     // Tree transformation
     fn add_string(
         &mut self,
-        src: &str,
-        is_custom_vec: &Vec<bool>,
-        ls_size: usize,
         ls_index: usize,
+        ls_size: usize,
+        chars_local_suffix: Vec<char>,
+        is_custom_vec: &Vec<bool>,
         depths: &mut Vec<usize>,
         monitor: &mut Monitor,
     ) {
-        let local_suffix = &src[ls_index..ls_index + ls_size];
-        let chars_local_suffix = local_suffix.chars().collect::<Vec<_>>();
-
         let mut curr_node = self;
 
         let mut i_chars_of_suffix = 0; // This is the current "depth" of "curr_node".
