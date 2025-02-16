@@ -119,7 +119,7 @@ pub fn get_icfl_factors_and_more_avoiding_custom_factorization(
 }
 */
 
-pub fn get_max_size(factor_indexes: &Vec<usize>, src_length: usize) -> Option<usize> {
+pub fn get_max_factor_size(factor_indexes: &Vec<usize>, src_length: usize) -> Option<usize> {
     let mut result = None;
     for i in 0..factor_indexes.len() - 1 {
         let len = factor_indexes[i + 1] - factor_indexes[i];

@@ -1,4 +1,4 @@
-use crate::suffix_array::chunking::get_max_size;
+use crate::suffix_array::chunking::get_max_factor_size;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::collections::BTreeMap;
@@ -13,52 +13,30 @@ pub fn create_prefix_trie(
     depths: &mut Vec<usize>,
     monitor: &mut Monitor,
 ) -> PrefixTrie {
-    let custom_max_size =
-        get_max_size(&custom_indexes, src_length).expect("custom_max_size is not valid");
+    let max_factor_size =
+        get_max_factor_size(&custom_indexes, src_length).expect("max_factor_size is not valid");
 
-    let mut root = PrefixTrie::new(0, 0);
-    let mut next_node_index = 1;
+    let mut root = PrefixTrie::new(0);
 
     let custom_indexes_len = custom_indexes.len();
-    let last_custom_factor_index = custom_indexes[custom_indexes_len - 1];
-    let last_custom_factor_size = src_length - last_custom_factor_index;
+    let last_factor_size = src_length - custom_indexes[custom_indexes_len - 1];
 
-    for curr_suffix_length in 1..custom_max_size + 1 {
+    for curr_ls_size in 1..max_factor_size + 1 {
         // Every iteration looks for all Custom Factors whose length is <= "curr_suffix_length" and,
         // if there exist, takes their Local Suffixes of "curr_suffix_length" length.
 
-        // Last Custom Factor
-        if curr_suffix_length <= last_custom_factor_size {
-            let custom_factor_local_suffix_index = src_length - curr_suffix_length;
-            add_node_to_prefix_trie(
-                src,
-                is_custom_vec,
-                &mut root,
-                curr_suffix_length,
-                custom_factor_local_suffix_index,
-                depths,
-                &mut next_node_index,
-                monitor,
-            );
+        // Last Factor
+        if curr_ls_size <= last_factor_size {
+            let ls_index = src_length - curr_ls_size;
+            root.add_string(src, is_custom_vec, curr_ls_size, ls_index, depths, monitor);
         }
 
-        // All Custom Factors from first to second-last
-        for i_custom_factor in 0..custom_indexes_len - 1 {
-            let curr_custom_factor_size =
-                custom_indexes[i_custom_factor + 1] - custom_indexes[i_custom_factor];
-            if curr_suffix_length <= curr_custom_factor_size {
-                let custom_factor_local_suffix_index =
-                    custom_indexes[i_custom_factor + 1] - curr_suffix_length;
-                add_node_to_prefix_trie(
-                    src,
-                    is_custom_vec,
-                    &mut root,
-                    curr_suffix_length,
-                    custom_factor_local_suffix_index,
-                    depths,
-                    &mut next_node_index,
-                    monitor,
-                );
+        // All Factors from first to second-last
+        for i_factor in 0..custom_indexes_len - 1 {
+            let curr_factor_size = custom_indexes[i_factor + 1] - custom_indexes[i_factor];
+            if curr_ls_size <= curr_factor_size {
+                let ls_index = custom_indexes[i_factor + 1] - curr_ls_size;
+                root.add_string(src, is_custom_vec, curr_ls_size, ls_index, depths, monitor);
             }
         }
     }
@@ -66,52 +44,7 @@ pub fn create_prefix_trie(
     root
 }
 
-fn add_node_to_prefix_trie(
-    src: &str,
-    is_custom_vec: &Vec<bool>,
-    root: &mut PrefixTrie,
-    curr_suffix_length: usize,
-    custom_factor_local_suffix_index: usize,
-    depths: &mut Vec<usize>,
-    next_node_index: &mut usize,
-    monitor: &mut Monitor,
-) {
-    let local_suffix = &src
-        [custom_factor_local_suffix_index..custom_factor_local_suffix_index + curr_suffix_length];
-    let chars_local_suffix = local_suffix.chars().collect::<Vec<_>>();
-
-    let mut curr_node = root;
-
-    let mut i_chars_of_suffix = 0; // This is the current "depth" of "curr_node".
-    while i_chars_of_suffix < curr_suffix_length {
-        let curr_letter = chars_local_suffix[i_chars_of_suffix];
-
-        // Remember: using "curr_node.sons.entry(curr_letter).or_insert(" is slower.
-        if !curr_node.sons.contains_key(&curr_letter) {
-            curr_node.sons.insert(
-                curr_letter,
-                PrefixTrie::new(*next_node_index, i_chars_of_suffix + 1),
-            );
-            *next_node_index += 1;
-        }
-        curr_node = curr_node.sons.get_mut(&curr_letter).unwrap();
-
-        i_chars_of_suffix += 1;
-    }
-    if is_custom_vec[custom_factor_local_suffix_index] {
-        curr_node
-            .rankings_custom
-            .push(custom_factor_local_suffix_index);
-    } else {
-        curr_node
-            .rankings_canonical
-            .push(custom_factor_local_suffix_index);
-    }
-    depths[custom_factor_local_suffix_index] = curr_node.suffix_len;
-}
-
 pub struct PrefixTrie {
-    pub index: usize,
     pub suffix_len: usize,
     // TODO: Try to use HashMap but keeping chars sorted
     pub sons: BTreeMap<char, PrefixTrie>,
@@ -120,10 +53,8 @@ pub struct PrefixTrie {
     pub rankings_final: Vec<usize>,
 }
 impl PrefixTrie {
-    // Constructor
-    pub fn new(index: usize, suffix_len: usize) -> Self {
+    pub fn new(suffix_len: usize) -> Self {
         Self {
-            index,
             suffix_len,
             sons: BTreeMap::new(),
             rankings_canonical: Vec::new(),
@@ -181,6 +112,41 @@ impl PrefixTrie {
     }
 
     // Tree transformation
+    fn add_string(
+        &mut self,
+        src: &str,
+        is_custom_vec: &Vec<bool>,
+        ls_size: usize,
+        ls_index: usize,
+        depths: &mut Vec<usize>,
+        monitor: &mut Monitor,
+    ) {
+        let local_suffix = &src[ls_index..ls_index + ls_size];
+        let chars_local_suffix = local_suffix.chars().collect::<Vec<_>>();
+
+        let mut curr_node = self;
+
+        let mut i_chars_of_suffix = 0; // This is the current "depth" of "curr_node".
+        while i_chars_of_suffix < ls_size {
+            let curr_letter = chars_local_suffix[i_chars_of_suffix];
+
+            // Remember: using "curr_node.sons.entry(curr_letter).or_insert(" is slower.
+            if !curr_node.sons.contains_key(&curr_letter) {
+                curr_node
+                    .sons
+                    .insert(curr_letter, PrefixTrie::new(i_chars_of_suffix + 1));
+            }
+            curr_node = curr_node.sons.get_mut(&curr_letter).unwrap();
+
+            i_chars_of_suffix += 1;
+        }
+        if is_custom_vec[ls_index] {
+            curr_node.rankings_custom.push(ls_index);
+        } else {
+            curr_node.rankings_canonical.push(ls_index);
+        }
+        depths[ls_index] = curr_node.suffix_len;
+    }
     pub fn merge_rankings_and_sort_recursive(&mut self, str: &str) {
         // Here we sort the Rankings Custom (all real Global Suffixes) and then try to merge the
         // two lists Rankings Canonical Rankings Custom (Sorted) by doing a pair-comparison.
@@ -271,7 +237,6 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
     file.flush().expect("Unable to flush file");
 }
 fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut File, level: usize) {
-    // let mut line = format!("{}{}", " ".repeat(level), node.label);
     let mut line = format!("{}{}", " ".repeat(level), node_label);
     let mut rankings = &node.rankings_final;
     if !rankings.is_empty() {
