@@ -33,7 +33,8 @@ pub fn create_prefix_trie(
             root.add_string(
                 ls_index,
                 curr_ls_size,
-                chars_local_suffix,
+                &chars_local_suffix,
+                0,
                 is_custom_vec,
                 depths,
                 monitor,
@@ -50,7 +51,8 @@ pub fn create_prefix_trie(
                 root.add_string(
                     ls_index,
                     curr_ls_size,
-                    chars_local_suffix,
+                    &chars_local_suffix,
+                    0,
                     is_custom_vec,
                     depths,
                     monitor,
@@ -134,11 +136,42 @@ impl PrefixTrie {
         &mut self,
         ls_index: usize,
         ls_size: usize,
-        chars_local_suffix: Vec<char>,
+        chars_local_suffix: &Vec<char>,
+        i_chars_of_suffix: usize,
         is_custom_vec: &Vec<bool>,
         depths: &mut Vec<usize>,
         monitor: &mut Monitor,
     ) {
+        if i_chars_of_suffix < ls_size {
+            let curr_letter = chars_local_suffix[i_chars_of_suffix];
+
+            // Remember: using "curr_node.sons.entry(curr_letter).or_insert(" is slower.
+            if !self.sons.contains_key(&curr_letter) {
+                self.sons
+                    .insert(curr_letter, PrefixTrie::new(i_chars_of_suffix + 1));
+            }
+            let child_node = self.sons.get_mut(&curr_letter).unwrap();
+            child_node.add_string(
+                ls_index,
+                ls_size,
+                chars_local_suffix,
+                i_chars_of_suffix + 1,
+                is_custom_vec,
+                depths,
+                monitor,
+            );
+        } else if i_chars_of_suffix == ls_size {
+            if is_custom_vec[ls_index] {
+                self.rankings_custom.push(ls_index);
+            } else {
+                self.rankings_canonical.push(ls_index);
+            }
+            depths[ls_index] = self.suffix_len;
+        } else {
+            // Should never happen...
+        }
+        /*
+        // Iterative version.
         let mut curr_node = self;
 
         let mut i_chars_of_suffix = 0; // This is the current "depth" of "curr_node".
@@ -161,6 +194,7 @@ impl PrefixTrie {
             curr_node.rankings_canonical.push(ls_index);
         }
         depths[ls_index] = curr_node.suffix_len;
+        */
     }
     pub fn merge_rankings_and_sort_recursive(&mut self, str: &str) {
         // Here we sort the Rankings Custom (all real Global Suffixes) and then try to merge the
