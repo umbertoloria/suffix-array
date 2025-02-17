@@ -1,9 +1,9 @@
- > Duration phases                :         3302504 micros /           3.303 seconds
- > Duration (with extra)          :        10409632 micros /          10.410 seconds
- > Phase 1.1: Factorization ICFL  :           34883 micros /           0.035 seconds /   0.335%
- > Phase 1.2: Factorization Custom:            1911 micros /           0.002 seconds /   0.018%
- > Phase 2.1: Trie Create         :         1394393 micros /           1.394 seconds /  13.395%
- > Phase 2.2: Trie Merge rankings :          432938 micros /           0.433 seconds /   4.159%
- > Phase 2.3: Trie In-prefix merge:          958108 micros /           0.958 seconds /   9.204%
- > Phase 2.4: Tree create         :          302693 micros /           0.303 seconds /   2.908%
- > Phase 3  : Suffix Array        :          177576 micros /           0.178 seconds /   1.706%
+ > Duration phases                :         2987631 micros /           2.988 seconds
+ > Duration (with extra)          :         9345386 micros /           9.345 seconds
+ > Phase 1.1: Factorization ICFL  :           32898 micros /           0.033 seconds /   0.352%
+ > Phase 1.2: Factorization Custom:            1939 micros /           0.002 seconds /   0.021%
+ > Phase 2.1: Trie Create         :         1205869 micros /           1.206 seconds /  12.903%
+ > Phase 2.2: Trie Merge rankings :          398886 micros /           0.399 seconds /   4.268%
+ > Phase 2.3: Trie In-prefix merge:          920184 micros /           0.920 seconds /   9.846%
+ > Phase 2.4: Tree create         :          255876 micros /           0.256 seconds /   2.738%
+ > Phase 3  : Suffix Array        :          171977 micros /           0.172 seconds /   1.840%
