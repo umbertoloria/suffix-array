@@ -1,0 +1,47 @@
+A [34, 28, 0]
+ AA [27]
+  AAA
+     AAAGAG [17]
+  AAG
+    AAGAG [18]
+ AC
+  ACA
+   ACAG [13]
+  ACC [8]
+ AG [15, 21]
+  AGA
+   AGAA [25]
+   AGAC
+    AGACC [6]
+   AGAG [19]
+C [1, 10]
+ CA
+  CAG [14]
+ CC [9]
+     CCTCGA [29]
+ CG [3]
+  CGA [32]
+ CT
+    CTCGA [30]
+G [16, 22, 4]
+ GA [33]
+  GAA [26]
+  GAC
+   GACC [7]
+  GAG [20]
+ GT
+     GTAGAA [23]
+T
+ TA
+  TAC
+    TACAG [12]
+  TAG
+   TAGA
+    TAGAA [24]
+    TAGAC
+     TAGACC [5]
+ TC
+  TCG [2]
+   TCGA [31]
+ TT
+     TTACAG [11]

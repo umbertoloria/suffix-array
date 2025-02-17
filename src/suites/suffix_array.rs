@@ -23,8 +23,8 @@ pub fn main_suffix_array() {
     // let dm = DebugMode::Overview;
     let dm = DebugMode::Silent;
 
-    // suite_complete_on_fasta_file("000", chunk_size_interval, pl, dm);
-    // suite_complete_on_fasta_file("001", chunk_size_interval, pl, dm);
+    suite_complete_on_fasta_file("000", chunk_size_interval, pl, dm);
+    suite_complete_on_fasta_file("001", chunk_size_interval, pl, dm);
     suite_complete_on_fasta_file("002_mini", chunk_size_interval, pl, dm);
     // suite_complete_on_fasta_file("002_70", chunk_size_interval, pl, dm);
     // suite_complete_on_fasta_file("002_700", chunk_size_interval, pl, dm);

@@ -1,0 +1,32 @@
+A [34, 18, 0, 6]
+ AA [17]
+   AACC [27]
+ AC [13]
+  ACC [28, 8]
+ AG [25, 21]
+  AGA
+   AGAA [15]
+   AGAG [19]
+C [14, 30, 1, 10]
+ CC [29, 9]
+ CG
+  CGA [32]
+  CGT
+   CGTA [3]
+G [26, 22]
+ GA [33]
+  GAA [16]
+  GAC
+   GACC [7]
+  GAG [20]
+ GT
+  GTA [4]
+   GTAG [23]
+T [2]
+ TA [5]
+  TAC [12]
+  TAG [24]
+ TC
+   TCGA [31]
+ TT
+   TTAC [11]
