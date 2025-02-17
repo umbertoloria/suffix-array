@@ -78,6 +78,7 @@ pub fn compute_innovative_suffix_array(
         &mut depths,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
+        // true,
     );
     monitor.phase2_1_prefix_trie_create_stop();
 

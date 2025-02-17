@@ -112,15 +112,15 @@ impl PrefixTrie {
     */
 
     pub fn get_children(&self) -> PrefixTrieChildren {
-        if let Some((suffix, direct_child_node)) = &self.direct_child {
-            PrefixTrieChildren::DirectChild((suffix, direct_child_node))
+        if let Some((prefix, direct_child_node)) = &self.direct_child {
+            PrefixTrieChildren::DirectChild((prefix, direct_child_node))
         } else {
             PrefixTrieChildren::ManyChildren(self.sons.iter())
         }
     }
     fn get_children_mut(&mut self) -> PrefixTrieChildrenMut {
-        if let Some((suffix, direct_child_node)) = &mut self.direct_child {
-            PrefixTrieChildrenMut::DirectChild((suffix, direct_child_node))
+        if let Some((prefix, direct_child_node)) = &mut self.direct_child {
+            PrefixTrieChildrenMut::DirectChild((prefix, direct_child_node))
         } else {
             PrefixTrieChildrenMut::ManyChildren(self.sons.iter_mut())
         }
@@ -208,37 +208,47 @@ impl PrefixTrie {
                 return;
             }
 
-            if self.suffix_len > 0
-                && self.sons.is_empty()
-                && self.direct_child.is_none()
-                && ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING
-            {
+            if self.suffix_len > 0 && self.sons.is_empty() {
                 let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
 
+                if let Some((prefix, direct_child_node)) = &mut self.direct_child {
+                    if rest_of_ls == prefix {
+                        direct_child_node.update_rankings(ls_index, is_custom_ls);
+
+                        return;
+                    }
+                } else if ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING {
+                    // Here we are in a leaf. So we create a Direct Child Node instead of a Path made of
+                    // multiple Child Nodes.
+
+                    if verbose {
+                        println!(
+                            "{}  > create direct child \"{}\"",
+                            "  ".repeat(self.suffix_len),
+                            rest_of_ls
+                        );
+                    }
+
+                    let mut child_node = PrefixTrie::new(ls_size);
+                    child_node.update_rankings(ls_index, is_custom_ls);
+
+                    self.direct_child = Some((
+                        //
+                        rest_of_ls.to_string(),
+                        Box::new(child_node),
+                    ));
+
+                    return;
+                }
+            }
+
+            if let Some((old_direct_prefix, old_direct_child_node)) = &self.direct_child {
                 if verbose {
                     println!(
-                        "{}  > create direct child \"{}\"",
-                        "  ".repeat(self.suffix_len),
-                        rest_of_ls
+                        "{}  > create regular child (after normalizing direct child node)",
+                        "  ".repeat(self.suffix_len)
                     );
                 }
-
-                let mut child_node = PrefixTrie::new(ls_size);
-                child_node.update_rankings(ls_index, is_custom_ls);
-
-                self.direct_child = Some((
-                    //
-                    rest_of_ls.to_string(),
-                    Box::new(child_node),
-                ));
-
-                return;
-            }
-
-            if verbose {
-                println!("{}  > create regular child", "  ".repeat(self.suffix_len));
-            }
-            if let Some((old_direct_prefix, old_direct_child_node)) = &self.direct_child {
                 let mut direct_prefix = String::new();
                 let mut direct_rankings_canonical = Vec::new();
                 let mut direct_rankings_custom = Vec::new();
@@ -305,6 +315,9 @@ impl PrefixTrie {
                 return;
             }
 
+            if verbose {
+                println!("{}  > create regular child", "  ".repeat(self.suffix_len));
+            }
             let mut child_node = PrefixTrie::new(self.suffix_len + 1);
             child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
 
