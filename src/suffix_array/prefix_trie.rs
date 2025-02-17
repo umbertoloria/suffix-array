@@ -249,53 +249,35 @@ impl PrefixTrie {
                         "  ".repeat(self.suffix_len)
                     );
                 }
-                let mut direct_prefix = String::new();
-                let mut direct_rankings_canonical = Vec::new();
-                let mut direct_rankings_custom = Vec::new();
-                // FIXME: Optimize this cloning part
-                direct_prefix = old_direct_prefix.clone();
-                for &ranking_canonical in &old_direct_child_node.rankings_canonical {
-                    direct_rankings_canonical.push(ranking_canonical);
-                }
-                for &ranking_custom in &old_direct_child_node.rankings_custom {
-                    direct_rankings_custom.push(ranking_custom);
-                }
-
-                if verbose {
-                    println!(
-                        "{}     (removing previous direct child)",
-                        "  ".repeat(self.suffix_len)
-                    );
-                }
-                self.direct_child = None;
 
                 let ex_direct_prefix_first_letter = (
                     //
-                    &direct_prefix[0..1]
+                    &old_direct_prefix[0..1]
                 )
                     .chars()
                     .next()
                     .unwrap();
 
                 let mut child_node_of_ex_direct_child_node = PrefixTrie::new(self.suffix_len + 1);
-                for ranking_canonical in direct_rankings_canonical {
+                for &ranking_canonical in &old_direct_child_node.rankings_canonical {
                     child_node_of_ex_direct_child_node.add_string(
                         ranking_canonical,
-                        self.suffix_len + direct_prefix.len(),
+                        self.suffix_len + old_direct_prefix.len(),
                         str,
                         false,
                         verbose,
                     );
                 }
-                for ranking_custom in direct_rankings_custom {
+                for &ranking_custom in &old_direct_child_node.rankings_custom {
                     child_node_of_ex_direct_child_node.add_string(
                         ranking_custom,
-                        self.suffix_len + direct_prefix.len(),
+                        self.suffix_len + old_direct_prefix.len(),
                         str,
                         true,
                         verbose,
                     );
                 }
+                self.direct_child = None;
 
                 if verbose {
                     println!(
