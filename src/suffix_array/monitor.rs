@@ -326,51 +326,136 @@ impl ExecutionOutcome {
 
 pub fn log_monitor_after_process_ended(execution_timing: &ExecutionTiming, filepath: String) {
     let mut content = String::new();
-    content.push_str(&format_duration(
+
+    // Microseconds
+    content.push_str(&format!(
+        "{}: {:15} micros\n",
         " > Duration phases                ",
-        &execution_timing.sum_duration_only_phases,
-        None,
+        execution_timing.sum_duration_only_phases.as_micros()
     ));
-    content.push_str(&format_duration(
+    content.push_str(&format!(
+        "{}: {:15} micros\n",
         " > Duration (with extra)          ",
-        &execution_timing.whole_duration,
-        None,
+        execution_timing.whole_duration.as_micros()
+    ));
+    content.push_str(&format!(
+        "{}: {:15} micros\n",
+        " > Phase 1.1: Factorization ICFL  ",
+        execution_timing.duration_p11.as_micros()
+    ));
+    content.push_str(&format!(
+        "{}: {:15} micros\n",
+        " > Phase 1.2: Factorization Custom",
+        execution_timing.duration_p12.as_micros()
+    ));
+    content.push_str(&format!(
+        "{}: {:15} micros\n",
+        " > Phase 2.1: Trie Create         ",
+        execution_timing.duration_p21.as_micros()
+    ));
+    content.push_str(&format!(
+        "{}: {:15} micros\n",
+        " > Phase 2.2: Trie Merge rankings ",
+        execution_timing.duration_p22.as_micros()
+    ));
+    content.push_str(&format!(
+        "{}: {:15} micros\n",
+        " > Phase 2.3: Trie In-prefix merge",
+        execution_timing.duration_p23.as_micros()
+    ));
+    content.push_str(&format!(
+        "{}: {:15} micros\n",
+        " > Phase 2.4: Tree create         ",
+        execution_timing.duration_p24.as_micros()
+    ));
+    content.push_str(&format!(
+        "{}: {:15} micros\n\n",
+        " > Phase 3  : Suffix Array        ",
+        execution_timing.duration_p3.as_micros()
     ));
 
-    content.push_str(&format_duration(
+    // Seconds
+    content.push_str(&format!(
+        "{}: {:15.3} seconds\n",
+        " > Duration phases                ",
+        execution_timing.sum_duration_only_phases.as_secs_f64()
+    ));
+    content.push_str(&format!(
+        "{}: {:15.3} seconds\n",
+        " > Duration (with extra)          ",
+        execution_timing.whole_duration.as_secs_f64()
+    ));
+    content.push_str(&format!(
+        "{}: {:15.3} seconds\n",
         " > Phase 1.1: Factorization ICFL  ",
-        &execution_timing.duration_p11,
-        Some(execution_timing.prop_p11 * 100.0),
+        execution_timing.duration_p11.as_secs_f64()
     ));
-    content.push_str(&format_duration(
+    content.push_str(&format!(
+        "{}: {:15.3} seconds\n",
         " > Phase 1.2: Factorization Custom",
-        &execution_timing.duration_p12,
-        Some(execution_timing.prop_p12 * 100.0),
+        execution_timing.duration_p12.as_secs_f64()
     ));
-    content.push_str(&format_duration(
+    content.push_str(&format!(
+        "{}: {:15.3} seconds\n",
         " > Phase 2.1: Trie Create         ",
-        &execution_timing.duration_p21,
-        Some(execution_timing.prop_p21 * 100.0),
+        execution_timing.duration_p21.as_secs_f64()
     ));
-    content.push_str(&format_duration(
+    content.push_str(&format!(
+        "{}: {:15.3} seconds\n",
         " > Phase 2.2: Trie Merge rankings ",
-        &execution_timing.duration_p22,
-        Some(execution_timing.prop_p22 * 100.0),
+        execution_timing.duration_p22.as_secs_f64()
     ));
-    content.push_str(&format_duration(
+    content.push_str(&format!(
+        "{}: {:15.3} seconds\n",
         " > Phase 2.3: Trie In-prefix merge",
-        &execution_timing.duration_p23,
-        Some(execution_timing.prop_p23 * 100.0),
+        execution_timing.duration_p23.as_secs_f64()
     ));
-    content.push_str(&format_duration(
+    content.push_str(&format!(
+        "{}: {:15.3} seconds\n",
         " > Phase 2.4: Tree create         ",
-        &execution_timing.duration_p24,
-        Some(execution_timing.prop_p24 * 100.0),
+        execution_timing.duration_p24.as_secs_f64()
     ));
-    content.push_str(&format_duration(
+    content.push_str(&format!(
+        "{}: {:15.3} seconds\n\n",
         " > Phase 3  : Suffix Array        ",
-        &execution_timing.duration_p3,
-        Some(execution_timing.prop_p3 * 100.0),
+        execution_timing.duration_p3.as_secs_f64()
+    ));
+
+    // Percentages
+    content.push_str(&format!(
+        "{}: {:7.3}%\n",
+        " > Phase 1.1: Factorization ICFL  ",
+        execution_timing.prop_p11 * 100.0
+    ));
+    content.push_str(&format!(
+        "{}: {:7.3}%\n",
+        " > Phase 1.2: Factorization Custom",
+        execution_timing.prop_p12 * 100.0
+    ));
+    content.push_str(&format!(
+        "{}: {:7.3}%\n",
+        " > Phase 2.1: Trie Create         ",
+        execution_timing.prop_p21 * 100.0
+    ));
+    content.push_str(&format!(
+        "{}: {:7.3}%\n",
+        " > Phase 2.2: Trie Merge rankings ",
+        execution_timing.prop_p22 * 100.0
+    ));
+    content.push_str(&format!(
+        "{}: {:7.3}%\n",
+        " > Phase 2.3: Trie In-prefix merge",
+        execution_timing.prop_p23 * 100.0
+    ));
+    content.push_str(&format!(
+        "{}: {:7.3}%\n",
+        " > Phase 2.4: Tree create         ",
+        execution_timing.prop_p24 * 100.0
+    ));
+    content.push_str(&format!(
+        "{}: {:7.3}%\n\n",
+        " > Phase 3  : Suffix Array        ",
+        execution_timing.prop_p3 * 100.0
     ));
 
     let mut file = File::create(filepath).expect("Unable to create file");

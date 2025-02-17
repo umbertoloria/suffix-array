@@ -1,9 +1,28 @@
- > Duration phases                :          189187 micros /           0.189 seconds
- > Duration (with extra)          :          768639 micros /           0.769 seconds
- > Phase 1.1: Factorization ICFL  :            2763 micros /           0.003 seconds /   0.359%
- > Phase 1.2: Factorization Custom:             197 micros /           0.000 seconds /   0.026%
- > Phase 2.1: Trie Create         :           64399 micros /           0.064 seconds /   8.378%
- > Phase 2.2: Trie Merge rankings :           28347 micros /           0.028 seconds /   3.688%
- > Phase 2.3: Trie In-prefix merge:           62480 micros /           0.062 seconds /   8.129%
- > Phase 2.4: Tree create         :           17260 micros /           0.017 seconds /   2.246%
- > Phase 3  : Suffix Array        :           13738 micros /           0.014 seconds /   1.787%
+ > Duration phases                :          246626 micros
+ > Duration (with extra)          :          951809 micros
+ > Phase 1.1: Factorization ICFL  :            3475 micros
+ > Phase 1.2: Factorization Custom:             261 micros
+ > Phase 2.1: Trie Create         :           89986 micros
+ > Phase 2.2: Trie Merge rankings :           31275 micros
+ > Phase 2.3: Trie In-prefix merge:           79831 micros
+ > Phase 2.4: Tree create         :           26164 micros
+ > Phase 3  : Suffix Array        :           15632 micros
+
+ > Duration phases                :           0.247 seconds
+ > Duration (with extra)          :           0.952 seconds
+ > Phase 1.1: Factorization ICFL  :           0.003 seconds
+ > Phase 1.2: Factorization Custom:           0.000 seconds
+ > Phase 2.1: Trie Create         :           0.090 seconds
+ > Phase 2.2: Trie Merge rankings :           0.031 seconds
+ > Phase 2.3: Trie In-prefix merge:           0.080 seconds
+ > Phase 2.4: Tree create         :           0.026 seconds
+ > Phase 3  : Suffix Array        :           0.016 seconds
+
+ > Phase 1.1: Factorization ICFL  :   0.365%
+ > Phase 1.2: Factorization Custom:   0.027%
+ > Phase 2.1: Trie Create         :   9.454%
+ > Phase 2.2: Trie Merge rankings :   3.286%
+ > Phase 2.3: Trie In-prefix merge:   8.387%
+ > Phase 2.4: Tree create         :   2.749%
+ > Phase 3  : Suffix Array        :   1.642%
+
