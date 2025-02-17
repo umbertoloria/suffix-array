@@ -1,220 +1,58 @@
 A [34, 0]
  AA
   AAA
-   AAAG
-    AAAGA
-     AAAGAG
-      AAAGAGG
-       AAAGAGGT
-        AAAGAGGTA
-         AAAGAGGTAG
-          AAAGAGGTAGA
-           AAAGAGGTAGAA
-            AAAGAGGTAGAAC
-             AAAGAGGTAGAACC
-              AAAGAGGTAGAACCT
-               AAAGAGGTAGAACCTC
-                AAAGAGGTAGAACCTCG
                  AAAGAGGTAGAACCTCGA [17]
   AAC
-   AACC
-    AACCT
-     AACCTC
-      AACCTCG
        AACCTCGA [27]
   AAG
-   AAGA
-    AAGAG
-     AAGAGG
-      AAGAGGT
-       AAGAGGTA
-        AAGAGGTAG
-         AAGAGGTAGA
-          AAGAGGTAGAA
-           AAGAGGTAGAAC
-            AAGAGGTAGAACC
-             AAGAGGTAGAACCT
-              AAGAGGTAGAACCTC
-               AAGAGGTAGAACCTCG
                 AAGAGGTAGAACCTCGA [18]
  AC
   ACA
-   ACAG
-    ACAGA
-     ACAGAA
-      ACAGAAA
-       ACAGAAAG
-        ACAGAAAGA
-         ACAGAAAGAG
-          ACAGAAAGAGG
-           ACAGAAAGAGGT
-            ACAGAAAGAGGTA
-             ACAGAAAGAGGTAG
-              ACAGAAAGAGGTAGA
-               ACAGAAAGAGGTAGAA
-                ACAGAAAGAGGTAGAAC
-                 ACAGAAAGAGGTAGAACC
-                  ACAGAAAGAGGTAGAACCT
-                   ACAGAAAGAGGTAGAACCTC
-                    ACAGAAAGAGGTAGAACCTCG
                      ACAGAAAGAGGTAGAACCTCGA [13]
   ACC [8]
-   ACCT
-    ACCTC
-     ACCTCG
       ACCTCGA [28]
  AG
   AGA
    AGAA
     AGAAA
-     AGAAAG
-      AGAAAGA
-       AGAAAGAG
-        AGAAAGAGG
-         AGAAAGAGGT
-          AGAAAGAGGTA
-           AGAAAGAGGTAG
-            AGAAAGAGGTAGA
-             AGAAAGAGGTAGAA
-              AGAAAGAGGTAGAAC
-               AGAAAGAGGTAGAACC
-                AGAAAGAGGTAGAACCT
-                 AGAAAGAGGTAGAACCTC
-                  AGAAAGAGGTAGAACCTCG
                    AGAAAGAGGTAGAACCTCGA [15]
     AGAAC
-     AGAACC
-      AGAACCT
-       AGAACCTC
-        AGAACCTCG
          AGAACCTCGA [25]
    AGAC
     AGACC [6]
    AGAG
-    AGAGG
-     AGAGGT
-      AGAGGTA
-       AGAGGTAG
-        AGAGGTAGA
-         AGAGGTAGAA
-          AGAGGTAGAAC
-           AGAGGTAGAACC
-            AGAGGTAGAACCT
-             AGAGGTAGAACCTC
-              AGAGGTAGAACCTCG
                AGAGGTAGAACCTCGA [19]
   AGG
-   AGGT
-    AGGTA
-     AGGTAG
-      AGGTAGA
-       AGGTAGAA
-        AGGTAGAAC
-         AGGTAGAACC
-          AGGTAGAACCT
-           AGGTAGAACCTC
-            AGGTAGAACCTCG
              AGGTAGAACCTCGA [21]
 C [1, 10]
  CA
-  CAG
-   CAGA
-    CAGAA
-     CAGAAA
-      CAGAAAG
-       CAGAAAGA
-        CAGAAAGAG
-         CAGAAAGAGG
-          CAGAAAGAGGT
-           CAGAAAGAGGTA
-            CAGAAAGAGGTAG
-             CAGAAAGAGGTAGA
-              CAGAAAGAGGTAGAA
-               CAGAAAGAGGTAGAAC
-                CAGAAAGAGGTAGAACC
-                 CAGAAAGAGGTAGAACCT
-                  CAGAAAGAGGTAGAACCTC
-                   CAGAAAGAGGTAGAACCTCG
                     CAGAAAGAGGTAGAACCTCGA [14]
  CC [9]
-  CCT
-   CCTC
-    CCTCG
      CCTCGA [29]
  CG
   CGA [32]
   CGT
-   CGTA
-    CGTAG
-     CGTAGA
-      CGTAGAC
        CGTAGACC [3]
  CT
-  CTC
-   CTCG
     CTCGA [30]
 G
  GA [33]
   GAA
    GAAA
-    GAAAG
-     GAAAGA
-      GAAAGAG
-       GAAAGAGG
-        GAAAGAGGT
-         GAAAGAGGTA
-          GAAAGAGGTAG
-           GAAAGAGGTAGA
-            GAAAGAGGTAGAA
-             GAAAGAGGTAGAAC
-              GAAAGAGGTAGAACC
-               GAAAGAGGTAGAACCT
-                GAAAGAGGTAGAACCTC
-                 GAAAGAGGTAGAACCTCG
                   GAAAGAGGTAGAACCTCGA [16]
    GAAC
-    GAACC
-     GAACCT
-      GAACCTC
-       GAACCTCG
         GAACCTCGA [26]
   GAC
    GACC [7]
   GAG
-   GAGG
-    GAGGT
-     GAGGTA
-      GAGGTAG
-       GAGGTAGA
-        GAGGTAGAA
-         GAGGTAGAAC
-          GAGGTAGAACC
-           GAGGTAGAACCT
-            GAGGTAGAACCTC
-             GAGGTAGAACCTCG
               GAGGTAGAACCTCGA [20]
  GG
-  GGT
-   GGTA
-    GGTAG
-     GGTAGA
-      GGTAGAA
-       GGTAGAAC
-        GGTAGAACC
-         GGTAGAACCT
-          GGTAGAACCTC
-           GGTAGAACCTCG
             GGTAGAACCTCGA [22]
  GT
   GTA
    GTAG
     GTAGA
      GTAGAA
-      GTAGAAC
-       GTAGAACC
-        GTAGAACCT
-         GTAGAACCTC
-          GTAGAACCTCG
            GTAGAACCTCGA [23]
      GTAGAC
       GTAGACC [4]
@@ -223,11 +61,6 @@ T [12]
   TAG
    TAGA
     TAGAA
-     TAGAAC
-      TAGAACC
-       TAGAACCT
-        TAGAACCTC
-         TAGAACCTCG
           TAGAACCTCGA [24]
     TAGAC
      TAGACC [5]
@@ -235,9 +68,5 @@ T [12]
   TCG
    TCGA [31]
    TCGT
-    TCGTA
-     TCGTAG
-      TCGTAGA
-       TCGTAGAC
         TCGTAGACC [2]
  TT [11]

@@ -571,6 +571,8 @@ pub fn create_prefix_tree_from_prefix_trie(
     let mut tree = PrefixTree {
         children: nodes_list,
     };
+    // TODO: The Prefix Trie "root_trie" is going to be freed all in once here. Should we free as we
+    //  build Prefix Tree instead?
     tree
 }
 fn create_prefix_tree_from_trie_deep(
@@ -606,6 +608,12 @@ fn create_prefix_tree_from_trie_deep(
                     next_node_index = next_node_index_;
                 }
             }
+            PrefixTrieChildren::DirectChild((_, child_node)) => {
+                let (nodes_list, next_node_index_) =
+                    create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                node.children.extend(nodes_list);
+                next_node_index = next_node_index_;
+            }
         }
         result.push(node);
     } else {
@@ -618,6 +626,12 @@ fn create_prefix_tree_from_trie_deep(
                     result.extend(nodes_list);
                     next_node_index = next_node_index_;
                 }
+            }
+            PrefixTrieChildren::DirectChild((_, child_node)) => {
+                let (nodes_list, next_node_index_) =
+                    create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                result.extend(nodes_list);
+                next_node_index = next_node_index_;
             }
         }
     }

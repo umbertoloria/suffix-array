@@ -17,9 +17,4 @@ C
     CAABC
      CAABCA [11, 4]
 D
- DC
-  DCA
-   DCAA
-    DCAAB
-     DCAABC
       DCAABCA [10]

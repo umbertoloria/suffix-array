@@ -77,6 +77,7 @@ pub fn compute_innovative_suffix_array(
         &is_custom_vec,
         &mut depths,
         &mut monitor,
+        debug_mode == DebugMode::Verbose,
     );
     monitor.phase2_1_prefix_trie_create_stop();
 
@@ -119,7 +120,7 @@ pub fn compute_innovative_suffix_array(
     }
 
     if debug_mode == DebugMode::Verbose {
-        println!("Before SHRINK");
+        println!("Before PREFIX TREE CREATE");
         prefix_trie.print_merged(0, "".into());
     }
     // -

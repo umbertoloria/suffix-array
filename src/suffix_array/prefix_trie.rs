@@ -13,6 +13,7 @@ pub fn create_prefix_trie(
     is_custom_vec: &Vec<bool>,
     depths: &mut Vec<usize>,
     monitor: &mut Monitor,
+    verbose: bool,
 ) -> PrefixTrie {
     let max_factor_size =
         get_max_factor_size(&custom_indexes, src_length).expect("max_factor_size is not valid");
@@ -30,8 +31,11 @@ pub fn create_prefix_trie(
         if curr_ls_size <= last_factor_size {
             let ls_index = src_length - curr_ls_size;
             let is_custom_ls = is_custom_vec[ls_index];
-            root.add_string(ls_index, curr_ls_size, src, is_custom_ls);
+            root.add_string(ls_index, curr_ls_size, src, is_custom_ls, verbose);
             depths[ls_index] = curr_ls_size;
+            /*if verbose {
+                root.print(0, "".into());
+            }*/
         }
 
         // All Factors from first to second-last
@@ -40,8 +44,11 @@ pub fn create_prefix_trie(
             if curr_ls_size <= curr_factor_size {
                 let ls_index = custom_indexes[i_factor + 1] - curr_ls_size;
                 let is_custom_ls = is_custom_vec[ls_index];
-                root.add_string(ls_index, curr_ls_size, src, is_custom_ls);
+                root.add_string(ls_index, curr_ls_size, src, is_custom_ls, verbose);
                 depths[ls_index] = curr_ls_size;
+                /*if verbose {
+                    root.print(0, "".into());
+                }*/
             }
         }
     }
@@ -49,19 +56,24 @@ pub fn create_prefix_trie(
     root
 }
 
+// TODO: Maybe understand when to adjust "MIN_SIZE_DIRECT_CHILD_SUBSTRING" (if needed)
+const MIN_SIZE_DIRECT_CHILD_SUBSTRING: usize = 2;
 pub struct PrefixTrie {
     pub suffix_len: usize,
     // TODO: Try to use HashMap but keeping chars sorted
     pub sons: BTreeMap<char, PrefixTrie>,
+    pub direct_child: Option<(String, Box<PrefixTrie>)>,
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
     pub rankings_final: Vec<usize>,
 }
 pub enum PrefixTrieChildren<'a> {
     ManyChildren(Iter<'a, char, PrefixTrie>),
+    DirectChild((&'a String, &'a Box<PrefixTrie>)),
 }
 pub enum PrefixTrieChildrenMut<'a> {
     ManyChildren(IterMut<'a, char, PrefixTrie>),
+    DirectChild((&'a String, &'a mut Box<PrefixTrie>)),
 }
 
 impl PrefixTrie {
@@ -69,6 +81,7 @@ impl PrefixTrie {
         Self {
             suffix_len,
             sons: BTreeMap::new(),
+            direct_child: None,
             rankings_canonical: Vec::new(),
             rankings_custom: Vec::new(),
             rankings_final: Vec::new(),
@@ -99,10 +112,18 @@ impl PrefixTrie {
     */
 
     pub fn get_children(&self) -> PrefixTrieChildren {
-        PrefixTrieChildren::ManyChildren(self.sons.iter())
+        if let Some((suffix, direct_child_node)) = &self.direct_child {
+            PrefixTrieChildren::DirectChild((suffix, direct_child_node))
+        } else {
+            PrefixTrieChildren::ManyChildren(self.sons.iter())
+        }
     }
     fn get_children_mut(&mut self) -> PrefixTrieChildrenMut {
-        PrefixTrieChildrenMut::ManyChildren(self.sons.iter_mut())
+        if let Some((suffix, direct_child_node)) = &mut self.direct_child {
+            PrefixTrieChildrenMut::DirectChild((suffix, direct_child_node))
+        } else {
+            PrefixTrieChildrenMut::ManyChildren(self.sons.iter_mut())
+        }
     }
 
     // Prints
@@ -120,6 +141,9 @@ impl PrefixTrie {
                     child_node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
                 }
             }
+            PrefixTrieChildren::DirectChild((suffix, child_node)) => {
+                child_node.print(tabs_offset + 1, format!("{}{}", prefix, suffix));
+            }
         }
     }
     pub fn print_merged(&self, tabs_offset: usize, prefix: String) {
@@ -135,11 +159,30 @@ impl PrefixTrie {
                     child_node.print_merged(tabs_offset + 1, format!("{}{}", prefix, char_key));
                 }
             }
+            PrefixTrieChildren::DirectChild((suffix, child_node)) => {
+                child_node.print_merged(tabs_offset + 1, format!("{}{}", prefix, suffix));
+            }
         }
     }
 
     // Tree transformation
-    fn add_string(&mut self, ls_index: usize, ls_size: usize, str: &str, is_custom_ls: bool) {
+    fn add_string(
+        &mut self,
+        ls_index: usize,
+        ls_size: usize,
+        str: &str,
+        is_custom_ls: bool,
+        verbose: bool,
+    ) {
+        if verbose {
+            println!(
+                "{}add_string > ls_index={ls_index}, ls_size={ls_size}, self.suffix_len={}, word={:?}",
+                "  ".repeat(self.suffix_len),
+                self.suffix_len,
+                &str[ls_index..ls_index + ls_size]
+            );
+        }
+
         let i_letter_ls = self.suffix_len;
         if i_letter_ls < ls_size {
             let curr_letter = (
@@ -151,20 +194,133 @@ impl PrefixTrie {
                 .unwrap();
 
             if self.sons.contains_key(&curr_letter) {
+                if verbose {
+                    println!(
+                        "{}  > contained {}",
+                        "  ".repeat(self.suffix_len),
+                        curr_letter
+                    );
+                }
+
                 let child_node = self.sons.get_mut(&curr_letter).unwrap();
-                child_node.add_string(ls_index, ls_size, str, is_custom_ls);
+                child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
 
                 return;
             }
 
-            let mut child_node = PrefixTrie::new(i_letter_ls + 1);
-            child_node.add_string(ls_index, ls_size, str, is_custom_ls);
+            if self.suffix_len > 0 && self.sons.is_empty() {
+                if ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING {
+                    if self.direct_child.is_none() {
+                        let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
+
+                        if verbose {
+                            println!(
+                                "{}  > create direct child \"{}\"",
+                                "  ".repeat(self.suffix_len),
+                                rest_of_ls
+                            );
+                        }
+
+                        let mut child_node = PrefixTrie::new(ls_size);
+                        child_node.update_rankings(ls_index, is_custom_ls);
+
+                        self.direct_child = Some((
+                            //
+                            rest_of_ls.to_string(),
+                            Box::new(child_node),
+                        ));
+
+                        return;
+                    }
+                }
+            }
+
+            if verbose {
+                println!("{}  > create regular child", "  ".repeat(self.suffix_len));
+            }
+            if let Some((old_direct_prefix, old_direct_child_node)) = &self.direct_child {
+                let mut direct_prefix = String::new();
+                let mut direct_rankings_canonical = Vec::new();
+                let mut direct_rankings_custom = Vec::new();
+                // FIXME: Optimize this cloning part
+                direct_prefix = old_direct_prefix.clone();
+                for &ranking_canonical in &old_direct_child_node.rankings_canonical {
+                    direct_rankings_canonical.push(ranking_canonical);
+                }
+                for &ranking_custom in &old_direct_child_node.rankings_custom {
+                    direct_rankings_custom.push(ranking_custom);
+                }
+
+                if verbose {
+                    println!(
+                        "{}     (removing previous direct child)",
+                        "  ".repeat(self.suffix_len)
+                    );
+                }
+                self.direct_child = None;
+
+                let ex_direct_prefix_first_letter = (
+                    //
+                    &direct_prefix[0..1]
+                )
+                    .chars()
+                    .next()
+                    .unwrap();
+
+                let mut child_node_of_ex_direct_child_node = PrefixTrie::new(self.suffix_len + 1);
+                for ranking_canonical in direct_rankings_canonical {
+                    child_node_of_ex_direct_child_node.add_string(
+                        ranking_canonical,
+                        self.suffix_len + direct_prefix.len(),
+                        str,
+                        false,
+                        verbose,
+                    );
+                }
+                for ranking_custom in direct_rankings_custom {
+                    child_node_of_ex_direct_child_node.add_string(
+                        ranking_custom,
+                        self.suffix_len + direct_prefix.len(),
+                        str,
+                        true,
+                        verbose,
+                    );
+                }
+
+                if verbose {
+                    println!(
+                        "{}     (setting on {})",
+                        "  ".repeat(self.suffix_len),
+                        ex_direct_prefix_first_letter
+                    );
+                }
+
+                self.sons.insert(
+                    ex_direct_prefix_first_letter,
+                    child_node_of_ex_direct_child_node,
+                );
+
+                // Re-try now that the Direct Child Node has been normalized (De-Directed).
+                self.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
+                return;
+            }
+
+            let mut child_node = PrefixTrie::new(self.suffix_len + 1);
+            child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
 
             self.sons.insert(curr_letter, child_node);
         } else if i_letter_ls == ls_size {
+            if verbose {
+                println!(
+                    "{}  > found, only update rankings",
+                    "  ".repeat(self.suffix_len)
+                );
+            }
+
             self.update_rankings(ls_index, is_custom_ls);
         } else {
             // Should never happen...
+            // exit(0x0100);
         }
     }
     fn update_rankings(&mut self, ls_index: usize, is_custom_ls: bool) {
@@ -252,6 +408,13 @@ impl PrefixTrie {
                     */
                 }
             }
+            PrefixTrieChildrenMut::DirectChild((_, mut child_node)) => {
+                child_node.merge_rankings_and_sort_recursive(str);
+                /*
+                let new_p = child_node.merge_rankings_and_sort_recursive(str, wbsa, wbsa_indexes, p);
+                p = new_p;
+                */
+            }
         }
 
         // p
@@ -267,6 +430,10 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
                 let child_label = &format!("{}", char_key);
                 log_prefix_trie_recursive(child_node, child_label, &mut file, 0);
             }
+        }
+        PrefixTrieChildren::DirectChild((suffix, child_node)) => {
+            let child_label = &format!("{}", suffix);
+            log_prefix_trie_recursive(child_node, child_label, &mut file, 0);
         }
     }
     file.flush().expect("Unable to flush file");
@@ -290,6 +457,11 @@ fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut Fil
                 let child_label = &format!("{}{}", node_label, char_key);
                 log_prefix_trie_recursive(child_node, child_label, file, level + 1);
             }
+        }
+        PrefixTrieChildren::DirectChild((suffix, child_node)) => {
+            let child_label = &format!("{}{}", node_label, suffix);
+            // log_prefix_trie_recursive(child_node, child_label, file, level + 1);
+            log_prefix_trie_recursive(child_node, child_label, file, level + suffix.len());
         }
     }
 }
