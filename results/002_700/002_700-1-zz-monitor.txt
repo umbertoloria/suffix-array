@@ -1,0 +1,9 @@
+ > Duration phases                :          208428 micros /           0.208 seconds
+ > Duration (with extra)          :         1519025 micros /           1.519 seconds
+ > Phase 1.1: Factorization ICFL  :           34671 micros /           0.035 seconds /   2.282%
+ > Phase 1.2: Factorization Custom:            4546 micros /           0.005 seconds /   0.299%
+ > Phase 2.1: Trie Create         :           16838 micros /           0.017 seconds /   1.108%
+ > Phase 2.2: Trie Merge rankings :          144323 micros /           0.144 seconds /   9.501%
+ > Phase 2.3: Trie In-prefix merge:            2011 micros /           0.002 seconds /   0.132%
+ > Phase 2.4: Tree create         :            1477 micros /           0.001 seconds /   0.097%
+ > Phase 3  : Suffix Array        :            4559 micros /           0.005 seconds /   0.300%
