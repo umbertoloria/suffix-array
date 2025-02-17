@@ -1,6 +1,6 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_trie::PrefixTrie;
+use crate::suffix_array::prefix_trie::{PrefixTrie, PrefixTrieChildren};
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
@@ -567,14 +567,14 @@ pub fn create_prefix_tree_from_prefix_trie(
     root_trie: PrefixTrie,
     prog_sa: &mut ProgSuffixArray,
 ) -> PrefixTree {
-    let (nodes_list, _) = create_prefix_tree_from_trie_deep(root_trie, prog_sa, 0);
+    let (nodes_list, _) = create_prefix_tree_from_trie_deep(&root_trie, prog_sa, 0);
     let mut tree = PrefixTree {
         children: nodes_list,
     };
     tree
 }
 fn create_prefix_tree_from_trie_deep(
-    real_node: PrefixTrie,
+    real_node: &PrefixTrie,
     prog_sa: &mut ProgSuffixArray,
     next_node_index: usize,
 ) -> (Vec<PrefixTreeNode>, usize) {
@@ -585,7 +585,7 @@ fn create_prefix_tree_from_trie_deep(
         // This Node has Rankings, so we consider it.
 
         // Create Prefix Tree Node
-        prog_sa.assign_rankings_to_node_index(next_node_index, real_node.rankings_final);
+        prog_sa.assign_rankings_to_node_index(next_node_index, &real_node.rankings_final);
         let mut node = PrefixTreeNode {
             index: next_node_index,
             suffix_len: real_node.suffix_len,
@@ -597,20 +597,28 @@ fn create_prefix_tree_from_trie_deep(
         next_node_index += 1;
 
         // Add children
-        for (_, son) in real_node.sons {
-            let (nodes_list, next_node_index_) =
-                create_prefix_tree_from_trie_deep(son, prog_sa, next_node_index);
-            node.children.extend(nodes_list);
-            next_node_index = next_node_index_;
+        match real_node.get_children() {
+            PrefixTrieChildren::ManyChildren(children) => {
+                for (_, child_node) in children {
+                    let (nodes_list, next_node_index_) =
+                        create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    node.children.extend(nodes_list);
+                    next_node_index = next_node_index_;
+                }
+            }
         }
         result.push(node);
     } else {
         // This Node is a Bridge, so we consider its Children (skipping Child Bridges).
-        for (_, son) in real_node.sons {
-            let (nodes_list, next_node_index_) =
-                create_prefix_tree_from_trie_deep(son, prog_sa, next_node_index);
-            result.extend(nodes_list);
-            next_node_index = next_node_index_;
+        match real_node.get_children() {
+            PrefixTrieChildren::ManyChildren(children) => {
+                for (_, child_node) in children {
+                    let (nodes_list, next_node_index_) =
+                        create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    result.extend(nodes_list);
+                    next_node_index = next_node_index_;
+                }
+            }
         }
     }
 

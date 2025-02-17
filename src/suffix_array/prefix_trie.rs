@@ -1,6 +1,7 @@
 use crate::suffix_array::chunking::get_max_factor_size;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
+use std::collections::btree_map::{Iter, IterMut};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Write;
@@ -29,7 +30,7 @@ pub fn create_prefix_trie(
         if curr_ls_size <= last_factor_size {
             let ls_index = src_length - curr_ls_size;
             let is_custom_ls = is_custom_vec[ls_index];
-            root.add_string(ls_index, curr_ls_size, 0, src, is_custom_ls);
+            root.add_string(ls_index, curr_ls_size, src, is_custom_ls);
             depths[ls_index] = curr_ls_size;
         }
 
@@ -39,7 +40,7 @@ pub fn create_prefix_trie(
             if curr_ls_size <= curr_factor_size {
                 let ls_index = custom_indexes[i_factor + 1] - curr_ls_size;
                 let is_custom_ls = is_custom_vec[ls_index];
-                root.add_string(ls_index, curr_ls_size, 0, src, is_custom_ls);
+                root.add_string(ls_index, curr_ls_size, src, is_custom_ls);
                 depths[ls_index] = curr_ls_size;
             }
         }
@@ -56,6 +57,13 @@ pub struct PrefixTrie {
     pub rankings_custom: Vec<usize>,
     pub rankings_final: Vec<usize>,
 }
+pub enum PrefixTrieChildren<'a> {
+    ManyChildren(Iter<'a, char, PrefixTrie>),
+}
+pub enum PrefixTrieChildrenMut<'a> {
+    ManyChildren(IterMut<'a, char, PrefixTrie>),
+}
+
 impl PrefixTrie {
     pub fn new(suffix_len: usize) -> Self {
         Self {
@@ -90,6 +98,13 @@ impl PrefixTrie {
     }
     */
 
+    pub fn get_children(&self) -> PrefixTrieChildren {
+        PrefixTrieChildren::ManyChildren(self.sons.iter())
+    }
+    fn get_children_mut(&mut self) -> PrefixTrieChildrenMut {
+        PrefixTrieChildrenMut::ManyChildren(self.sons.iter_mut())
+    }
+
     // Prints
     pub fn print(&self, tabs_offset: usize, prefix: String) {
         println!(
@@ -99,8 +114,12 @@ impl PrefixTrie {
             prefix,
             format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom),
         );
-        for (char_key, node) in &self.sons {
-            node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
+        match self.get_children() {
+            PrefixTrieChildren::ManyChildren(children) => {
+                for (char_key, child_node) in children {
+                    child_node.print(tabs_offset + 1, format!("{}{}", prefix, char_key));
+                }
+            }
         }
     }
     pub fn print_merged(&self, tabs_offset: usize, prefix: String) {
@@ -110,24 +129,22 @@ impl PrefixTrie {
             prefix,
             self.rankings_final,
         );
-        for (char_key, node) in &self.sons {
-            node.print_merged(tabs_offset + 1, format!("{}{}", prefix, char_key));
+        match self.get_children() {
+            PrefixTrieChildren::ManyChildren(children) => {
+                for (char_key, child_node) in children {
+                    child_node.print_merged(tabs_offset + 1, format!("{}{}", prefix, char_key));
+                }
+            }
         }
     }
 
     // Tree transformation
-    fn add_string(
-        &mut self,
-        ls_index: usize,
-        ls_size: usize,
-        i_chars_of_suffix: usize,
-        str: &str,
-        is_custom_ls: bool,
-    ) {
-        if i_chars_of_suffix < ls_size {
+    fn add_string(&mut self, ls_index: usize, ls_size: usize, str: &str, is_custom_ls: bool) {
+        let i_letter_ls = self.suffix_len;
+        if i_letter_ls < ls_size {
             let curr_letter = (
                 //
-                &str[ls_index + i_chars_of_suffix..ls_index + i_chars_of_suffix + 1]
+                &str[ls_index + i_letter_ls..ls_index + i_letter_ls + 1]
             )
                 .chars()
                 .next()
@@ -135,22 +152,22 @@ impl PrefixTrie {
 
             if self.sons.contains_key(&curr_letter) {
                 let child_node = self.sons.get_mut(&curr_letter).unwrap();
-                child_node.add_string(ls_index, ls_size, i_chars_of_suffix + 1, str, is_custom_ls);
+                child_node.add_string(ls_index, ls_size, str, is_custom_ls);
 
                 return;
             }
 
-            let mut child_node = PrefixTrie::new(i_chars_of_suffix + 1);
-            child_node.add_string(ls_index, ls_size, i_chars_of_suffix + 1, str, is_custom_ls);
+            let mut child_node = PrefixTrie::new(i_letter_ls + 1);
+            child_node.add_string(ls_index, ls_size, str, is_custom_ls);
 
             self.sons.insert(curr_letter, child_node);
-        } else if i_chars_of_suffix == ls_size {
-            self.update_rankings_and_depths(ls_index, is_custom_ls);
+        } else if i_letter_ls == ls_size {
+            self.update_rankings(ls_index, is_custom_ls);
         } else {
             // Should never happen...
         }
     }
-    fn update_rankings_and_depths(&mut self, ls_index: usize, is_custom_ls: bool) {
+    fn update_rankings(&mut self, ls_index: usize, is_custom_ls: bool) {
         if is_custom_ls {
             self.rankings_custom.push(ls_index);
         } else {
@@ -225,12 +242,16 @@ impl PrefixTrie {
         */
 
         // Recursive calls...
-        for (_, son) in &mut self.sons {
-            son.merge_rankings_and_sort_recursive(str);
-            /*
-            let new_p = son.merge_rankings_and_sort_recursive(str, wbsa, wbsa_indexes, p);
-            p = new_p;
-            */
+        match self.get_children_mut() {
+            PrefixTrieChildrenMut::ManyChildren(children) => {
+                for (_, child_node) in children {
+                    child_node.merge_rankings_and_sort_recursive(str);
+                    /*
+                    let new_p = child_node.merge_rankings_and_sort_recursive(str, wbsa, wbsa_indexes, p);
+                    p = new_p;
+                    */
+                }
+            }
         }
 
         // p
@@ -240,9 +261,13 @@ impl PrefixTrie {
 // PREFIX TRIE LOGGER
 pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
     let mut file = File::create(filepath).expect("Unable to create file");
-    for (char_key, son) in &root.sons {
-        let son_label = &format!("{}", char_key);
-        log_prefix_trie_recursive(son, son_label, &mut file, 0);
+    match root.get_children() {
+        PrefixTrieChildren::ManyChildren(children) => {
+            for (char_key, child_node) in children {
+                let child_label = &format!("{}", char_key);
+                log_prefix_trie_recursive(child_node, child_label, &mut file, 0);
+            }
+        }
     }
     file.flush().expect("Unable to flush file");
 }
@@ -259,8 +284,12 @@ fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut Fil
     }
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");
-    for (char_key, son) in &node.sons {
-        let son_label = &format!("{}{}", node_label, char_key);
-        log_prefix_trie_recursive(son, son_label, file, level + 1);
+    match node.get_children() {
+        PrefixTrieChildren::ManyChildren(children) => {
+            for (char_key, child_node) in children {
+                let child_label = &format!("{}{}", node_label, char_key);
+                log_prefix_trie_recursive(child_node, child_label, file, level + 1);
+            }
+        }
     }
 }

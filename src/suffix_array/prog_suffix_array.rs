@@ -13,9 +13,9 @@ impl ProgSuffixArray {
             next_index: 0,
         }
     }
-    pub fn assign_rankings_to_node_index(&mut self, node_index: usize, rankings: Vec<usize>) {
+    pub fn assign_rankings_to_node_index(&mut self, node_index: usize, rankings: &Vec<usize>) {
         let mut i = self.next_index;
-        for ls_index in rankings {
+        for &ls_index in rankings {
             self.buffer[i] = ls_index;
             i += 1;
         }
