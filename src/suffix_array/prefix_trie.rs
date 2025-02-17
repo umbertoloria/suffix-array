@@ -33,9 +33,9 @@ pub fn create_prefix_trie(
             let is_custom_ls = is_custom_vec[ls_index];
             root.add_string(ls_index, curr_ls_size, src, is_custom_ls, verbose);
             depths[ls_index] = curr_ls_size;
-            /*if verbose {
+            if verbose {
                 root.print(0, "".into());
-            }*/
+            }
         }
 
         // All Factors from first to second-last
@@ -46,9 +46,9 @@ pub fn create_prefix_trie(
                 let is_custom_ls = is_custom_vec[ls_index];
                 root.add_string(ls_index, curr_ls_size, src, is_custom_ls, verbose);
                 depths[ls_index] = curr_ls_size;
-                /*if verbose {
+                if verbose {
                     root.print(0, "".into());
-                }*/
+                }
             }
         }
     }
@@ -208,31 +208,31 @@ impl PrefixTrie {
                 return;
             }
 
-            if self.suffix_len > 0 && self.sons.is_empty() {
-                if ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING {
-                    if self.direct_child.is_none() {
-                        let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
+            if self.suffix_len > 0
+                && self.sons.is_empty()
+                && self.direct_child.is_none()
+                && ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING
+            {
+                let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
 
-                        if verbose {
-                            println!(
-                                "{}  > create direct child \"{}\"",
-                                "  ".repeat(self.suffix_len),
-                                rest_of_ls
-                            );
-                        }
-
-                        let mut child_node = PrefixTrie::new(ls_size);
-                        child_node.update_rankings(ls_index, is_custom_ls);
-
-                        self.direct_child = Some((
-                            //
-                            rest_of_ls.to_string(),
-                            Box::new(child_node),
-                        ));
-
-                        return;
-                    }
+                if verbose {
+                    println!(
+                        "{}  > create direct child \"{}\"",
+                        "  ".repeat(self.suffix_len),
+                        rest_of_ls
+                    );
                 }
+
+                let mut child_node = PrefixTrie::new(ls_size);
+                child_node.update_rankings(ls_index, is_custom_ls);
+
+                self.direct_child = Some((
+                    //
+                    rest_of_ls.to_string(),
+                    Box::new(child_node),
+                ));
+
+                return;
             }
 
             if verbose {
