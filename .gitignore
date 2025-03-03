@@ -1,6 +1,9 @@
 /target
 .idea
 generated
+results/000/*-zb-timing.json
+results/001/*-zb-timing.json
+results/002_mini/*-zb-timing.json
 results/002_70
 results/002_700
 results/002_7000
