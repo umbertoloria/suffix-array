@@ -46,9 +46,9 @@ pub fn get_path_for_project_suffix_array_file(filename: &str, chunk_size: usize)
     )
 }
 
-pub fn get_path_for_project_outcome_file(filename: &str, chunk_size: usize) -> String {
+pub fn get_path_for_project_outcome_file_json(filename: &str, chunk_size: usize) -> String {
     format!(
-        "{}/{}-{}-za-execution.txt",
+        "{}/{}-{}-za-execution.json",
         get_path_for_project_folder(filename),
         filename,
         chunk_size

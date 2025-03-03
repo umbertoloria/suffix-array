@@ -13,10 +13,11 @@ pub fn main_suffix_array() {
     // let chunk_size_interval = (3, 50);
     // let chunk_size_interval = (35, 35);
     // let chunk_size_interval = (3, 6);
+    // let chunk_size_interval = (4, 200);
 
     // Perform Logging?
-    // let pl = true;
     let pl = true;
+    // let pl = false;
 
     // Debug Mode
     // let dm = DebugMode::Verbose;
@@ -26,7 +27,7 @@ pub fn main_suffix_array() {
     suite_complete_on_fasta_file("000", chunk_size_interval, pl, dm);
     suite_complete_on_fasta_file("001", chunk_size_interval, pl, dm);
     suite_complete_on_fasta_file("002_mini", chunk_size_interval, pl, dm);
-    // suite_complete_on_fasta_file("002_70", chunk_size_interval, pl, dm);
+    suite_complete_on_fasta_file("002_70", chunk_size_interval, pl, dm);
     // suite_complete_on_fasta_file("002_700", chunk_size_interval, pl, dm);
     // suite_complete_on_fasta_file("002_7000", chunk_size_interval, pl, dm);
     // suite_complete_on_fasta_file("002_70000", chunk_size_interval, pl, dm);
