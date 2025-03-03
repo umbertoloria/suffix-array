@@ -58,26 +58,17 @@ pub struct PrefixTreeNode {
     pub index: usize,
     pub suffix_len: usize,
     pub children: Vec<PrefixTreeNode>,
-    pub rankings_forced: Option<Vec<usize>>,
     pub min_father: Option<usize>,
     pub max_father: Option<usize>,
 }
 impl PrefixTreeNode {
-    fn get_rankings<'a>(&'a self, prog_sa: &'a ProgSuffixArray) -> &'a [usize] {
-        if let Some(rankings_forced) = &self.rankings_forced {
-            &rankings_forced[0..]
-        } else {
-            prog_sa.get_rankings(self.index)
-        }
-    }
-
     fn get_label_from_first_ranking<'a>(&self, str: &'a str, rankings: &[usize]) -> &'a str {
         // Unfortunately (maybe), each caller has its own reason to already have "rankings"...
         let first_ranking = rankings[0];
         &str[first_ranking..first_ranking + self.suffix_len]
     }
     pub fn print(&self, str: &str, prog_sa: &ProgSuffixArray, tabs_offset: usize) {
-        let rankings = self.get_rankings(prog_sa);
+        let rankings = prog_sa.get_rankings(self.index);
         println!(
             "{}\"{}\" {:?}   m={} M={}",
             "\t".repeat(tabs_offset),
@@ -110,8 +101,6 @@ impl PrefixTreeNode {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        // FIXME: Avoid cloning
-        let this_ranking = &self.get_rankings(prog_sa).to_vec()[0..];
         for child in &mut self.children {
             child.in_prefix_merge_deep(
                 str,
@@ -120,7 +109,7 @@ impl PrefixTreeNode {
                 icfl_indexes,
                 is_custom_vec,
                 icfl_factor_list,
-                this_ranking,
+                self.index,
                 compare_cache,
                 monitor,
                 verbose,
@@ -135,22 +124,23 @@ impl PrefixTreeNode {
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
-        parent_rankings: &[usize],
+        parent_index: usize,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        // Compare this node's rankings with parent's rankings.
-        let parent_first_ls_index = parent_rankings[0];
-        let parent_ls_length = depths[parent_first_ls_index];
-        let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
+        // Compare This Node's Rankings with Parent Node's Rankings.
+        let parent_rankings = prog_sa.get_rankings(parent_index);
 
         // FIXME: Avoid cloning
-        let this_rankings = &self.get_rankings(prog_sa).to_vec()[0..];
+        let this_rankings = &prog_sa.get_rankings(self.index).to_vec()[0..];
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
         if verbose {
+            let parent_first_ls_index = parent_rankings[0];
+            let parent_ls_length = depths[parent_first_ls_index];
+            let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
             println!(
                 "Compare parent ({}) {:?} with curr ({}) {:?}",
                 parent_ls, parent_rankings, this_ls, this_rankings
@@ -293,15 +283,11 @@ impl PrefixTreeNode {
                         println!("     > no parent rankings left to add");
                     }
                 }
-                // FIXME: Update in Progressive Suffix Array
-                self.rankings_forced = Some(new_rankings);
+                prog_sa.save_rankings_forced(self.index, new_rankings);
             }
         }
 
         // Now it's your turn to be the parent.
-        // It's vital to "update" variable "this_rankings".
-        // FIXME: Avoid cloning
-        let this_rankings = &self.get_rankings(prog_sa).to_vec()[0..];
         for child in &mut self.children {
             child.in_prefix_merge_deep(
                 str,
@@ -310,7 +296,7 @@ impl PrefixTreeNode {
                 icfl_indexes,
                 is_custom_vec,
                 icfl_factor_list,
-                this_rankings,
+                self.index,
                 compare_cache,
                 monitor,
                 verbose,
@@ -506,7 +492,7 @@ impl PrefixTreeNode {
         let mut result: Vec<usize> = Vec::new();
 
         // FIXME: Avoid cloning
-        let common = &self.get_rankings(prog_sa).to_vec()[0..];
+        let common = &prog_sa.get_rankings(self.index).to_vec()[0..];
 
         if self.children.is_empty() {
             result.extend(common);
@@ -555,7 +541,7 @@ impl PrefixTreeNode {
         result.extend(&common[position..]);
 
         if verbose {
-            let rankings = self.get_rankings(prog_sa);
+            let rankings = prog_sa.get_rankings(self.index);
             println!(
                 "Node {} (m={:?}, M={:?}) {:?} => {:?}",
                 self.get_label_from_first_ranking(str, rankings),
@@ -595,7 +581,6 @@ fn create_prefix_tree_from_trie_deep(
             index: next_node_index,
             suffix_len: real_node.suffix_len,
             children: Vec::new(),
-            rankings_forced: None,
             min_father: None,
             max_father: None,
         };
@@ -666,7 +651,7 @@ fn log_prefix_tree_recursive(
     file: &mut File,
     level: usize,
 ) {
-    let rankings = node.get_rankings(prog_sa);
+    let rankings = prog_sa.get_rankings(node.index);
     let mut line = format!(
         "{}{}",
         " ".repeat(level),
