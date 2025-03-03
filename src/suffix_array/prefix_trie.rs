@@ -60,28 +60,33 @@ pub fn create_prefix_trie(
 const MIN_SIZE_DIRECT_CHILD_SUBSTRING: usize = 2;
 pub struct PrefixTrie {
     pub suffix_len: usize,
-    // TODO: Try to use HashMap but keeping chars sorted
-    pub sons: BTreeMap<char, PrefixTrie>,
-    pub direct_child: Option<(String, Box<PrefixTrie>)>,
+    pub data: PrefixTrieData,
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
     pub rankings_final: Vec<usize>,
 }
+enum PrefixTrieData {
+    DirectChild((String, Box<PrefixTrie>)),
+    // TODO: Try to use HashMap but keeping chars sorted
+    Children(BTreeMap<char, PrefixTrie>),
+    Leaf,
+}
 pub enum PrefixTrieChildren<'a> {
     ManyChildren(Iter<'a, char, PrefixTrie>),
     DirectChild((&'a String, &'a Box<PrefixTrie>)),
+    Leaf,
 }
 pub enum PrefixTrieChildrenMut<'a> {
     ManyChildren(IterMut<'a, char, PrefixTrie>),
     DirectChild((&'a String, &'a mut Box<PrefixTrie>)),
+    Leaf,
 }
 
 impl PrefixTrie {
     pub fn new(suffix_len: usize) -> Self {
         Self {
             suffix_len,
-            sons: BTreeMap::new(),
-            direct_child: None,
+            data: PrefixTrieData::Leaf,
             rankings_canonical: Vec::new(),
             rankings_custom: Vec::new(),
             rankings_final: Vec::new(),
@@ -112,17 +117,23 @@ impl PrefixTrie {
     */
 
     pub fn get_children(&self) -> PrefixTrieChildren {
-        if let Some((prefix, direct_child_node)) = &self.direct_child {
-            PrefixTrieChildren::DirectChild((prefix, direct_child_node))
-        } else {
-            PrefixTrieChildren::ManyChildren(self.sons.iter())
+        match &self.data {
+            PrefixTrieData::DirectChild((prefix, direct_child_node)) => {
+                PrefixTrieChildren::DirectChild((prefix, direct_child_node))
+            }
+            PrefixTrieData::Children(children) => PrefixTrieChildren::ManyChildren(children.iter()),
+            PrefixTrieData::Leaf => PrefixTrieChildren::Leaf,
         }
     }
     fn get_children_mut(&mut self) -> PrefixTrieChildrenMut {
-        if let Some((prefix, direct_child_node)) = &mut self.direct_child {
-            PrefixTrieChildrenMut::DirectChild((prefix, direct_child_node))
-        } else {
-            PrefixTrieChildrenMut::ManyChildren(self.sons.iter_mut())
+        match &mut self.data {
+            PrefixTrieData::DirectChild((prefix, direct_child_node)) => {
+                PrefixTrieChildrenMut::DirectChild((prefix, direct_child_node))
+            }
+            PrefixTrieData::Children(children) => {
+                PrefixTrieChildrenMut::ManyChildren(children.iter_mut())
+            }
+            PrefixTrieData::Leaf => PrefixTrieChildrenMut::Leaf,
         }
     }
 
@@ -144,6 +155,7 @@ impl PrefixTrie {
             PrefixTrieChildren::DirectChild((suffix, child_node)) => {
                 child_node.print(tabs_offset + 1, format!("{}{}", prefix, suffix));
             }
+            PrefixTrieChildren::Leaf => {}
         }
     }
     pub fn print_merged(&self, tabs_offset: usize, prefix: String) {
@@ -162,6 +174,7 @@ impl PrefixTrie {
             PrefixTrieChildren::DirectChild((suffix, child_node)) => {
                 child_node.print_merged(tabs_offset + 1, format!("{}{}", prefix, suffix));
             }
+            PrefixTrieChildren::Leaf => {}
         }
     }
 
@@ -193,56 +206,64 @@ impl PrefixTrie {
                 .next()
                 .unwrap();
 
-            if self.sons.contains_key(&curr_letter) {
-                if verbose {
-                    println!(
-                        "{}  > contained {}",
-                        "  ".repeat(self.suffix_len),
-                        curr_letter
-                    );
-                }
-
-                let child_node = self.sons.get_mut(&curr_letter).unwrap();
-                child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
-
-                return;
-            }
-
-            if self.suffix_len > 0 && self.sons.is_empty() {
-                let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
-
-                if let Some((prefix, direct_child_node)) = &mut self.direct_child {
-                    if rest_of_ls == prefix {
-                        direct_child_node.update_rankings(ls_index, is_custom_ls);
-
-                        return;
-                    }
-                } else if ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING {
-                    // Here we are in a leaf. So we create a Direct Child Node instead of a Path made of
-                    // multiple Child Nodes.
-
+            if let PrefixTrieData::Children(children) = &mut self.data {
+                if children.contains_key(&curr_letter) {
                     if verbose {
                         println!(
-                            "{}  > create direct child \"{}\"",
+                            "{}  > contained {}",
                             "  ".repeat(self.suffix_len),
-                            rest_of_ls
+                            curr_letter
                         );
                     }
 
-                    let mut child_node = PrefixTrie::new(ls_size);
-                    child_node.update_rankings(ls_index, is_custom_ls);
-
-                    self.direct_child = Some((
-                        //
-                        rest_of_ls.to_string(),
-                        Box::new(child_node),
-                    ));
+                    let child_node = children.get_mut(&curr_letter).unwrap();
+                    child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
 
                     return;
                 }
             }
 
-            if let Some((old_direct_prefix, old_direct_child_node)) = &self.direct_child {
+            if self.suffix_len > 0 {
+                if let PrefixTrieData::Leaf = &mut self.data {
+                    let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
+
+                    if ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING {
+                        // Here we are in a leaf. So we create a Direct Child Node instead of a Path made of
+                        // multiple Child Nodes.
+
+                        if verbose {
+                            println!(
+                                "{}  > create direct child \"{}\"",
+                                "  ".repeat(self.suffix_len),
+                                rest_of_ls
+                            );
+                        }
+
+                        let mut child_node = PrefixTrie::new(ls_size);
+                        child_node.update_rankings(ls_index, is_custom_ls);
+
+                        self.data = PrefixTrieData::DirectChild((
+                            //
+                            rest_of_ls.to_string(),
+                            Box::new(child_node),
+                        ));
+
+                        return;
+                    }
+                }
+                if let PrefixTrieData::DirectChild((prefix, direct_child_node)) = &mut self.data {
+                    let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
+                    if rest_of_ls == prefix {
+                        direct_child_node.update_rankings(ls_index, is_custom_ls);
+
+                        return;
+                    }
+                }
+            }
+
+            if let PrefixTrieData::DirectChild((old_direct_prefix, old_direct_child_node)) =
+                &mut self.data
+            {
                 if verbose {
                     println!(
                         "{}  > create regular child (after normalizing direct child node)",
@@ -277,7 +298,6 @@ impl PrefixTrie {
                         verbose,
                     );
                 }
-                self.direct_child = None;
 
                 if verbose {
                     println!(
@@ -287,10 +307,12 @@ impl PrefixTrie {
                     );
                 }
 
-                self.sons.insert(
+                let mut children = BTreeMap::new();
+                children.insert(
                     ex_direct_prefix_first_letter,
                     child_node_of_ex_direct_child_node,
                 );
+                self.data = PrefixTrieData::Children(children);
 
                 // Re-try now that the Direct Child Node has been normalized (De-Directed).
                 self.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
@@ -303,7 +325,17 @@ impl PrefixTrie {
             let mut child_node = PrefixTrie::new(self.suffix_len + 1);
             child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
 
-            self.sons.insert(curr_letter, child_node);
+            // TODO: It is "DirectChild((prefix" or "DirectChild((suffix"?
+
+            if let PrefixTrieData::Children(children) = &mut self.data {
+                children.insert(curr_letter, child_node);
+            } else if let PrefixTrieData::Leaf = &mut self.data {
+                let mut children = BTreeMap::new();
+                children.insert(curr_letter, child_node);
+                self.data = PrefixTrieData::Children(children);
+            } else if let PrefixTrieData::DirectChild(_) = &mut self.data {
+                // TODO: Avoid this false case...
+            }
         } else if i_letter_ls == ls_size {
             if verbose {
                 println!(
@@ -410,6 +442,7 @@ impl PrefixTrie {
                 p = new_p;
                 */
             }
+            PrefixTrieChildrenMut::Leaf => {}
         }
 
         // p
@@ -430,6 +463,7 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
             let child_label = &format!("{}", suffix);
             log_prefix_trie_recursive(child_node, child_label, &mut file, 0);
         }
+        PrefixTrieChildren::Leaf => {}
     }
     file.flush().expect("Unable to flush file");
 }
@@ -458,5 +492,6 @@ fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut Fil
             // log_prefix_trie_recursive(child_node, child_label, file, level + 1);
             log_prefix_trie_recursive(child_node, child_label, file, level + suffix.len());
         }
+        PrefixTrieChildren::Leaf => {}
     }
 }

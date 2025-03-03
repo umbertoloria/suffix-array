@@ -614,6 +614,7 @@ fn create_prefix_tree_from_trie_deep(
                 node.children.extend(nodes_list);
                 next_node_index = next_node_index_;
             }
+            PrefixTrieChildren::Leaf => {}
         }
         result.push(node);
     } else {
@@ -633,6 +634,7 @@ fn create_prefix_tree_from_trie_deep(
                 result.extend(nodes_list);
                 next_node_index = next_node_index_;
             }
+            PrefixTrieChildren::Leaf => {}
         }
     }
 
