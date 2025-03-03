@@ -46,6 +46,15 @@ pub fn get_path_for_project_suffix_array_file(filename: &str, chunk_size: usize)
     )
 }
 
+pub fn get_path_for_project_outcome_file(filename: &str, chunk_size: usize) -> String {
+    format!(
+        "{}/{}-{}-za-execution.txt",
+        get_path_for_project_folder(filename),
+        filename,
+        chunk_size
+    )
+}
+
 pub fn get_path_for_project_monitor_file(filename: &str, chunk_size: usize) -> String {
     format!(
         "{}/{}-{}-zz-monitor.txt",

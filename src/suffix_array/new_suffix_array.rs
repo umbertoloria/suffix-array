@@ -1,12 +1,14 @@
 use crate::factorization::icfl::icfl;
 use crate::files::paths::{
     get_path_for_project_folder, get_path_for_project_monitor_file,
-    get_path_for_project_prefix_tree_file, get_path_for_project_prefix_trie_file,
-    get_path_for_project_suffix_array_file,
+    get_path_for_project_outcome_file, get_path_for_project_prefix_tree_file,
+    get_path_for_project_prefix_trie_file, get_path_for_project_suffix_array_file,
 };
 use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
 use crate::suffix_array::compare_cache::CompareCache;
-use crate::suffix_array::monitor::{log_monitor_after_process_ended, ExecutionInfo, Monitor};
+use crate::suffix_array::monitor::{
+    log_execution_outcome, log_monitor_after_process_ended, ExecutionInfo, Monitor,
+};
 use crate::suffix_array::prefix_tree::{
     create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
     make_sure_directory_exist,
@@ -204,6 +206,10 @@ pub fn compute_innovative_suffix_array(
     // +
     let execution_info = monitor.transform_info_execution_info();
     if perform_logging {
+        log_execution_outcome(
+            &execution_info.execution_outcome,
+            get_path_for_project_outcome_file(fasta_file_name, chunk_size_num_for_log),
+        );
         log_monitor_after_process_ended(
             &execution_info.execution_timing,
             get_path_for_project_monitor_file(fasta_file_name, chunk_size_num_for_log),

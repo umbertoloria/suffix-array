@@ -315,6 +315,32 @@ impl ExecutionOutcome {
     }
 }
 
+pub fn log_execution_outcome(execution_outcome: &ExecutionOutcome, filepath: String) {
+    let mut content = String::new();
+
+    content.push_str(&format!(
+        "{}: {:15}\n",
+        "Compares using rules             ", execution_outcome.compares_using_rules
+    ));
+    content.push_str(&format!(
+        "{}: {:15}\n",
+        "Compares using string compare    ", execution_outcome.compares_using_strcmp
+    ));
+    content.push_str(&format!(
+        "{}: {:15}\n",
+        "Compares using one Custom Factor ", execution_outcome.compares_with_one_cf
+    ));
+    content.push_str(&format!(
+        "{}: {:15}\n",
+        "Compares using two Custom Factors", execution_outcome.compares_with_two_cfs
+    ));
+
+    let mut file = File::create(filepath).expect("Unable to create file");
+    file.write(content.as_bytes())
+        .expect("Unable to write line");
+    file.flush().expect("Unable to flush file");
+}
+
 pub fn log_monitor_after_process_ended(execution_timing: &ExecutionTiming, filepath: String) {
     let mut content = String::new();
 
