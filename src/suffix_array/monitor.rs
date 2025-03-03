@@ -1,3 +1,4 @@
+use crate::suffix_array::log_execution_info::round_int_100;
 use std::time::{Duration, Instant};
 
 #[derive(Debug)]
@@ -221,14 +222,21 @@ pub struct ExecutionTiming {
     pub duration_extra: Duration,
     pub sum_duration_only_phases: Duration,
     pub whole_duration: Duration,
-    pub prop_p11: f64,
-    pub prop_p12: f64,
-    pub prop_p21: f64,
-    pub prop_p22: f64,
-    pub prop_p23: f64,
-    pub prop_p24: f64,
-    pub prop_p3: f64,
-    pub prop_extra: f64,
+    pub prop_with_extra_p11: f64,
+    pub prop_with_extra_p12: f64,
+    pub prop_with_extra_p21: f64,
+    pub prop_with_extra_p22: f64,
+    pub prop_with_extra_p23: f64,
+    pub prop_with_extra_p24: f64,
+    pub prop_with_extra_p3: f64,
+    pub prop_with_extra_extra: f64,
+    pub prop_p11: u16,
+    pub prop_p12: u16,
+    pub prop_p21: u16,
+    pub prop_p22: u16,
+    pub prop_p23: u16,
+    pub prop_p24: u16,
+    pub prop_p3: u16,
 }
 impl ExecutionTiming {
     pub fn new(
@@ -253,16 +261,31 @@ impl ExecutionTiming {
         // Extra Duration
         let duration_extra = whole_duration - sum_duration_only_phases;
 
-        // Proportions
+        // Proportions (with extra)
         let sum_micros_incl_extra = whole_duration.as_micros();
-        let prop_p11 = duration_p11.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_p12 = duration_p12.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_p21 = duration_p21.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_p22 = duration_p22.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_p23 = duration_p23.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_p24 = duration_p24.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_p3 = duration_p3.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_extra = duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_with_extra_p11 = duration_p11.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_with_extra_p12 = duration_p12.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_with_extra_p21 = duration_p21.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_with_extra_p22 = duration_p22.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_with_extra_p23 = duration_p23.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_with_extra_p24 = duration_p24.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_with_extra_p3 = duration_p3.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_with_extra_extra =
+            duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64;
+
+        let sum_micros_excl_extra = sum_duration_only_phases.as_micros() as f32;
+        let prop_p11 = round_int_100(duration_p11.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p12 = round_int_100(duration_p12.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p21 = round_int_100(duration_p21.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p22 = round_int_100(duration_p22.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p23 = round_int_100(duration_p23.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p24 = round_int_100(duration_p24.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p3 = 100 - (prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p24);
+        /*let prop_p3 = round_int_5(duration_p3.as_micros() as f32 / sum_micros_excl_extra);
+        let check_sum = prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p24 + prop_p3;
+        if check_sum != 100 {
+            // PROBLEM
+        }*/
 
         Self {
             duration_p11,
@@ -275,6 +298,14 @@ impl ExecutionTiming {
             sum_duration_only_phases,
             whole_duration,
             duration_extra,
+            prop_with_extra_p11,
+            prop_with_extra_p12,
+            prop_with_extra_p21,
+            prop_with_extra_p22,
+            prop_with_extra_p23,
+            prop_with_extra_p24,
+            prop_with_extra_p3,
+            prop_with_extra_extra,
             prop_p11,
             prop_p12,
             prop_p21,
@@ -282,7 +313,6 @@ impl ExecutionTiming {
             prop_p23,
             prop_p24,
             prop_p3,
-            prop_extra,
         }
     }
     fn get_list(&self) -> Vec<Duration> {

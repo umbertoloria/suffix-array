@@ -117,14 +117,14 @@ pub fn draw_plot_from_monitor(
 
         let execution_timing = &monitor_value_for_chunk_size.execution_timing;
         let ratios = vec![
-            execution_timing.prop_p11,
-            execution_timing.prop_p12,
-            execution_timing.prop_p21,
-            execution_timing.prop_p22,
-            execution_timing.prop_p23,
-            execution_timing.prop_p24,
-            execution_timing.prop_p3,
-            execution_timing.prop_extra,
+            execution_timing.prop_with_extra_p11,
+            execution_timing.prop_with_extra_p12,
+            execution_timing.prop_with_extra_p21,
+            execution_timing.prop_with_extra_p22,
+            execution_timing.prop_with_extra_p23,
+            execution_timing.prop_with_extra_p24,
+            execution_timing.prop_with_extra_p3,
+            execution_timing.prop_with_extra_extra,
         ];
 
         let record = &records[i_block_of_columns];
