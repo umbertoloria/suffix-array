@@ -5,8 +5,8 @@ use std::fs;
 use std::process::exit;
 
 pub fn main_factorization() {
-
     // LYNDON FACTORIZATION
+    /*
     let src = "umberto";
     println!("Source (CFL): {}", src);
     let factors = cfl(src);
@@ -14,9 +14,10 @@ pub fn main_factorization() {
         println!("{}", factor);
     }
     println!();
+    */
 
     // INVERSE LYNDON FACTORIZATION
-    let src = "aaaba";
+    let src = "AAABCAABCADCAABCA";
     println!("Source (ICFL): {}", src);
     let factors = icfl(src);
     for factor in factors {
@@ -25,11 +26,13 @@ pub fn main_factorization() {
     println!();
 
     // ..WITH FILES
+    /*
     for index in 1..1553 {
         println!("Factorizing FASTA file: {}", index);
         print_kmers_from_fasta_to_file_number(index, "cfl");
         print_kmers_from_fasta_to_file_number(index, "icfl");
     }
+    */
 }
 
 fn print_kmers_from_fasta_to_file_number(index: usize, fact_alg_of_choice: &str) {

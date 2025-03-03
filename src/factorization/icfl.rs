@@ -17,7 +17,7 @@ pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
     let (x, y) = icfl_find_prefix(w);
 
     // if x == w + '0' // Should be.
-    if x.len() == w.len() + 1 && x[w.len()] == '0'.try_into().unwrap() {
+    if x.len() == w.len() + 1 && x[w.len()] == <char as TryInto<u8>>::try_into('0').unwrap() {
         let mut i = 0;
         while i < w.len() && x[i] == w[i] {
             i += 1;
