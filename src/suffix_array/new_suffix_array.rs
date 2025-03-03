@@ -6,8 +6,8 @@ use crate::files::paths::{
 };
 use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
 use crate::suffix_array::compare_cache::CompareCache;
-use crate::suffix_array::log_execution_info::log_execution_timing;
-use crate::suffix_array::log_execution_outcome::log_execution_outcome;
+use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
+use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
 use crate::suffix_array::prefix_tree::{
     create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
@@ -15,6 +15,7 @@ use crate::suffix_array::prefix_tree::{
 };
 use crate::suffix_array::prefix_trie::{create_prefix_trie, log_prefix_trie};
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
+use crate::utils::json::dump_json_in_file;
 use std::process::exit;
 
 // INNOVATIVE SUFFIX ARRAY
@@ -206,12 +207,19 @@ pub fn compute_innovative_suffix_array(
     // +
     let execution_info = monitor.transform_info_execution_info();
     if perform_logging {
-        log_execution_outcome(
-            &execution_info.execution_outcome,
+        // Execution Outcome JSON file
+        let execution_outcome_file_format =
+            ExecutionOutcomeFileFormat::new(&execution_info.execution_outcome);
+        dump_json_in_file(
+            &execution_outcome_file_format,
             get_path_for_project_outcome_file_json(fasta_file_name, chunk_size_num_for_log),
         );
-        log_execution_timing(
-            &execution_info.execution_timing,
+
+        // Execution Timing JSON file
+        let execution_timing_file_format =
+            ExecutionInfoFileFormat::new(&execution_info.execution_timing);
+        dump_json_in_file(
+            &execution_timing_file_format,
             get_path_for_project_timing_file_json(fasta_file_name, chunk_size_num_for_log),
         );
     }
