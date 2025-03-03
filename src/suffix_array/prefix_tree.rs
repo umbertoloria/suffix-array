@@ -132,8 +132,7 @@ impl PrefixTreeNode {
         // Compare This Node's Rankings with Parent Node's Rankings.
         let parent_rankings = prog_sa.get_rankings(parent_index);
 
-        // FIXME: Avoid cloning
-        let this_rankings = &prog_sa.get_rankings(self.index).to_vec()[0..];
+        let this_rankings = prog_sa.get_rankings(self.index);
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
@@ -491,8 +490,7 @@ impl PrefixTreeNode {
     ) -> Vec<usize> {
         let mut result: Vec<usize> = Vec::new();
 
-        // FIXME: Avoid cloning
-        let common = &prog_sa.get_rankings(self.index).to_vec()[0..];
+        let common = prog_sa.get_rankings(self.index);
 
         if self.children.is_empty() {
             result.extend(common);

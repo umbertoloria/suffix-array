@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 177226,
-    "duration_phases_with_extra____": 836512,
-    "phase_1_1_factorization_icfl__": 2452,
-    "phase_1_2_factorization_custom": 133,
-    "phase_2_1_trie_create_________": 54587,
-    "phase_2_2_trie_merge_rankings_": 27239,
-    "phase_2_3_trie_in_prefix_merge": 59009,
-    "phase_2_4_tree_create_________": 19155,
-    "phase_3_0_suffix_array________": 14647
+    "duration_phases_______________": 176772,
+    "duration_phases_with_extra____": 807665,
+    "phase_1_1_factorization_icfl__": 2457,
+    "phase_1_2_factorization_custom": 125,
+    "phase_2_1_trie_create_________": 61922,
+    "phase_2_2_trie_merge_rankings_": 30993,
+    "phase_2_3_trie_in_prefix_merge": 57820,
+    "phase_2_4_tree_create_________": 13397,
+    "phase_3_0_suffix_array________": 10056
   },
   "seconds": {
     "duration_phases_______________": 0.177,
-    "duration_phases_with_extra____": 0.837,
+    "duration_phases_with_extra____": 0.808,
     "phase_1_1_factorization_icfl__": 0.002,
     "phase_1_2_factorization_custom": 0.0,
-    "phase_2_1_trie_create_________": 0.055,
-    "phase_2_2_trie_merge_rankings_": 0.027,
-    "phase_2_3_trie_in_prefix_merge": 0.059,
-    "phase_2_4_tree_create_________": 0.019,
-    "phase_3_0_suffix_array________": 0.015
+    "phase_2_1_trie_create_________": 0.062,
+    "phase_2_2_trie_merge_rankings_": 0.031,
+    "phase_2_3_trie_in_prefix_merge": 0.058,
+    "phase_2_4_tree_create_________": 0.013,
+    "phase_3_0_suffix_array________": 0.01
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 1,
     "phase_1_2_factorization_custom": 0,
-    "phase_2_1_trie_create_________": 31,
-    "phase_2_2_trie_merge_rankings_": 15,
+    "phase_2_1_trie_create_________": 35,
+    "phase_2_2_trie_merge_rankings_": 18,
     "phase_2_3_trie_in_prefix_merge": 33,
-    "phase_2_4_tree_create_________": 11,
-    "phase_3_0_suffix_array________": 9
+    "phase_2_4_tree_create_________": 8,
+    "phase_3_0_suffix_array________": 5
   }
 }

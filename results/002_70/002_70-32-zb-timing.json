@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 186782,
-    "duration_phases_with_extra____": 755131,
-    "phase_1_1_factorization_icfl__": 3050,
-    "phase_1_2_factorization_custom": 238,
-    "phase_2_1_trie_create_________": 69011,
-    "phase_2_2_trie_merge_rankings_": 29000,
-    "phase_2_3_trie_in_prefix_merge": 56433,
-    "phase_2_4_tree_create_________": 16882,
-    "phase_3_0_suffix_array________": 12166
+    "duration_phases_______________": 167524,
+    "duration_phases_with_extra____": 743957,
+    "phase_1_1_factorization_icfl__": 3112,
+    "phase_1_2_factorization_custom": 216,
+    "phase_2_1_trie_create_________": 57727,
+    "phase_2_2_trie_merge_rankings_": 26500,
+    "phase_2_3_trie_in_prefix_merge": 51665,
+    "phase_2_4_tree_create_________": 18829,
+    "phase_3_0_suffix_array________": 9472
   },
   "seconds": {
-    "duration_phases_______________": 0.187,
-    "duration_phases_with_extra____": 0.755,
+    "duration_phases_______________": 0.168,
+    "duration_phases_with_extra____": 0.744,
     "phase_1_1_factorization_icfl__": 0.003,
     "phase_1_2_factorization_custom": 0.0,
-    "phase_2_1_trie_create_________": 0.069,
-    "phase_2_2_trie_merge_rankings_": 0.029,
-    "phase_2_3_trie_in_prefix_merge": 0.056,
-    "phase_2_4_tree_create_________": 0.017,
-    "phase_3_0_suffix_array________": 0.012
+    "phase_2_1_trie_create_________": 0.058,
+    "phase_2_2_trie_merge_rankings_": 0.027,
+    "phase_2_3_trie_in_prefix_merge": 0.052,
+    "phase_2_4_tree_create_________": 0.019,
+    "phase_3_0_suffix_array________": 0.009
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 2,
     "phase_1_2_factorization_custom": 0,
-    "phase_2_1_trie_create_________": 37,
+    "phase_2_1_trie_create_________": 34,
     "phase_2_2_trie_merge_rankings_": 16,
-    "phase_2_3_trie_in_prefix_merge": 30,
-    "phase_2_4_tree_create_________": 9,
+    "phase_2_3_trie_in_prefix_merge": 31,
+    "phase_2_4_tree_create_________": 11,
     "phase_3_0_suffix_array________": 6
   }
 }
