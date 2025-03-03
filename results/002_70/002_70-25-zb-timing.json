@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 179201,
-    "duration_phases_with_extra____": 736296,
-    "phase_1_1_factorization_icfl__": 3050,
-    "phase_1_2_factorization_custom": 261,
-    "phase_2_1_trie_create_________": 61035,
-    "phase_2_2_trie_merge_rankings_": 27304,
-    "phase_2_3_trie_in_prefix_merge": 58186,
-    "phase_2_4_tree_create_________": 18074,
-    "phase_3_0_suffix_array________": 11289
+    "duration_phases_______________": 166398,
+    "duration_phases_with_extra____": 703377,
+    "phase_1_1_factorization_icfl__": 2752,
+    "phase_1_2_factorization_custom": 200,
+    "phase_2_1_trie_create_________": 63820,
+    "phase_2_2_trie_merge_rankings_": 24457,
+    "phase_2_3_trie_in_prefix_merge": 47440,
+    "phase_2_4_tree_create_________": 15436,
+    "phase_3_0_suffix_array________": 12291
   },
   "seconds": {
-    "duration_phases_______________": 0.179,
-    "duration_phases_with_extra____": 0.736,
+    "duration_phases_______________": 0.166,
+    "duration_phases_with_extra____": 0.703,
     "phase_1_1_factorization_icfl__": 0.003,
     "phase_1_2_factorization_custom": 0.0,
-    "phase_2_1_trie_create_________": 0.061,
-    "phase_2_2_trie_merge_rankings_": 0.027,
-    "phase_2_3_trie_in_prefix_merge": 0.058,
-    "phase_2_4_tree_create_________": 0.018,
-    "phase_3_0_suffix_array________": 0.011
+    "phase_2_1_trie_create_________": 0.064,
+    "phase_2_2_trie_merge_rankings_": 0.024,
+    "phase_2_3_trie_in_prefix_merge": 0.047,
+    "phase_2_4_tree_create_________": 0.015,
+    "phase_3_0_suffix_array________": 0.012
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 2,
     "phase_1_2_factorization_custom": 0,
-    "phase_2_1_trie_create_________": 34,
+    "phase_2_1_trie_create_________": 38,
     "phase_2_2_trie_merge_rankings_": 15,
-    "phase_2_3_trie_in_prefix_merge": 32,
-    "phase_2_4_tree_create_________": 10,
+    "phase_2_3_trie_in_prefix_merge": 29,
+    "phase_2_4_tree_create_________": 9,
     "phase_3_0_suffix_array________": 7
   }
 }

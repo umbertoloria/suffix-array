@@ -567,16 +567,13 @@ pub fn create_prefix_tree_from_prefix_trie(
     root_trie: PrefixTrie,
     prog_sa: &mut ProgSuffixArray,
 ) -> PrefixTree {
-    let (nodes_list, _) = create_prefix_tree_from_trie_deep(&root_trie, prog_sa, 0);
-    let mut tree = PrefixTree {
+    let (nodes_list, _) = create_prefix_tree_from_trie_deep(root_trie, prog_sa, 0);
+    PrefixTree {
         children: nodes_list,
-    };
-    // TODO: The Prefix Trie "root_trie" is going to be freed all in once here. Should we free as we
-    //  build Prefix Tree instead?
-    tree
+    }
 }
 fn create_prefix_tree_from_trie_deep(
-    real_node: &PrefixTrie,
+    real_node: PrefixTrie,
     prog_sa: &mut ProgSuffixArray,
     next_node_index: usize,
 ) -> (Vec<PrefixTreeNode>, usize) {
@@ -599,7 +596,7 @@ fn create_prefix_tree_from_trie_deep(
         next_node_index += 1;
 
         // Add children
-        match &real_node.data {
+        match real_node.data {
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
                     let (nodes_list, next_node_index_) =
@@ -610,7 +607,7 @@ fn create_prefix_tree_from_trie_deep(
             }
             PrefixTrieData::DirectChild((_, child_node)) => {
                 let (nodes_list, next_node_index_) =
-                    create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    create_prefix_tree_from_trie_deep(*child_node, prog_sa, next_node_index);
                 node.children.extend(nodes_list);
                 next_node_index = next_node_index_;
             }
@@ -620,7 +617,7 @@ fn create_prefix_tree_from_trie_deep(
         result.push(node);
     } else {
         // This Node is a Bridge, so we consider its Children (skipping Child Bridges).
-        match &real_node.data {
+        match real_node.data {
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
                     let (nodes_list, next_node_index_) =
@@ -631,7 +628,7 @@ fn create_prefix_tree_from_trie_deep(
             }
             PrefixTrieData::DirectChild((_, child_node)) => {
                 let (nodes_list, next_node_index_) =
-                    create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    create_prefix_tree_from_trie_deep(*child_node, prog_sa, next_node_index);
                 result.extend(nodes_list);
                 next_node_index = next_node_index_;
             }
