@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 136413,
-    "duration_phases_with_extra____": 560622,
-    "phase_1_1_factorization_icfl__": 2866,
-    "phase_1_2_factorization_custom": 231,
-    "phase_2_1_trie_create_________": 40967,
-    "phase_2_2_trie_merge_rankings_": 19081,
-    "phase_2_3_trie_in_prefix_merge": 47019,
-    "phase_2_4_tree_create_________": 17049,
-    "phase_3_0_suffix_array________": 9197
+    "duration_phases_______________": 155211,
+    "duration_phases_with_extra____": 605034,
+    "phase_1_1_factorization_icfl__": 2809,
+    "phase_1_2_factorization_custom": 241,
+    "phase_2_1_trie_create_________": 54091,
+    "phase_2_2_trie_merge_rankings_": 28180,
+    "phase_2_3_trie_in_prefix_merge": 42367,
+    "phase_2_4_tree_create_________": 16966,
+    "phase_3_0_suffix_array________": 10554
   },
   "seconds": {
-    "duration_phases_______________": 0.136,
-    "duration_phases_with_extra____": 0.561,
+    "duration_phases_______________": 0.155,
+    "duration_phases_with_extra____": 0.605,
     "phase_1_1_factorization_icfl__": 0.003,
     "phase_1_2_factorization_custom": 0.0,
-    "phase_2_1_trie_create_________": 0.041,
-    "phase_2_2_trie_merge_rankings_": 0.019,
-    "phase_2_3_trie_in_prefix_merge": 0.047,
+    "phase_2_1_trie_create_________": 0.054,
+    "phase_2_2_trie_merge_rankings_": 0.028,
+    "phase_2_3_trie_in_prefix_merge": 0.042,
     "phase_2_4_tree_create_________": 0.017,
-    "phase_3_0_suffix_array________": 0.009
+    "phase_3_0_suffix_array________": 0.011
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 2,
     "phase_1_2_factorization_custom": 0,
-    "phase_2_1_trie_create_________": 30,
-    "phase_2_2_trie_merge_rankings_": 14,
-    "phase_2_3_trie_in_prefix_merge": 34,
-    "phase_2_4_tree_create_________": 12,
-    "phase_3_0_suffix_array________": 8
+    "phase_2_1_trie_create_________": 35,
+    "phase_2_2_trie_merge_rankings_": 18,
+    "phase_2_3_trie_in_prefix_merge": 27,
+    "phase_2_4_tree_create_________": 11,
+    "phase_3_0_suffix_array________": 7
   }
 }
