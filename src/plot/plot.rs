@@ -45,7 +45,8 @@ pub fn draw_plot_from_monitor(
     let execution_generics_list = chunk_size_and_execution_info_list
         .into_iter()
         .map(|(chunk_size, execution_info)| {
-            let (execution_timing, execution_outcome) = execution_info;
+            let execution_timing = execution_info.execution_timing;
+            let execution_outcome = execution_info.execution_outcome;
             let chunk_size = chunk_size as u32;
             ExecutionGenerics {
                 chunk_size,

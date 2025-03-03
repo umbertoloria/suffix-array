@@ -205,7 +205,7 @@ pub fn compute_innovative_suffix_array(
     let execution_info = monitor.transform_info_execution_info();
     if perform_logging {
         log_monitor_after_process_ended(
-            &execution_info.0,
+            &execution_info.execution_timing,
             get_path_for_project_monitor_file(fasta_file_name, chunk_size_num_for_log),
         );
     }

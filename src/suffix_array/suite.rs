@@ -88,8 +88,10 @@ fn run_and_validate_test(
         debug_mode,
     );
     let suffix_array = innovative_suffix_array_computation.suffix_array;
-    let (execution_timing, execution_outcome) = innovative_suffix_array_computation.execution_info;
+    let execution_info = innovative_suffix_array_computation.execution_info;
 
+    let execution_timing = &execution_info.execution_timing;
+    let execution_outcome = &execution_info.execution_outcome;
     let chunk_size_or_zero = if let Some(chunk_size) = chunk_size {
         chunk_size
     } else {
@@ -162,7 +164,7 @@ fn run_and_validate_test(
 
     let mut result = RunAndValidateTestOutput {
         failed: false,
-        execution_info: (execution_timing, execution_outcome),
+        execution_info,
     };
 
     if success {

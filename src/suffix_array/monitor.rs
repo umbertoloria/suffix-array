@@ -152,9 +152,10 @@ impl Monitor {
 
     // EVALUATE TIMING AND PROPORTIONS
     pub fn transform_info_execution_info(self) -> ExecutionInfo {
-        let execution_timing = self.transform_into_execution_timing();
-        let execution_outcome = self.transform_into_execution_outcome();
-        (execution_timing, execution_outcome)
+        ExecutionInfo {
+            execution_timing: self.transform_into_execution_timing(),
+            execution_outcome: self.transform_into_execution_outcome(),
+        }
     }
     fn transform_into_execution_timing(&self) -> ExecutionTiming {
         ExecutionTiming::new(
@@ -207,7 +208,10 @@ impl MonitorInterval {
 }
 
 // MONITOR LOGGER
-pub type ExecutionInfo = (ExecutionTiming, ExecutionOutcome);
+pub struct ExecutionInfo {
+    pub execution_timing: ExecutionTiming,
+    pub execution_outcome: ExecutionOutcome,
+}
 pub struct ExecutionTiming {
     pub duration_p11: Duration,
     pub duration_p12: Duration,
@@ -302,19 +306,6 @@ pub struct ExecutionOutcome {
     pub compares_using_strcmp: usize,
 }
 impl ExecutionOutcome {
-    pub fn new(
-        compares_with_two_cfs: usize,
-        compares_with_one_cf: usize,
-        compares_using_rules: usize,
-        compares_using_strcmp: usize,
-    ) -> Self {
-        Self {
-            compares_with_two_cfs,
-            compares_with_one_cf,
-            compares_using_rules,
-            compares_using_strcmp,
-        }
-    }
     pub fn print(&self) {
         println!("Execution Outcome:");
         println!(" > two custom: {}", self.compares_with_two_cfs);
