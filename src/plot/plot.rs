@@ -5,7 +5,7 @@ use plotters::prelude::full_palette::{
     BLUE_400, GREEN_500, GREY, GREY_500, GREY_600, GREY_700, ORANGE_300, ORANGE_500, ORANGE_600,
     PURPLE, RED_600, YELLOW_600,
 };
-use plotters::prelude::{GREEN, RED};
+use plotters::prelude::{RGBColor, GREEN, RED};
 
 pub fn draw_plot_from_monitor(
     fasta_file_name: &str,
@@ -60,18 +60,18 @@ pub fn draw_plot_from_monitor(
         .collect::<Vec<_>>();
 
     let mut records = Vec::new();
-    for monitor_value_for_chunk_size in &execution_generics_list {
+    for execution_generics in &execution_generics_list {
         records.push(vec![
             // This is required only to have min and max values.
-            monitor_value_for_chunk_size
+            execution_generics
                 .execution_timing
                 .whole_duration
                 .as_millis() as u32,
-            monitor_value_for_chunk_size.chunk_size,
-            monitor_value_for_chunk_size.param_1,
-            monitor_value_for_chunk_size.param_2,
-            monitor_value_for_chunk_size.param_3,
-            monitor_value_for_chunk_size.param_4,
+            execution_generics.chunk_size,
+            execution_generics.param_1,
+            execution_generics.param_2,
+            execution_generics.param_3,
+            execution_generics.param_4,
         ]);
     }
 
@@ -113,22 +113,21 @@ pub fn draw_plot_from_monitor(
 
     let mut i_block_of_columns = 0;
     while i_block_of_columns < execution_generics_list.len() {
-        let monitor_value_for_chunk_size = &execution_generics_list[i_block_of_columns];
+        let execution_generics = &execution_generics_list[i_block_of_columns];
 
-        let execution_timing = &monitor_value_for_chunk_size.execution_timing;
+        let execution_timing = &execution_generics.execution_timing;
         let ratios = vec![
-            execution_timing.prop_with_extra_p11,
-            execution_timing.prop_with_extra_p12,
-            execution_timing.prop_with_extra_p21,
-            execution_timing.prop_with_extra_p22,
-            execution_timing.prop_with_extra_p23,
-            execution_timing.prop_with_extra_p24,
-            execution_timing.prop_with_extra_p3,
-            execution_timing.prop_with_extra_extra,
+            execution_timing.prop_p11,
+            execution_timing.prop_p12,
+            execution_timing.prop_p21,
+            execution_timing.prop_p22,
+            execution_timing.prop_p23,
+            execution_timing.prop_p24,
+            execution_timing.prop_p3,
         ];
 
         let record = &records[i_block_of_columns];
-        let chunk_size = record[1];
+        let chunk_size = execution_generics.chunk_size;
         let mut group_of_bars = GroupOfBars::new();
 
         let mut curr_x = chunk_size * num_cols_per_data_item;
@@ -139,8 +138,8 @@ pub fn draw_plot_from_monitor(
             let mut curr_y_bottom = 0;
 
             let mut i_ratio = 0;
-            for ratio in &ratios {
-                let proportional_value = (ratio * (diagram_max_y as f64)) as i32;
+            for &ratio in &ratios {
+                let proportional_value = (ratio as f64 / 100.0 * (diagram_max_y as f64)) as i32;
                 composite_bar.add_rectangle(
                     //
                     SingleBarRectangle::new(
@@ -164,25 +163,25 @@ pub fn draw_plot_from_monitor(
         // Composite Bar: durations spread in actual height
         {
             let mut composite_bar = SingleBar::new();
-            let mut curr_y_bottom = 0;
-
-            let min_column = min_values[i_column_in_this_block];
-            let max_column = max_values[i_column_in_this_block];
-            let diff_max_min_column = max_column - min_column;
 
             let value = record[i_column_in_this_block];
+            let min_value = min_values[i_column_in_this_block];
+            let max_value = max_values[i_column_in_this_block];
+            let diff_max_min_column = max_value - min_value;
+
             let percentage = if diff_max_min_column == 0 {
                 // If all data are the same, we use a 50% as default value.
                 0.5
             } else {
-                (value - min_column) as f64 / diff_max_min_column as f64
+                (value - min_value) as f64 / diff_max_min_column as f64
             };
             let this_max_height = // Value "min_height" is included.
                 diagram_min_y_drawn_for_bar + (percentage * (leeway_height_for_placing_ys as f64)) as i32;
 
+            let mut curr_y_bottom = 0;
             let mut i_ratio = 0;
-            for ratio in &ratios {
-                let proportional_value = (ratio * (this_max_height as f64)) as i32;
+            for &ratio in &ratios {
+                let proportional_value = (ratio as f64 / 100.0 * (this_max_height as f64)) as i32;
                 let single_bar_rectangle = SingleBarRectangle::new(
                     curr_x,
                     curr_y_bottom,
@@ -193,46 +192,37 @@ pub fn draw_plot_from_monitor(
                 curr_y_bottom += proportional_value;
                 i_ratio += 1;
             }
-
             group_of_bars.add_bar(composite_bar);
+
             curr_x += 1;
             i_column_in_this_block += 1;
         }
 
         // Single Bars
         while i_column_in_this_block < record.len() {
-            let min_column = min_values[i_column_in_this_block];
-            let max_column = max_values[i_column_in_this_block];
-            let diff_max_min_column = max_column - min_column;
-
             let value = record[i_column_in_this_block];
-            let percentage = if diff_max_min_column == 0 {
-                // If all data are the same, we use a 50% as default value.
-                0.5
-            } else {
-                (value - min_column) as f64 / diff_max_min_column as f64
-            };
-            let proportional_value = // Value "min_height" is included.
-                diagram_min_y_drawn_for_bar + (percentage * (leeway_height_for_placing_ys as f64)) as i32;
+            let min_value = min_values[i_column_in_this_block];
+            let max_value = max_values[i_column_in_this_block];
+            let color = colors[i_column_in_this_block];
 
-            let mut single_bar = SingleBar::new();
-            single_bar.add_rectangle(
+            group_of_bars.add_bar(
                 //
-                SingleBarRectangle::new(
-                    //
+                create_single_bar_from_value(
                     curr_x,
-                    0,
-                    proportional_value,
-                    colors[i_column_in_this_block],
+                    diagram_min_y_drawn_for_bar,
+                    leeway_height_for_placing_ys,
+                    value,
+                    min_value,
+                    max_value,
+                    color,
                 ),
             );
-            group_of_bars.add_bar(single_bar);
 
             curr_x += 1;
             i_column_in_this_block += 1;
         }
-        groups_of_bars.push(group_of_bars);
 
+        groups_of_bars.push(group_of_bars);
         i_block_of_columns += 1;
     }
 
@@ -252,4 +242,37 @@ pub fn draw_plot_from_monitor(
         diagram_max_y,
         groups_of_bars,
     );
+}
+
+fn create_single_bar_from_value(
+    x: u32,
+    diagram_min_y_drawn_for_bar: i32,
+    leeway_height_for_placing_ys: i32,
+    value: u32,
+    min_value: u32,
+    max_value: u32,
+    color: RGBColor,
+) -> SingleBar {
+    let diff_max_min_column = max_value - min_value;
+    let percentage = if diff_max_min_column == 0 {
+        // If all data are the same, we use a 50% as default value.
+        0.5
+    } else {
+        (value - min_value) as f64 / diff_max_min_column as f64
+    };
+    let proportional_value = // Value "min_height" is included.
+        diagram_min_y_drawn_for_bar + (percentage * (leeway_height_for_placing_ys as f64)) as i32;
+
+    let mut single_bar = SingleBar::new();
+    single_bar.add_rectangle(
+        //
+        SingleBarRectangle::new(
+            //
+            x,
+            0,
+            proportional_value,
+            color,
+        ),
+    );
+    single_bar
 }
