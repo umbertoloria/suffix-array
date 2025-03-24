@@ -17,10 +17,9 @@ pub fn create_prefix_trie(
 ) -> PrefixTrie {
     let max_factor_size =
         get_max_factor_size(&custom_indexes, src_length).expect("max_factor_size is not valid");
-
     let mut next_index = PREFIX_TRIE_FIRST_IDS_START_FROM;
-    let mut root = PrefixTrie::new(next_index, 0);
-    next_index += 1;
+
+    let mut root = PrefixTrie::new_using_next_index(&mut next_index, 0);
 
     let custom_indexes_len = custom_indexes.len();
     let last_factor_size = src_length - custom_indexes[custom_indexes_len - 1];
@@ -80,7 +79,7 @@ pub struct PrefixTrie {
     pub data: PrefixTrieData,
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
-    pub rankings_final: Vec<usize>,
+    pub rankings: Vec<usize>,
 }
 pub enum PrefixTrieData {
     DirectChild((String, Box<PrefixTrie>)),
@@ -89,6 +88,11 @@ pub enum PrefixTrieData {
     InitRoot, // Will be replaced with "Children" as soon as First Layer Nodes come in.
 }
 impl PrefixTrie {
+    pub fn new_using_next_index(next_index: &mut usize, suffix_len: usize) -> Self {
+        let id = *next_index;
+        *next_index += 1;
+        Self::new(id, suffix_len)
+    }
     pub fn new(id: usize, suffix_len: usize) -> Self {
         Self {
             id,
@@ -100,32 +104,9 @@ impl PrefixTrie {
             },
             rankings_canonical: Vec::new(),
             rankings_custom: Vec::new(),
-            rankings_final: Vec::new(),
+            rankings: Vec::new(),
         }
     }
-    // Getters
-    /*
-    fn get_buff_index_left(&self, wbsa_indexes: &WbsaIndexes) -> usize {
-        wbsa_indexes.get(&self.index).unwrap().0
-        // self.wbsa_p
-    }
-    fn get_buff_index_right_excl(&self, wbsa_indexes: &WbsaIndexes) -> usize {
-        wbsa_indexes.get(&self.index).unwrap().1
-        // self.wbsa_q
-    }
-    pub fn get_rankings<'a>(
-        &self,
-        wbsa: &'a Vec<usize>,
-        wbsa_indexes: &WbsaIndexes,
-    ) -> &'a [usize] {
-        &wbsa[self.get_buff_index_left(wbsa_indexes)..self.get_buff_index_right_excl(wbsa_indexes)]
-    }
-    */
-    /*
-    pub fn get_rankings(&self) -> &Vec<usize> {
-        &self.rankings_final
-    }
-    */
 
     // Prints
     pub fn print(&self, tabs_offset: usize, prefix_rec: String) {
@@ -154,7 +135,7 @@ impl PrefixTrie {
             "{}\"{}\" {:?}",
             "\t".repeat(tabs_offset),
             prefix_rec,
-            self.rankings_final,
+            self.rankings,
         );
         match &self.data {
             PrefixTrieData::Children(children) => {
@@ -293,8 +274,8 @@ impl PrefixTrie {
                         println!("{}  > create regular child", "  ".repeat(self.suffix_len));
                     }
 
-                    let mut new_child_node = PrefixTrie::new(*next_index, self.suffix_len + 1);
-                    *next_index += 1;
+                    let mut new_child_node =
+                        PrefixTrie::new_using_next_index(next_index, self.suffix_len + 1);
                     new_child_node.add_string(
                         next_index,
                         ls_index,
@@ -325,8 +306,7 @@ impl PrefixTrie {
                     }
 
                     // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new(*next_index, ls_size);
-                    *next_index += 1;
+                    let mut new_child_node = PrefixTrie::new_using_next_index(next_index, ls_size);
                     new_child_node.update_rankings(ls_index, is_custom_ls);
 
                     self.data = PrefixTrieData::DirectChild((
@@ -340,8 +320,8 @@ impl PrefixTrie {
                     }
 
                     // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new(*next_index, self.suffix_len + 1);
-                    *next_index += 1;
+                    let mut new_child_node =
+                        PrefixTrie::new_using_next_index(next_index, self.suffix_len + 1);
                     new_child_node.add_string(
                         next_index,
                         ls_index,
@@ -363,8 +343,8 @@ impl PrefixTrie {
                 }
 
                 // This is the first inserted Child Node.
-                let mut new_child_node = PrefixTrie::new(*next_index, self.suffix_len + 1);
-                *next_index += 1;
+                let mut new_child_node =
+                    PrefixTrie::new_using_next_index(next_index, self.suffix_len + 1);
                 new_child_node.add_string(
                     next_index,
                     ls_index,
@@ -407,7 +387,7 @@ impl PrefixTrie {
         }
         // OK, now Rankings Customs is sorted as well. Rankings Canonical was already sorted. Now we
         // perform the merge between these lists.
-        let mut unified_rankings = &mut self.rankings_final;
+        let mut unified_rankings = &mut self.rankings;
         unified_rankings.reserve(self.rankings_canonical.len() + sorted_rankings_custom.len());
         let mut i_canonical = 0;
         let mut i_custom = 0;
@@ -501,7 +481,7 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
 }
 fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut File, level: usize) {
     let mut line = format!("{}{}", " ".repeat(level), node_label);
-    let mut rankings = &node.rankings_final;
+    let mut rankings = &node.rankings;
     if !rankings.is_empty() {
         line.push_str(" [");
         for i in 0..rankings.len() - 1 {

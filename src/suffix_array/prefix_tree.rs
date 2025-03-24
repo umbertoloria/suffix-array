@@ -570,11 +570,11 @@ fn create_prefix_tree_from_trie_deep(
     let mut result = Vec::new();
     let mut next_node_index = next_node_index;
 
-    if real_node.rankings_final.len() > 0 {
+    if real_node.rankings.len() > 0 {
         // This Node has Rankings, so we consider it.
 
         // Create Prefix Tree Node
-        prog_sa.assign_rankings_to_node_index(next_node_index, &real_node.rankings_final);
+        prog_sa.assign_rankings_to_node_index(next_node_index, &real_node.rankings);
         let mut node = PrefixTreeNode {
             index: next_node_index,
             suffix_len: real_node.suffix_len,

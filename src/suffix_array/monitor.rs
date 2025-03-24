@@ -281,7 +281,8 @@ impl ExecutionTiming {
         let prop_p22 = round_int_100(duration_p22.as_micros() as f32 / sum_micros_excl_extra);
         let prop_p23 = round_int_100(duration_p23.as_micros() as f32 / sum_micros_excl_extra);
         let prop_p24 = round_int_100(duration_p24.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p3 = 100 - (prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p24);
+        let prop_p3 =
+            100 - (prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p24).min(100);
         /*let prop_p3 = round_int_5(duration_p3.as_micros() as f32 / sum_micros_excl_extra);
         let check_sum = prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p24 + prop_p3;
         if check_sum != 100 {
