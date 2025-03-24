@@ -98,11 +98,7 @@ pub fn compute_innovative_suffix_array(
     monitor.phase2_2_prefix_trie_merge_rankings_stop();
 
     // +
-    let chunk_size_num_for_log = if let Some(chunk_size) = chunk_size {
-        chunk_size
-    } else {
-        0
-    };
+    let chunk_size_num_for_log = chunk_size.unwrap_or(0);
     if perform_logging {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_prefix_trie(

@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Write;
 
+const PREFIX_TRIE_FIRST_IDS_START_FROM: usize = 0;
 pub fn create_prefix_trie(
     src: &str,
     src_length: usize,
@@ -17,7 +18,9 @@ pub fn create_prefix_trie(
     let max_factor_size =
         get_max_factor_size(&custom_indexes, src_length).expect("max_factor_size is not valid");
 
-    let mut root = PrefixTrie::new(0);
+    let mut next_index = PREFIX_TRIE_FIRST_IDS_START_FROM;
+    let mut root = PrefixTrie::new(next_index, 0);
+    next_index += 1;
 
     let custom_indexes_len = custom_indexes.len();
     let last_factor_size = src_length - custom_indexes[custom_indexes_len - 1];
@@ -30,7 +33,14 @@ pub fn create_prefix_trie(
         if curr_ls_size <= last_factor_size {
             let ls_index = src_length - curr_ls_size;
             let is_custom_ls = is_custom_vec[ls_index];
-            root.add_string(ls_index, curr_ls_size, src, is_custom_ls, verbose);
+            root.add_string(
+                &mut next_index,
+                ls_index,
+                curr_ls_size,
+                src,
+                is_custom_ls,
+                verbose,
+            );
             depths[ls_index] = curr_ls_size;
             if verbose {
                 root.print(0, "".into());
@@ -43,7 +53,14 @@ pub fn create_prefix_trie(
             if curr_ls_size <= curr_factor_size {
                 let ls_index = custom_indexes[i_factor + 1] - curr_ls_size;
                 let is_custom_ls = is_custom_vec[ls_index];
-                root.add_string(ls_index, curr_ls_size, src, is_custom_ls, verbose);
+                root.add_string(
+                    &mut next_index,
+                    ls_index,
+                    curr_ls_size,
+                    src,
+                    is_custom_ls,
+                    verbose,
+                );
                 depths[ls_index] = curr_ls_size;
                 if verbose {
                     root.print(0, "".into());
@@ -58,6 +75,7 @@ pub fn create_prefix_trie(
 // TODO: Maybe understand when to adjust "MIN_SIZE_DIRECT_CHILD_SUBSTRING" (if needed)
 const MIN_SIZE_DIRECT_CHILD_SUBSTRING: usize = 2;
 pub struct PrefixTrie {
+    pub id: usize,
     pub suffix_len: usize,
     pub data: PrefixTrieData,
     pub rankings_canonical: Vec<usize>,
@@ -71,8 +89,9 @@ pub enum PrefixTrieData {
     InitRoot, // Will be replaced with "Children" as soon as First Layer Nodes come in.
 }
 impl PrefixTrie {
-    pub fn new(suffix_len: usize) -> Self {
+    pub fn new(id: usize, suffix_len: usize) -> Self {
         Self {
+            id,
             suffix_len,
             data: if suffix_len == 0 {
                 PrefixTrieData::InitRoot
@@ -154,6 +173,7 @@ impl PrefixTrie {
     // Tree transformation
     fn add_string(
         &mut self,
+        next_index: &mut usize,
         ls_index: usize,
         ls_size: usize,
         str: &str,
@@ -194,10 +214,10 @@ impl PrefixTrie {
             .unwrap();
 
         match &mut self.data {
-            PrefixTrieData::DirectChild((prefix, direct_child_node)) => {
+            PrefixTrieData::DirectChild((prefix, child_node)) => {
                 let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
                 if rest_of_ls == prefix {
-                    direct_child_node.update_rankings(ls_index, is_custom_ls);
+                    child_node.update_rankings(ls_index, is_custom_ls);
 
                     return;
                 }
@@ -211,9 +231,11 @@ impl PrefixTrie {
 
                 let prefix_first_letter = (&prefix[0..1]).chars().next().unwrap();
 
-                let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
-                for &ranking_canonical in &direct_child_node.rankings_canonical {
+                // Node "child_node" will disappear, so its ID will be used by "new_child_node"
+                let mut new_child_node = PrefixTrie::new(child_node.id, self.suffix_len + 1);
+                for &ranking_canonical in &child_node.rankings_canonical {
                     new_child_node.add_string(
+                        next_index,
                         ranking_canonical,
                         self.suffix_len + prefix.len(),
                         str,
@@ -221,8 +243,9 @@ impl PrefixTrie {
                         verbose,
                     );
                 }
-                for &ranking_custom in &direct_child_node.rankings_custom {
+                for &ranking_custom in &child_node.rankings_custom {
                     new_child_node.add_string(
+                        next_index,
                         ranking_custom,
                         self.suffix_len + prefix.len(),
                         str,
@@ -244,7 +267,7 @@ impl PrefixTrie {
                 self.data = PrefixTrieData::Children(children);
 
                 // Re-try now that the Direct Child Node has been normalized (De-Directed).
-                self.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
+                self.add_string(next_index, ls_index, ls_size, str, is_custom_ls, verbose);
             }
             PrefixTrieData::Children(children) => {
                 if children.contains_key(&curr_letter) {
@@ -257,14 +280,29 @@ impl PrefixTrie {
                     }
 
                     let child_node = children.get_mut(&curr_letter).unwrap();
-                    child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
+                    child_node.add_string(
+                        next_index,
+                        ls_index,
+                        ls_size,
+                        str,
+                        is_custom_ls,
+                        verbose,
+                    );
                 } else {
                     if verbose {
                         println!("{}  > create regular child", "  ".repeat(self.suffix_len));
                     }
 
-                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
-                    new_child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
+                    let mut new_child_node = PrefixTrie::new(*next_index, self.suffix_len + 1);
+                    *next_index += 1;
+                    new_child_node.add_string(
+                        next_index,
+                        ls_index,
+                        ls_size,
+                        str,
+                        is_custom_ls,
+                        verbose,
+                    );
 
                     children.insert(curr_letter, new_child_node);
                 }
@@ -287,7 +325,8 @@ impl PrefixTrie {
                     }
 
                     // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new(ls_size);
+                    let mut new_child_node = PrefixTrie::new(*next_index, ls_size);
+                    *next_index += 1;
                     new_child_node.update_rankings(ls_index, is_custom_ls);
 
                     self.data = PrefixTrieData::DirectChild((
@@ -301,8 +340,16 @@ impl PrefixTrie {
                     }
 
                     // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
-                    new_child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
+                    let mut new_child_node = PrefixTrie::new(*next_index, self.suffix_len + 1);
+                    *next_index += 1;
+                    new_child_node.add_string(
+                        next_index,
+                        ls_index,
+                        ls_size,
+                        str,
+                        is_custom_ls,
+                        verbose,
+                    );
 
                     let mut children = BTreeMap::new();
                     children.insert(curr_letter, new_child_node);
@@ -316,8 +363,16 @@ impl PrefixTrie {
                 }
 
                 // This is the first inserted Child Node.
-                let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
-                new_child_node.add_string(ls_index, ls_size, str, is_custom_ls, verbose);
+                let mut new_child_node = PrefixTrie::new(*next_index, self.suffix_len + 1);
+                *next_index += 1;
+                new_child_node.add_string(
+                    next_index,
+                    ls_index,
+                    ls_size,
+                    str,
+                    is_custom_ls,
+                    verbose,
+                );
 
                 let mut children = BTreeMap::new();
                 children.insert(curr_letter, new_child_node);
