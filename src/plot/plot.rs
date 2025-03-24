@@ -100,7 +100,7 @@ pub fn draw_plot_from_monitor(
     let diagram_max_y = 10000;
     let leeway_height_for_placing_ys = diagram_max_y - diagram_min_y_drawn_for_bar;
 
-    let mut ratio_colors = vec![
+    let ratio_colors = vec![
         GREY_500,   // execution_timing.prop_p11,
         GREY_600,   // execution_timing.prop_p12,
         ORANGE_300, // execution_timing.prop_p21,
@@ -134,13 +134,15 @@ pub fn draw_plot_from_monitor(
 
         // Composite Bar: durations spread in full height
         {
-            let composite_bar = create_composite_bar_with_ratios_spread_in_full_height(
-                curr_x,
-                &ratio_colors,
-                diagram_max_y,
-                &ratios,
+            group_of_bars.add_bar(
+                //
+                create_composite_bar_with_ratios_spread_in_full_height(
+                    curr_x,
+                    diagram_max_y,
+                    &ratio_colors,
+                    &ratios,
+                ),
             );
-            group_of_bars.add_bar(composite_bar);
             curr_x += 1;
         }
 
@@ -152,33 +154,19 @@ pub fn draw_plot_from_monitor(
             let min_value = min_values[i_column_in_this_block];
             let max_value = max_values[i_column_in_this_block];
 
-            let mut composite_bar = SingleBar::new();
-            let diff_max_min_column = max_value - min_value;
-            let percentage = if diff_max_min_column == 0 {
-                // If all data are the same, we use a 50% as default value.
-                0.5
-            } else {
-                (value - min_value) as f64 / diff_max_min_column as f64
-            };
-            let this_max_height = // Value "min_height" is included.
-                diagram_min_y_drawn_for_bar + (percentage * (leeway_height_for_placing_ys as f64)) as i32;
-
-            let mut curr_y_bottom = 0;
-            let mut i_ratio = 0;
-            for &ratio in &ratios {
-                let proportional_value = (ratio as f64 / 100.0 * (this_max_height as f64)) as i32;
-                let color = ratio_colors[i_ratio];
-                let single_bar_rectangle = SingleBarRectangle::new(
+            group_of_bars.add_bar(
+                //
+                create_composite_bar_with_ratios_spread_in_actual_height(
                     curr_x,
-                    curr_y_bottom,
-                    curr_y_bottom + proportional_value,
-                    color,
-                );
-                composite_bar.add_rectangle(single_bar_rectangle);
-                curr_y_bottom += proportional_value;
-                i_ratio += 1;
-            }
-            group_of_bars.add_bar(composite_bar);
+                    diagram_min_y_drawn_for_bar,
+                    leeway_height_for_placing_ys,
+                    &ratio_colors,
+                    &ratios,
+                    value,
+                    min_value,
+                    max_value,
+                ),
+            );
 
             curr_x += 1;
             i_column_in_this_block += 1;
@@ -230,17 +218,57 @@ pub fn draw_plot_from_monitor(
     );
 }
 
+fn create_composite_bar_with_ratios_spread_in_actual_height(
+    x: u32,
+    y_min: i32,
+    y_leeway_spacing: i32,
+    ratio_colors: &Vec<RGBColor>,
+    ratios: &Vec<u16>,
+    value: u32,
+    min_value: u32,
+    max_value: u32,
+) -> SingleBar {
+    let mut composite_bar = SingleBar::new();
+
+    let diff_max_min_column = max_value - min_value;
+    let percentage = if diff_max_min_column == 0 {
+        // If all data are the same, we use a 50% as default value.
+        0.5
+    } else {
+        (value - min_value) as f64 / diff_max_min_column as f64
+    };
+    let y = y_min + (percentage * y_leeway_spacing as f64) as i32;
+
+    let mut curr_y_bottom = 0;
+    let mut i_ratio = 0;
+    for &ratio in ratios {
+        let proportional_value = (ratio as f64 / 100.0 * (y as f64)) as i32;
+        composite_bar.add_rectangle(
+            //
+            SingleBarRectangle::new(
+                x,
+                curr_y_bottom,
+                curr_y_bottom + proportional_value,
+                ratio_colors[i_ratio],
+            ),
+        );
+        curr_y_bottom += proportional_value;
+        i_ratio += 1;
+    }
+    composite_bar
+}
+
 fn create_composite_bar_with_ratios_spread_in_full_height(
     x: u32,
+    y_max: i32,
     ratio_colors: &Vec<RGBColor>,
-    diagram_max_y: i32,
     ratios: &Vec<u16>,
 ) -> SingleBar {
     let mut composite_bar = SingleBar::new();
     let mut curr_y_bottom = 0;
     let mut i_ratio = 0;
     for &ratio in ratios {
-        let proportional_value = (ratio as f64 / 100.0 * (diagram_max_y as f64)) as i32;
+        let proportional_value = (ratio as f64 / 100.0 * (y_max as f64)) as i32;
         composite_bar.add_rectangle(
             //
             SingleBarRectangle::new(
@@ -258,8 +286,8 @@ fn create_composite_bar_with_ratios_spread_in_full_height(
 
 fn create_single_bar_from_value(
     x: u32,
-    diagram_min_y_drawn_for_bar: i32,
-    leeway_height_for_placing_ys: i32,
+    y_min: i32,
+    y_leeway_spacing: i32,
     value: u32,
     min_value: u32,
     max_value: u32,
@@ -272,19 +300,12 @@ fn create_single_bar_from_value(
     } else {
         (value - min_value) as f64 / diff_max_min_column as f64
     };
-    let proportional_value = // Value "min_height" is included.
-        diagram_min_y_drawn_for_bar + (percentage * (leeway_height_for_placing_ys as f64)) as i32;
+    let y = y_min + (percentage * y_leeway_spacing as f64) as i32;
 
     let mut single_bar = SingleBar::new();
     single_bar.add_rectangle(
         //
-        SingleBarRectangle::new(
-            //
-            x,
-            0,
-            proportional_value,
-            color,
-        ),
+        SingleBarRectangle::new(x, 0, y, color),
     );
     single_bar
 }
