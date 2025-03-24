@@ -12,7 +12,8 @@ pub fn draw_plot_from_monitor(
     chunk_size_and_execution_info_list: Vec<(usize, ExecutionInfo)>,
 ) {
     // Duration Composite + Chunk Size + Duration + 4 monitor parameters + gap.
-    let num_cols_per_data_item: u32 = 1 + 2 + 4 + 1;
+    // let num_cols_per_data_item: u32 = 1 + 2 + 4 + 1;
+    let num_cols_per_data_item: u32 = 1;
 
     let min_chunk_size = chunk_size_and_execution_info_list
         .first()
@@ -133,7 +134,7 @@ pub fn draw_plot_from_monitor(
         let mut curr_x = chunk_size * num_cols_per_data_item;
 
         // Composite Bar: durations spread in full height
-        {
+        /*{
             group_of_bars.add_bar(
                 //
                 create_composite_bar_with_ratios_spread_in_full_height(
@@ -144,7 +145,7 @@ pub fn draw_plot_from_monitor(
                 ),
             );
             curr_x += 1;
-        }
+        }*/
 
         let mut i_column_in_this_block = 0;
 
@@ -173,7 +174,7 @@ pub fn draw_plot_from_monitor(
         }
 
         // Single Bars
-        while i_column_in_this_block < record.len() {
+        /*while i_column_in_this_block < record.len() {
             let value = record[i_column_in_this_block];
             let min_value = min_values[i_column_in_this_block];
             let max_value = max_values[i_column_in_this_block];
@@ -194,7 +195,7 @@ pub fn draw_plot_from_monitor(
 
             curr_x += 1;
             i_column_in_this_block += 1;
-        }
+        }*/
 
         groups_of_bars.push(group_of_bars);
         i_block_of_columns += 1;

@@ -230,6 +230,7 @@ pub struct ExecutionTiming {
     pub prop_with_extra_p24: f64,
     pub prop_with_extra_p3: f64,
     pub prop_with_extra_extra: f64,
+    // Those are from 0 to 100 (sum 100).
     pub prop_p11: u16,
     pub prop_p12: u16,
     pub prop_p21: u16,
