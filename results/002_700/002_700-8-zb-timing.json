@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 393532,
-    "duration_phases_with_extra____": 2163214,
-    "phase_1_1_factorization_icfl__": 28183,
-    "phase_1_2_factorization_custom": 2041,
-    "phase_2_1_trie_create_________": 91069,
-    "phase_2_2_trie_merge_rankings_": 64819,
-    "phase_2_3_trie_in_prefix_merge": 37457,
-    "phase_2_4_tree_create_________": 139105,
-    "phase_3_0_suffix_array________": 30855
+    "duration_phases_______________": 372699,
+    "duration_phases_with_extra____": 2151524,
+    "phase_1_1_factorization_icfl__": 31977,
+    "phase_1_2_factorization_custom": 2239,
+    "phase_2_1_trie_create_________": 88227,
+    "phase_2_2_trie_merge_rankings_": 59434,
+    "phase_2_3_trie_in_prefix_merge": 34726,
+    "phase_2_4_tree_create_________": 126604,
+    "phase_3_0_suffix_array________": 29488
   },
   "seconds": {
-    "duration_phases_______________": 0.394,
-    "duration_phases_with_extra____": 2.163,
-    "phase_1_1_factorization_icfl__": 0.028,
+    "duration_phases_______________": 0.373,
+    "duration_phases_with_extra____": 2.152,
+    "phase_1_1_factorization_icfl__": 0.032,
     "phase_1_2_factorization_custom": 0.002,
-    "phase_2_1_trie_create_________": 0.091,
-    "phase_2_2_trie_merge_rankings_": 0.065,
-    "phase_2_3_trie_in_prefix_merge": 0.037,
-    "phase_2_4_tree_create_________": 0.139,
-    "phase_3_0_suffix_array________": 0.031
+    "phase_2_1_trie_create_________": 0.088,
+    "phase_2_2_trie_merge_rankings_": 0.059,
+    "phase_2_3_trie_in_prefix_merge": 0.035,
+    "phase_2_4_tree_create_________": 0.127,
+    "phase_3_0_suffix_array________": 0.029
   },
   "percentages": {
-    "phase_1_1_factorization_icfl__": 7,
+    "phase_1_1_factorization_icfl__": 9,
     "phase_1_2_factorization_custom": 1,
-    "phase_2_1_trie_create_________": 23,
+    "phase_2_1_trie_create_________": 24,
     "phase_2_2_trie_merge_rankings_": 16,
-    "phase_2_3_trie_in_prefix_merge": 10,
-    "phase_2_4_tree_create_________": 35,
-    "phase_3_0_suffix_array________": 8
+    "phase_2_3_trie_in_prefix_merge": 9,
+    "phase_2_4_tree_create_________": 34,
+    "phase_3_0_suffix_array________": 7
   }
 }
