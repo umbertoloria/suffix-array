@@ -1,9 +1,8 @@
-use crate::files::fasta::get_fasta_content;
 use crate::comparing::jaccard::jaccard_similarity_via_kmers;
+use crate::files::fasta::get_fasta_content;
 use std::time::Instant;
 
 pub fn main_similarity() {
-
     // JACCARD ON K-MERS
     let mut bands = Vec::new();
     bands.push("radiohead");
@@ -26,7 +25,10 @@ pub fn main_similarity() {
             let src2 = bands[j];
 
             let calculated_jaccard_similarity = jaccard_similarity_via_kmers(src1, src2, k);
-            println!("Similarity between \"{}\" and \"{}\" is: {}", src1, src2, calculated_jaccard_similarity);
+            println!(
+                "Similarity between \"{}\" and \"{}\" is: {}",
+                src1, src2, calculated_jaccard_similarity
+            );
         }
     }
 
