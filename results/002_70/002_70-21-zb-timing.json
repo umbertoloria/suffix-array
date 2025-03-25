@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 133878,
-    "duration_phases_with_extra____": 645976,
-    "phase_1_1_factorization_icfl__": 3010,
-    "phase_1_2_factorization_custom": 251,
-    "phase_2_1_trie_create_________": 48152,
-    "phase_2_2_trie_merge_rankings_": 22275,
-    "phase_2_3_trie_in_prefix_merge": 40965,
-    "phase_2_4_tree_create_________": 11655,
-    "phase_3_0_suffix_array________": 7567
+    "duration_phases_______________": 140843,
+    "duration_phases_with_extra____": 682401,
+    "phase_1_1_factorization_icfl__": 3233,
+    "phase_1_2_factorization_custom": 269,
+    "phase_2_1_trie_create_________": 51834,
+    "phase_2_2_trie_merge_rankings_": 25285,
+    "phase_2_3_trie_in_prefix_merge": 40357,
+    "phase_2_4_tree_create_________": 11879,
+    "phase_3_0_suffix_array________": 7984
   },
   "seconds": {
-    "duration_phases_______________": 0.134,
-    "duration_phases_with_extra____": 0.646,
+    "duration_phases_______________": 0.141,
+    "duration_phases_with_extra____": 0.682,
     "phase_1_1_factorization_icfl__": 0.003,
     "phase_1_2_factorization_custom": 0.0,
-    "phase_2_1_trie_create_________": 0.048,
-    "phase_2_2_trie_merge_rankings_": 0.022,
-    "phase_2_3_trie_in_prefix_merge": 0.041,
+    "phase_2_1_trie_create_________": 0.052,
+    "phase_2_2_trie_merge_rankings_": 0.025,
+    "phase_2_3_trie_in_prefix_merge": 0.04,
     "phase_2_4_tree_create_________": 0.012,
     "phase_3_0_suffix_array________": 0.008
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 2,
     "phase_1_2_factorization_custom": 0,
-    "phase_2_1_trie_create_________": 36,
-    "phase_2_2_trie_merge_rankings_": 17,
-    "phase_2_3_trie_in_prefix_merge": 31,
-    "phase_2_4_tree_create_________": 9,
-    "phase_3_0_suffix_array________": 5
+    "phase_2_1_trie_create_________": 37,
+    "phase_2_2_trie_merge_rankings_": 18,
+    "phase_2_3_trie_in_prefix_merge": 29,
+    "phase_2_4_tree_create_________": 8,
+    "phase_3_0_suffix_array________": 6
   }
 }
