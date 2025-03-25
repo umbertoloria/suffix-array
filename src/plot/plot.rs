@@ -10,6 +10,7 @@ use plotters::prelude::{RGBColor, GREEN, RED};
 pub fn draw_plot_from_monitor(
     fasta_file_name: &str,
     chunk_size_and_execution_info_list: Vec<(usize, ExecutionInfo)>,
+    excessive_sum_phases_duration: u32,
 ) {
     // Duration Composite + Chunk Size + Duration + 4 monitor parameters + gap.
     // let num_cols_per_data_item: u32 = 1 + 2 + 4 + 1;
@@ -55,7 +56,7 @@ pub fn draw_plot_from_monitor(
             // This is required only to have min and max values.
             execution_generics
                 .execution_timing
-                .whole_duration
+                .sum_duration_only_phases
                 .as_millis() as u32,
             execution_generics.chunk_size,
             execution_generics.param_1,
@@ -75,14 +76,13 @@ pub fn draw_plot_from_monitor(
     ];
 
     // Min and Max values.
-    let first_record = records.get(0).unwrap();
     let mut min_values = vec![
-        first_record[0],
-        first_record[1],
-        first_record[2],
-        first_record[3],
-        first_record[4],
-        first_record[5],
+        records[0][0],
+        records[0][1],
+        records[0][2],
+        records[0][3],
+        records[0][4],
+        records[0][5],
     ];
     let mut max_values = min_values.clone();
     for i in 1..records.len() {
@@ -96,6 +96,7 @@ pub fn draw_plot_from_monitor(
             }
         }
     }
+    max_values[0] = excessive_sum_phases_duration;
 
     let diagram_min_y_drawn_for_bar = 300;
     let diagram_max_y = 10000;

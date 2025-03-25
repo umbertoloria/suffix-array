@@ -10,6 +10,7 @@ use std::time::Duration;
 pub fn suite_complete_on_fasta_file(
     fasta_file_name: &str,
     chunk_size_interval: (usize, usize), // Both incl.
+    excessive_sum_phases_duration: u32,
     perform_logging: bool,
     debug_mode: DebugMode,
 ) {
@@ -65,7 +66,11 @@ pub fn suite_complete_on_fasta_file(
     }
 
     // Plots
-    draw_plot_from_monitor(fasta_file_name, chunk_size_and_execution_info_list);
+    draw_plot_from_monitor(
+        fasta_file_name,
+        chunk_size_and_execution_info_list,
+        excessive_sum_phases_duration,
+    );
 }
 
 pub struct RunAndValidateTestOutput {
