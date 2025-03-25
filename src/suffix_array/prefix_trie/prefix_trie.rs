@@ -5,16 +5,16 @@ use std::collections::BTreeMap;
 
 const PREFIX_TRIE_FIRST_IDS_START_FROM: usize = 0;
 pub fn create_prefix_trie(
-    src: &str,
-    src_length: usize,
+    str: &str,
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
     depths: &mut Vec<usize>,
     monitor: &mut Monitor,
     verbose: bool,
 ) -> PrefixTrie {
+    let str_length = str.len();
     let max_factor_size =
-        get_max_factor_size(&custom_indexes, src_length).expect("max_factor_size is not valid");
+        get_max_factor_size(&custom_indexes, str_length).expect("max_factor_size is not valid");
     let mut next_index = PREFIX_TRIE_FIRST_IDS_START_FROM;
 
     let mut root = PrefixTrie::new_using_next_index(
@@ -24,7 +24,7 @@ pub fn create_prefix_trie(
     );
 
     let custom_indexes_len = custom_indexes.len();
-    let last_factor_size = src_length - custom_indexes[custom_indexes_len - 1];
+    let last_factor_size = str_length - custom_indexes[custom_indexes_len - 1];
 
     for curr_ls_size in 1..max_factor_size + 1 {
         // Every iteration looks for all Custom Factors whose length is <= "curr_suffix_length" and,
@@ -32,13 +32,13 @@ pub fn create_prefix_trie(
 
         // Last Factor
         if curr_ls_size <= last_factor_size {
-            let ls_index = src_length - curr_ls_size;
+            let ls_index = str_length - curr_ls_size;
             let is_custom_ls = is_custom_vec[ls_index];
             root.add_string(
                 &mut next_index,
                 ls_index,
                 curr_ls_size,
-                src,
+                str,
                 is_custom_ls,
                 verbose,
             );
@@ -58,7 +58,7 @@ pub fn create_prefix_trie(
                     &mut next_index,
                     ls_index,
                     curr_ls_size,
-                    src,
+                    str,
                     is_custom_ls,
                     verbose,
                 );

@@ -306,7 +306,7 @@ impl PrefixTreeNode {
         x: usize,
         y: usize,
         child_offset: usize,
-        src: &str,
+        str: &str,
         icfl_list: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
@@ -319,7 +319,7 @@ impl PrefixTreeNode {
                 x,
                 y,
                 child_offset,
-                src,
+                str,
                 icfl_list,
                 is_custom_vec,
                 icfl_factor_list,
@@ -327,8 +327,8 @@ impl PrefixTreeNode {
                 monitor,
             )
         } else {
-            let cmp1_father = &src[x + child_offset..];
-            let cmp2_child = &src[y + child_offset..];
+            let cmp1_father = &str[x + child_offset..];
+            let cmp2_child = &str[y + child_offset..];
             let mut oracle;
             if cmp1_father < cmp2_child {
                 oracle = false; // Father first.
@@ -339,7 +339,7 @@ impl PrefixTreeNode {
                 x,
                 y,
                 child_offset,
-                src,
+                str,
                 icfl_list,
                 is_custom_vec,
                 icfl_factor_list,
@@ -360,7 +360,7 @@ impl PrefixTreeNode {
         x: usize,
         y: usize,
         child_offset: usize,
-        src: &str,
+        str: &str,
         icfl_list: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
@@ -373,12 +373,12 @@ impl PrefixTreeNode {
             monitor.new_compare_using_actual_string_compare();
             compare_cache.compare_1_before_2(
                 //
-                src,
+                str,
                 y + child_offset,
                 x + child_offset,
             )
-            /*let cmp1 = &src[y + child_offset..];
-            let cmp2 = &src[x + child_offset..];
+            /*let cmp1 = &str[y + child_offset..];
+            let cmp2 = &str[x + child_offset..];
             if cmp1 < cmp2 {
                 true
             } else {
@@ -397,12 +397,12 @@ impl PrefixTreeNode {
                 monitor.new_compare_using_actual_string_compare();
                 compare_cache.compare_1_before_2(
                     //
-                    src,
+                    str,
                     y + child_offset,
                     x + child_offset,
                 )
-                /*let cmp1 = &src[y + child_offset..];
-                let cmp2 = &src[x + child_offset..];
+                /*let cmp1 = &str[y + child_offset..];
+                let cmp2 = &str[x + child_offset..];
                 if cmp1 < cmp2 {
                     true
                 } else {
@@ -422,12 +422,12 @@ impl PrefixTreeNode {
                 monitor.new_compare_using_actual_string_compare();
                 compare_cache.compare_1_before_2(
                     //
-                    src,
+                    str,
                     y + child_offset,
                     x + child_offset,
                 )
-                /*let cmp1 = &src[y + child_offset..];
-                let cmp2 = &src[x + child_offset..];
+                /*let cmp1 = &str[y + child_offset..];
+                let cmp2 = &str[x + child_offset..];
                 if cmp1 < cmp2 {
                     true
                 } else {
@@ -448,12 +448,12 @@ impl PrefixTreeNode {
                 monitor.new_compare_using_actual_string_compare();
                 compare_cache.compare_1_before_2(
                     //
-                    src,
+                    str,
                     y + child_offset,
                     x + child_offset,
                 )
-                /*let cmp1 = &src[y + child_offset..];
-                let cmp2 = &src[x + child_offset..];
+                /*let cmp1 = &str[y + child_offset..];
+                let cmp2 = &str[x + child_offset..];
                 if cmp1 < cmp2 {
                     true
                 } else {
@@ -467,12 +467,12 @@ impl PrefixTreeNode {
                     monitor.new_compare_using_actual_string_compare();
                     compare_cache.compare_1_before_2(
                         //
-                        src,
+                        str,
                         y + child_offset,
                         x + child_offset,
                     )
-                    /*let cmp1 = &src[y + child_offset..];
-                    let cmp2 = &src[x + child_offset..];
+                    /*let cmp1 = &str[y + child_offset..];
+                    let cmp2 = &str[x + child_offset..];
                     if cmp1 < cmp2 {
                         true
                     } else {

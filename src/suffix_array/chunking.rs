@@ -11,19 +11,19 @@ pub fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
 pub fn get_custom_factors_and_more(
     icfl_indexes: &Vec<usize>,
     chunk_size: usize,
-    src_length: usize,
+    str_length: usize,
 ) -> (Vec<usize>, Vec<bool>, Vec<usize>) {
     // From string "AAA|B|CAABCA|DCAABCA"
     // Es. ICFL=[0, 3, 4, 10]
-    //  src_length = 17
+    //  str_length = 17
     //  chunk_size = 3
     let mut custom_indexes = Vec::new();
 
     // Custom Vec:  [Source Char Index] => True if it's part of the last Custom Factor of an
     //                                     ICFL Factor, so it's a Local Suffix of ICFL Factor.
     // Factor List: [Source Char Index] => ICFL Factor Index of that
-    let mut is_custom_vec = Vec::with_capacity(src_length);
-    let mut icfl_factor_list = Vec::with_capacity(src_length);
+    let mut is_custom_vec = Vec::with_capacity(str_length);
+    let mut icfl_factor_list = Vec::with_capacity(str_length);
 
     for i in 0..icfl_indexes.len() {
         let cur_factor_index = icfl_indexes[i];
@@ -32,7 +32,7 @@ pub fn get_custom_factors_and_more(
         let cur_factor_size = if i < icfl_indexes.len() - 1 {
             icfl_indexes[i + 1]
         } else {
-            src_length
+            str_length
         } - cur_factor_index;
 
         // Updating "custom_indexes"
@@ -87,7 +87,7 @@ pub fn get_custom_factors_and_more(
 }
 /*
 pub fn get_icfl_factors_and_more_avoiding_custom_factorization(
-    src_length: usize,
+    str_length: usize,
     icfl_indexes: &Vec<usize>,
 ) -> (Vec<usize>, Vec<bool>, Vec<usize>) {
     let mut custom_indexes = Vec::new();
@@ -101,7 +101,7 @@ pub fn get_icfl_factors_and_more_avoiding_custom_factorization(
         let cur_factor_size = if i < icfl_indexes.len() - 1 {
             icfl_indexes[i + 1]
         } else {
-            src_length
+            str_length
         } - cur_factor_index;
 
         // Updating "custom_indexes"
@@ -119,7 +119,7 @@ pub fn get_icfl_factors_and_more_avoiding_custom_factorization(
 }
 */
 
-pub fn get_max_factor_size(factor_indexes: &Vec<usize>, src_length: usize) -> Option<usize> {
+pub fn get_max_factor_size(factor_indexes: &Vec<usize>, str_length: usize) -> Option<usize> {
     let mut result = None;
     for i in 0..factor_indexes.len() - 1 {
         let len = factor_indexes[i + 1] - factor_indexes[i];
@@ -131,7 +131,7 @@ pub fn get_max_factor_size(factor_indexes: &Vec<usize>, src_length: usize) -> Op
             result = Some(len);
         }
     }
-    let len = src_length - factor_indexes[factor_indexes.len() - 1];
+    let len = str_length - factor_indexes[factor_indexes.len() - 1];
     if let Some(result_value) = result {
         if result_value < len {
             result = Some(len);

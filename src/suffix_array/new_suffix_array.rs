@@ -37,7 +37,7 @@ pub fn compute_innovative_suffix_array(
     perform_logging: bool,
     debug_mode: DebugMode,
 ) -> InnovativeSuffixArrayComputationResults {
-    let src_length = str.len();
+    let str_length = str.len();
 
     let mut monitor = Monitor::new();
     monitor.process_start();
@@ -54,7 +54,7 @@ pub fn compute_innovative_suffix_array(
     let mut icfl_factor_list = Vec::new();
     if let Some(chunk_size) = chunk_size {
         let (custom_indexes_, is_custom_vec_, icfl_factor_list_) =
-            get_custom_factors_and_more(&icfl_indexes, chunk_size, src_length);
+            get_custom_factors_and_more(&icfl_indexes, chunk_size, str_length);
         custom_indexes = custom_indexes_;
         is_custom_vec = is_custom_vec_;
         icfl_factor_list = icfl_factor_list_;
@@ -64,7 +64,7 @@ pub fn compute_innovative_suffix_array(
         // TODO: Disable this code since will burn your little laptop :_(
         /*
         let (custom_indexes_, is_custom_vec_, icfl_factor_list_) =
-            get_icfl_factors_and_more_avoiding_custom_factorization(src_length, &icfl_indexes);
+            get_icfl_factors_and_more_avoiding_custom_factorization(str_length, &icfl_indexes);
         custom_indexes = custom_indexes_;
         is_custom_vec = is_custom_vec_;
         icfl_factor_list = icfl_factor_list_;
@@ -73,10 +73,9 @@ pub fn compute_innovative_suffix_array(
 
     // Prefix Trie Structure create
     monitor.phase2_1_prefix_trie_create_start();
-    let mut depths = vec![0usize; src_length];
+    let mut depths = vec![0usize; str_length];
     let mut prefix_trie = create_prefix_trie(
         str,
-        src_length,
         &custom_indexes,
         &is_custom_vec,
         &mut depths,
@@ -111,7 +110,7 @@ pub fn compute_innovative_suffix_array(
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         print_for_human_like_debug(
             str,
-            src_length,
+            str_length,
             &icfl_indexes,
             &custom_indexes,
             &icfl_factor_list,
@@ -127,7 +126,7 @@ pub fn compute_innovative_suffix_array(
     // -
 
     monitor.phase2_3_prefix_tree_create_start();
-    let mut prog_sa = ProgSuffixArray::new(src_length);
+    let mut prog_sa = ProgSuffixArray::new(str_length);
     let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie, &mut prog_sa);
     monitor.phase2_3_prefix_tree_create_stop();
 
@@ -230,8 +229,8 @@ pub fn compute_innovative_suffix_array(
     }
 }
 fn print_for_human_like_debug(
-    src: &str,
-    src_length: usize,
+    str: &str,
+    str_length: usize,
     icfl_indexes: &Vec<usize>,
     custom_indexes: &Vec<usize>,
     icfl_factor_list: &Vec<usize>,
@@ -239,39 +238,39 @@ fn print_for_human_like_debug(
     depths: &Vec<usize>,
 ) {
     // CHAR INDEXES
-    for i in 0..src_length {
+    for i in 0..str_length {
         print!(" {:2} ", i);
     }
     println!();
     // CHARS
-    for i in 0..src_length {
-        print!("  {} ", &src[i..i + 1]);
+    for i in 0..str_length {
+        print!("  {} ", &str[i..i + 1]);
     }
     println!();
     // ICFL FACTORS
-    for i in 0..src_length {
+    for i in 0..str_length {
         print!(" {:2} ", icfl_factor_list[i]);
     }
     println!("   <= ICFL FACTORS {:?}", icfl_indexes);
     let mut i = 0;
 
-    print_indexes_list(&icfl_indexes, src_length);
+    print_indexes_list(&icfl_indexes, str_length);
     println!("<= ICFL FACTORS {:?}", icfl_indexes);
-    print_indexes_list(&custom_indexes, src_length);
+    print_indexes_list(&custom_indexes, str_length);
     println!("<= CUSTOM FACTORS {:?}", custom_indexes);
 
     i = 0;
-    while i < src_length {
+    while i < str_length {
         print!("  {} ", if is_custom_vec[i] { "x" } else { " " });
         i += 1;
     }
     println!("   <= IS IN CUSTOM FACTOR");
-    for i in 0..src_length {
+    for i in 0..str_length {
         print!(" {:2} ", depths[i]);
     }
     println!("   <= DEPTHS");
 }
-fn print_indexes_list(indexes_list: &Vec<usize>, src_length: usize) {
+fn print_indexes_list(indexes_list: &Vec<usize>, str_length: usize) {
     let mut iter = &mut indexes_list.iter();
     iter.next(); // Skipping the first because it's always "0".
     let mut last = 0;
@@ -280,5 +279,5 @@ fn print_indexes_list(indexes_list: &Vec<usize>, src_length: usize) {
         print!("{}|", " ".repeat((custom_factor_index - last) * 4 - 1));
         last = custom_factor_index;
     }
-    print!("{}|  ", " ".repeat((src_length - last) * 4 - 1));
+    print!("{}|  ", " ".repeat((str_length - last) * 4 - 1));
 }
