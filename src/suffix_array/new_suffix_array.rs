@@ -1,10 +1,10 @@
-use crate::factorization::icfl::icfl;
+use crate::factorization::icfl::get_icfl_indexes;
 use crate::files::paths::{
     get_path_for_project_folder, get_path_for_project_outcome_file_json,
     get_path_for_project_prefix_tree_file, get_path_for_project_prefix_trie_file,
     get_path_for_project_suffix_array_file, get_path_for_project_timing_file_json,
 };
-use crate::suffix_array::chunking::{get_custom_factors_and_more, get_indexes_from_factors};
+use crate::suffix_array::chunking::get_custom_factors_and_more;
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
@@ -44,8 +44,8 @@ pub fn compute_innovative_suffix_array(
 
     // ICFL Factorization
     monitor.phase1_1_icfl_factorization_start();
-    let factors = icfl(str);
-    let icfl_indexes = get_indexes_from_factors(&factors);
+    let s_bytes = str.as_bytes();
+    let icfl_indexes = get_icfl_indexes(s_bytes);
 
     // Custom Factorization
     monitor.phase1_2_custom_factorization_start();

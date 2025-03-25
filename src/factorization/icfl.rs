@@ -1,5 +1,18 @@
 use std::i32;
 
+pub fn get_icfl_indexes(s_bytes: &[u8]) -> Vec<usize> {
+    // NOTE: Works using chars as bytes.
+    let icfl_factors_in_bytes = icfl_bytes(s_bytes);
+    let mut result = Vec::with_capacity(icfl_factors_in_bytes.len());
+    let mut i = 0;
+    // Reference so that it will be freed after.
+    for factor_bytes in &icfl_factors_in_bytes {
+        result.push(i);
+        i += factor_bytes.len();
+    }
+    result
+}
+
 pub fn icfl(s: &str) -> Vec<String> {
     // NOTE: Works using chars as bytes.
     let mut result = Vec::new();

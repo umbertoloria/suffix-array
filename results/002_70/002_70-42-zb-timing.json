@@ -1,32 +1,32 @@
 {
   "micros": {
-    "duration_phases_______________": 189800,
-    "duration_phases_with_extra____": 853690,
-    "phase_1_1_factorization_icfl__": 8037,
-    "phase_1_2_factorization_custom": 254,
-    "phase_2_1_trie_create_________": 75737,
-    "phase_2_2_trie_merge_rankings_": 34812,
-    "phase_2_3_trie_in_prefix_merge": 50505,
-    "phase_2_4_tree_create_________": 11232,
-    "phase_3_0_suffix_array________": 9221
+    "duration_phases_______________": 209210,
+    "duration_phases_with_extra____": 918824,
+    "phase_1_1_factorization_icfl__": 8152,
+    "phase_1_2_factorization_custom": 244,
+    "phase_2_1_trie_create_________": 69376,
+    "phase_2_2_trie_merge_rankings_": 53388,
+    "phase_2_3_trie_in_prefix_merge": 54249,
+    "phase_2_4_tree_create_________": 12590,
+    "phase_3_0_suffix_array________": 11208
   },
   "seconds": {
-    "duration_phases_______________": 0.19,
-    "duration_phases_with_extra____": 0.854,
+    "duration_phases_______________": 0.209,
+    "duration_phases_with_extra____": 0.919,
     "phase_1_1_factorization_icfl__": 0.008,
     "phase_1_2_factorization_custom": 0.0,
-    "phase_2_1_trie_create_________": 0.076,
-    "phase_2_2_trie_merge_rankings_": 0.035,
-    "phase_2_3_trie_in_prefix_merge": 0.051,
-    "phase_2_4_tree_create_________": 0.011,
-    "phase_3_0_suffix_array________": 0.009
+    "phase_2_1_trie_create_________": 0.069,
+    "phase_2_2_trie_merge_rankings_": 0.053,
+    "phase_2_3_trie_in_prefix_merge": 0.054,
+    "phase_2_4_tree_create_________": 0.013,
+    "phase_3_0_suffix_array________": 0.011
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 4,
     "phase_1_2_factorization_custom": 0,
-    "phase_2_1_trie_create_________": 40,
-    "phase_2_2_trie_merge_rankings_": 18,
-    "phase_2_3_trie_in_prefix_merge": 27,
+    "phase_2_1_trie_create_________": 33,
+    "phase_2_2_trie_merge_rankings_": 26,
+    "phase_2_3_trie_in_prefix_merge": 26,
     "phase_2_4_tree_create_________": 6,
     "phase_3_0_suffix_array________": 5
   }
