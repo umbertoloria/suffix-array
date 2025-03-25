@@ -109,6 +109,14 @@ impl PrefixTrie {
         }
     }
 
+    // Rankings
+    fn get_rankings_canonical(&self) -> &Vec<usize> {
+        &self.rankings_canonical
+    }
+    fn get_rankings_custom(&self) -> &Vec<usize> {
+        &self.rankings_custom
+    }
+
     // Prints
     pub fn print(&self, tabs_offset: usize, prefix_rec: String) {
         println!(
@@ -116,7 +124,11 @@ impl PrefixTrie {
             "\t".repeat(tabs_offset),
             tabs_offset,
             prefix_rec,
-            format!("{:?} {:?}", self.rankings_canonical, self.rankings_custom),
+            format!(
+                "{:?} {:?}",
+                self.get_rankings_canonical(),
+                self.get_rankings_custom()
+            ),
         );
         match &self.data {
             PrefixTrieData::Children(children) => {
@@ -211,11 +223,12 @@ impl PrefixTrie {
                     );
                 }
 
-                let prefix_first_letter = (&prefix[0..1]).chars().next().unwrap();
+                let old_child_node_rankings_canonical = child_node.get_rankings_canonical();
+                let old_child_node_rankings_custom = child_node.get_rankings_custom();
 
                 // Node "child_node" will disappear, so its ID will be used by "new_child_node"
                 let mut new_child_node = PrefixTrie::new(child_node.id, self.suffix_len + 1);
-                for &ranking_canonical in &child_node.rankings_canonical {
+                for &ranking_canonical in old_child_node_rankings_canonical {
                     new_child_node.add_string(
                         next_index,
                         ranking_canonical,
@@ -225,7 +238,7 @@ impl PrefixTrie {
                         verbose,
                     );
                 }
-                for &ranking_custom in &child_node.rankings_custom {
+                for &ranking_custom in old_child_node_rankings_custom {
                     new_child_node.add_string(
                         next_index,
                         ranking_custom,
@@ -236,6 +249,7 @@ impl PrefixTrie {
                     );
                 }
 
+                let prefix_first_letter = (&prefix[0..1]).chars().next().unwrap();
                 if verbose {
                     println!(
                         "{}     (setting on {})",
@@ -386,9 +400,10 @@ impl PrefixTrie {
         // We don't sort Rankings Canonical because that list already contains Global Suffixes in
         // the right order (unlike Ranking Custom, that we have to sort).
         let mut sorted_rankings_custom = Vec::new();
-        if !self.rankings_custom.is_empty() {
+        let rankings_custom = self.get_rankings_custom();
+        if !rankings_custom.is_empty() {
             let mut sorted_rankings_custom_pairs_list = Vec::new();
-            for &local_suffix_index in &self.rankings_custom {
+            for &local_suffix_index in rankings_custom {
                 sorted_rankings_custom_pairs_list
                     .push((local_suffix_index, &str[local_suffix_index..]));
             }
@@ -400,13 +415,14 @@ impl PrefixTrie {
         }
         // OK, now Rankings Customs is sorted as well. Rankings Canonical was already sorted. Now we
         // perform the merge between these lists.
+        let rankings_canonical = &self.rankings_canonical;
+        // TODO: Clear Rankings Canonical and Customs after this
         let mut unified_rankings = &mut self.rankings;
-        unified_rankings.reserve(self.rankings_canonical.len() + sorted_rankings_custom.len());
+        unified_rankings.reserve(rankings_canonical.len() + sorted_rankings_custom.len());
         let mut i_canonical = 0;
         let mut i_custom = 0;
-        while i_canonical < self.rankings_canonical.len() && i_custom < sorted_rankings_custom.len()
-        {
-            let canonical_gs_index = self.rankings_canonical[i_canonical];
+        while i_canonical < rankings_canonical.len() && i_custom < sorted_rankings_custom.len() {
+            let canonical_gs_index = rankings_canonical[i_canonical];
             let canonical_gs = &str[canonical_gs_index..];
 
             let custom_gs_index = sorted_rankings_custom[i_custom];
@@ -421,8 +437,8 @@ impl PrefixTrie {
                 i_custom += 1;
             }
         }
-        while i_canonical < self.rankings_canonical.len() {
-            let canonical_gs_index = self.rankings_canonical[i_canonical];
+        while i_canonical < rankings_canonical.len() {
+            let canonical_gs_index = rankings_canonical[i_canonical];
             unified_rankings.push(canonical_gs_index);
             i_canonical += 1;
         }
