@@ -1,9 +1,5 @@
 #![allow(warnings)]
 
-use suites::factorization::main_factorization;
-use suites::generation::main_generation;
-use suites::similarity::main_similarity;
-use suites::suffix::main_suffix;
 use suites::suffix_array::main_suffix_array;
 
 mod comparing;

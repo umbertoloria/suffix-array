@@ -1,6 +1,6 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_trie::{PrefixTrie, PrefixTrieData};
+use crate::suffix_array::prefix_trie::prefix_trie::{PrefixTrie, PrefixTrieData};
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use std::fs::{create_dir_all, File};
 use std::io::Write;

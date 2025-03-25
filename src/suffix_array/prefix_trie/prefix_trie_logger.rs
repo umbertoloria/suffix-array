@@ -1,4 +1,4 @@
-use crate::suffix_array::prefix_trie::{PrefixTrie, PrefixTrieData};
+use crate::suffix_array::prefix_trie::prefix_trie::{PrefixTrie, PrefixTrieData};
 use std::fs::File;
 use std::io::Write;
 
