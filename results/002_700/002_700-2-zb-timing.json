@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 201521,
-    "duration_phases_with_extra____": 1550748,
-    "phase_1_1_factorization_icfl__": 35321,
-    "phase_1_2_factorization_custom": 3223,
-    "phase_2_1_trie_create_________": 20907,
-    "phase_2_2_trie_merge_rankings_": 116991,
-    "phase_2_3_trie_in_prefix_merge": 2498,
-    "phase_2_4_tree_create_________": 18307,
-    "phase_3_0_suffix_array________": 4271
+    "duration_phases_______________": 225444,
+    "duration_phases_with_extra____": 1667414,
+    "phase_1_1_factorization_icfl__": 39714,
+    "phase_1_2_factorization_custom": 3537,
+    "phase_2_1_trie_create_________": 23595,
+    "phase_2_2_trie_merge_rankings_": 132195,
+    "phase_2_3_trie_in_prefix_merge": 2597,
+    "phase_2_4_tree_create_________": 19601,
+    "phase_3_0_suffix_array________": 4203
   },
   "seconds": {
-    "duration_phases_______________": 0.202,
-    "duration_phases_with_extra____": 1.551,
-    "phase_1_1_factorization_icfl__": 0.035,
-    "phase_1_2_factorization_custom": 0.003,
-    "phase_2_1_trie_create_________": 0.021,
-    "phase_2_2_trie_merge_rankings_": 0.117,
-    "phase_2_3_trie_in_prefix_merge": 0.002,
-    "phase_2_4_tree_create_________": 0.018,
+    "duration_phases_______________": 0.225,
+    "duration_phases_with_extra____": 1.667,
+    "phase_1_1_factorization_icfl__": 0.04,
+    "phase_1_2_factorization_custom": 0.004,
+    "phase_2_1_trie_create_________": 0.024,
+    "phase_2_2_trie_merge_rankings_": 0.132,
+    "phase_2_3_trie_in_prefix_merge": 0.003,
+    "phase_2_4_tree_create_________": 0.02,
     "phase_3_0_suffix_array________": 0.004
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 18,
     "phase_1_2_factorization_custom": 2,
     "phase_2_1_trie_create_________": 10,
-    "phase_2_2_trie_merge_rankings_": 58,
+    "phase_2_2_trie_merge_rankings_": 59,
     "phase_2_3_trie_in_prefix_merge": 1,
     "phase_2_4_tree_create_________": 9,
-    "phase_3_0_suffix_array________": 2
+    "phase_3_0_suffix_array________": 1
   }
 }
