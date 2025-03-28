@@ -13,11 +13,11 @@ use crate::suffix_array::prefix_tree::{
     create_prefix_tree_from_prefix_trie, log_prefix_tree, log_suffix_array,
     make_sure_directory_exist,
 };
-use crate::suffix_array::prefix_trie::prefix_trie::create_prefix_trie;
 use crate::suffix_array::prefix_trie::prefix_trie_logger::log_prefix_trie;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use crate::utils::json::dump_json_in_file;
 use std::process::exit;
+use crate::suffix_array::prefix_trie::prefix_trie_create::create_prefix_trie;
 
 // INNOVATIVE SUFFIX ARRAY
 #[derive(Clone, Copy, Eq, PartialEq)]
