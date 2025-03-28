@@ -1,8 +1,37 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_tree::prefix_tree::PrefixTreeNode;
+use crate::suffix_array::prefix_tree::prefix_tree::{PrefixTree, PrefixTreeNode};
 use crate::suffix_array::prefix_trie::rules::rules_safe;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
+
+impl PrefixTree {
+    pub fn in_prefix_merge(
+        &mut self,
+        str: &str,
+        prog_sa: &mut ProgSuffixArray,
+        depths: &mut Vec<usize>,
+        icfl_indexes: &Vec<usize>,
+        is_custom_vec: &Vec<bool>,
+        icfl_factor_list: &Vec<usize>,
+        compare_cache: &mut CompareCache,
+        monitor: &mut Monitor,
+        verbose: bool,
+    ) {
+        for child in &mut self.children {
+            child.in_prefix_merge(
+                str,
+                prog_sa,
+                depths,
+                icfl_indexes,
+                is_custom_vec,
+                icfl_factor_list,
+                compare_cache,
+                monitor,
+                verbose,
+            );
+        }
+    }
+}
 
 impl PrefixTreeNode {
     pub fn in_prefix_merge(

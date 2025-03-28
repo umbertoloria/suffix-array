@@ -1,37 +1,9 @@
-use crate::suffix_array::compare_cache::CompareCache;
-use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
 pub struct PrefixTree {
     pub children: Vec<PrefixTreeNode>,
 }
 impl PrefixTree {
-    pub fn in_prefix_merge(
-        &mut self,
-        str: &str,
-        prog_sa: &mut ProgSuffixArray,
-        depths: &mut Vec<usize>,
-        icfl_indexes: &Vec<usize>,
-        is_custom_vec: &Vec<bool>,
-        icfl_factor_list: &Vec<usize>,
-        compare_cache: &mut CompareCache,
-        monitor: &mut Monitor,
-        verbose: bool,
-    ) {
-        for child in &mut self.children {
-            child.in_prefix_merge(
-                str,
-                prog_sa,
-                depths,
-                icfl_indexes,
-                is_custom_vec,
-                icfl_factor_list,
-                compare_cache,
-                monitor,
-                verbose,
-            );
-        }
-    }
     pub fn prepare_get_common_prefix_partition(
         &mut self,
         sa: &mut Vec<usize>,
