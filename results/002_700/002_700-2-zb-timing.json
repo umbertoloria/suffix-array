@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 260646,
-    "duration_phases_with_extra____": 1928991,
-    "phase_1_1_factorization_icfl__": 46028,
-    "phase_1_2_factorization_custom": 4309,
-    "phase_2_1_trie_create_________": 27646,
-    "phase_2_2_trie_merge_rankings_": 151417,
-    "phase_2_3_trie_in_prefix_merge": 2919,
-    "phase_2_4_tree_create_________": 22668,
-    "phase_3_0_suffix_array________": 5654
+    "duration_phases_______________": 272819,
+    "duration_phases_with_extra____": 2039848,
+    "phase_1_1_factorization_icfl__": 44259,
+    "phase_1_2_factorization_custom": 4209,
+    "phase_2_1_trie_create_________": 27817,
+    "phase_2_2_trie_merge_rankings_": 160560,
+    "phase_2_3_trie_in_prefix_merge": 2944,
+    "phase_2_4_tree_create_________": 27434,
+    "phase_3_0_suffix_array________": 5593
   },
   "seconds": {
-    "duration_phases_______________": 0.261,
-    "duration_phases_with_extra____": 1.929,
-    "phase_1_1_factorization_icfl__": 0.046,
+    "duration_phases_______________": 0.273,
+    "duration_phases_with_extra____": 2.04,
+    "phase_1_1_factorization_icfl__": 0.044,
     "phase_1_2_factorization_custom": 0.004,
     "phase_2_1_trie_create_________": 0.028,
-    "phase_2_2_trie_merge_rankings_": 0.151,
+    "phase_2_2_trie_merge_rankings_": 0.161,
     "phase_2_3_trie_in_prefix_merge": 0.003,
-    "phase_2_4_tree_create_________": 0.023,
+    "phase_2_4_tree_create_________": 0.027,
     "phase_3_0_suffix_array________": 0.006
   },
   "percentages": {
-    "phase_1_1_factorization_icfl__": 18,
+    "phase_1_1_factorization_icfl__": 16,
     "phase_1_2_factorization_custom": 2,
-    "phase_2_1_trie_create_________": 11,
-    "phase_2_2_trie_merge_rankings_": 58,
+    "phase_2_1_trie_create_________": 10,
+    "phase_2_2_trie_merge_rankings_": 59,
     "phase_2_3_trie_in_prefix_merge": 1,
-    "phase_2_4_tree_create_________": 9,
-    "phase_3_0_suffix_array________": 1
+    "phase_2_4_tree_create_________": 10,
+    "phase_3_0_suffix_array________": 2
   }
 }
