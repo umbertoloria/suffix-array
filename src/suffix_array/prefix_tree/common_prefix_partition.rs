@@ -21,73 +21,49 @@ impl PrefixTreeNode {
         &str[first_ranking..first_ranking + self.suffix_len]
     }
     fn get_common_prefix_partition(
-        &mut self,
+        &self,
         str: &str,
         prog_sa: &ProgSuffixArray,
         verbose: bool,
     ) -> Vec<usize> {
-        let mut result: Vec<usize> = Vec::new();
+        let mut result = Vec::new();
 
-        let common = prog_sa.get_rankings(self.index);
-
-        if self.children.is_empty() {
-            result.extend(common);
-            if verbose {
-                // let rankings = self.get_rankings(prog_sa); // Before it was...
-                let rankings = common;
-                println!(
-                    "Node {} (m={:?}, M={:?}) {:?} => {:?}",
-                    self.get_label_from_first_ranking(str, rankings),
-                    self.min_father,
-                    self.max_father,
-                    rankings,
-                    result
-                );
-            }
-            return result;
-        }
-
+        let this_rankings = prog_sa.get_rankings(self.index);
         let mut position = 0;
-        for child in &mut self.children {
-            let temp = child.get_common_prefix_partition(str, prog_sa, verbose);
-            if let Some(min_father) = child.min_father {
+        for child_node in &self.children {
+            let child_cpp = child_node.get_common_prefix_partition(str, prog_sa, verbose);
+            if let Some(min_father) = child_node.min_father {
                 if verbose {
-                    println!(
-                        "Here self=?? and child=??",
-                        // self.get_label(str),
-                        // child.get_label(str)
-                    );
+                    println!("Here self=?? and child=??");
                 }
                 if min_father >= position {
-                    result.extend(&common[position..min_father]);
+                    result.extend(&this_rankings[position..min_father]);
                 }
-                result.extend(temp);
-                if let Some(max_father) = child.max_father {
+                result.extend(child_cpp);
+                if let Some(max_father) = child_node.max_father {
                     position = max_father;
                 } else {
                     position = min_father;
                 }
             } else {
                 // Min Father is None.
-                result.extend(&common[position..]);
-                result.extend(temp);
-                position = common.len();
+                result.extend(&this_rankings[position..]);
+                result.extend(child_cpp);
+                position = this_rankings.len();
             }
         }
-        result.extend(&common[position..]);
+        result.extend(&this_rankings[position..]);
 
         if verbose {
-            let rankings = prog_sa.get_rankings(self.index);
             println!(
                 "Node {} (m={:?}, M={:?}) {:?} => {:?}",
-                self.get_label_from_first_ranking(str, rankings),
+                self.get_label_from_first_ranking(str, this_rankings),
                 self.min_father,
                 self.max_father,
-                rankings,
+                this_rankings,
                 result
             );
         }
-
         result
     }
 }
