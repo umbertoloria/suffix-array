@@ -1,7 +1,7 @@
-use std::fs::File;
-use std::io::Write;
 use crate::suffix_array::prefix_tree::prefix_tree::{PrefixTree, PrefixTreeNode};
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
+use std::fs::File;
+use std::io::Write;
 
 pub fn log_prefix_tree(
     prefix_tree: &PrefixTree,

@@ -9,12 +9,14 @@ use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
-use crate::suffix_array::prefix_tree::prefix_tree::{log_suffix_array, make_sure_directory_exist};
 use crate::suffix_array::prefix_tree::prefix_tree_create::create_prefix_tree_from_prefix_trie;
 use crate::suffix_array::prefix_tree::prefix_tree_logger::log_prefix_tree;
 use crate::suffix_array::prefix_trie::prefix_trie_create::create_prefix_trie;
 use crate::suffix_array::prefix_trie::prefix_trie_logger::log_prefix_trie;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
+use crate::suffix_array::suffix_array::suffix_array_logger::{
+    log_suffix_array, make_sure_directory_exist,
+};
 use crate::utils::json::dump_json_in_file;
 use std::process::exit;
 

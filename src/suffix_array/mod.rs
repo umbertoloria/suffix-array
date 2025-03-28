@@ -9,4 +9,5 @@ pub mod prefix_tree;
 pub mod prefix_trie;
 pub mod prog_suffix_array;
 pub mod sorter;
+pub mod suffix_array;
 pub mod suite;
