@@ -6,13 +6,6 @@ pub struct PrefixTree {
     pub children: Vec<PrefixTreeNode>,
 }
 impl PrefixTree {
-    pub fn print(&self, str: &str, prog_sa: &ProgSuffixArray) {
-        println!("PrefixTree:");
-        for child in &self.children {
-            child.print(str, prog_sa, 1);
-        }
-    }
-
     pub fn in_prefix_merge(
         &mut self,
         str: &str,
@@ -63,28 +56,6 @@ impl PrefixTreeNode {
         // Unfortunately (maybe), each caller has its own reason to already have "rankings"...
         let first_ranking = rankings[0];
         &str[first_ranking..first_ranking + self.suffix_len]
-    }
-    pub fn print(&self, str: &str, prog_sa: &ProgSuffixArray, tabs_offset: usize) {
-        let rankings = prog_sa.get_rankings(self.index);
-        println!(
-            "{}\"{}\" {:?}   m={} M={}",
-            "\t".repeat(tabs_offset),
-            self.get_label_from_first_ranking(str, rankings),
-            rankings,
-            if let Some(x) = self.min_father {
-                format!("{}", x)
-            } else {
-                "-1".into()
-            },
-            if let Some(x) = self.max_father {
-                format!("{}", x)
-            } else {
-                "-1".into()
-            },
-        );
-        for child in &self.children {
-            child.print(str, prog_sa, tabs_offset + 1);
-        }
     }
     fn get_common_prefix_partition(
         &mut self,
