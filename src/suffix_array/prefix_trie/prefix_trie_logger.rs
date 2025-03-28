@@ -1,5 +1,5 @@
 use crate::suffix_array::prefix_trie::prefix_trie::{
-    get_str_byte, get_str_bytes, PrefixTrie, PrefixTrieData,
+    get_string_char_clone, get_string_clone, PrefixTrie, PrefixTrieData,
 };
 use std::fs::File;
 use std::io::Write;
@@ -9,12 +9,12 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
     match &root.data {
         PrefixTrieData::Children(children) => {
             for (char_key, child_node) in children {
-                let child_label = get_str_byte(*char_key);
+                let child_label = get_string_char_clone(*char_key);
                 log_prefix_trie_recursive(child_node, &child_label, &mut file, 0);
             }
         }
         PrefixTrieData::DirectChild((prefix, child_node)) => {
-            let child_label = get_str_bytes(prefix.clone());
+            let child_label = get_string_clone(prefix);
             log_prefix_trie_recursive(child_node, &child_label, &mut file, 0);
         }
         PrefixTrieData::Leaf => {}
@@ -38,12 +38,12 @@ fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut Fil
     match &node.data {
         PrefixTrieData::Children(children) => {
             for (char_key, child_node) in children {
-                let child_label = format!("{}{}", node_label, get_str_byte(*char_key));
+                let child_label = format!("{}{}", node_label, get_string_char_clone(*char_key));
                 log_prefix_trie_recursive(child_node, &child_label, file, level + 1);
             }
         }
         PrefixTrieData::DirectChild((prefix, child_node)) => {
-            let child_label = format!("{}{}", node_label, get_str_bytes(prefix.clone()));
+            let child_label = format!("{}{}", node_label, get_string_clone(prefix));
             // log_prefix_trie_recursive(child_node, &child_label, file, level + 1);
             log_prefix_trie_recursive(child_node, &child_label, file, level + prefix.len());
         }
