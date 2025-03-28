@@ -75,7 +75,7 @@ pub fn compute_innovative_suffix_array(
     monitor.phase2_1_prefix_trie_create_start();
     let mut depths = vec![0usize; str_length];
     let mut prefix_trie = create_prefix_trie(
-        str,
+        s_bytes,
         &custom_indexes,
         &is_custom_vec,
         &mut depths,

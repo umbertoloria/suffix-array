@@ -5,14 +5,14 @@ use std::collections::BTreeMap;
 
 const PREFIX_TRIE_FIRST_IDS_START_FROM: usize = 0;
 pub fn create_prefix_trie(
-    str: &str,
+    s_bytes: &[u8],
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
     depths: &mut Vec<usize>,
     monitor: &mut Monitor,
     verbose: bool,
 ) -> PrefixTrie {
-    let str_length = str.len();
+    let str_length = s_bytes.len();
     let max_factor_size =
         get_max_factor_size(&custom_indexes, str_length).expect("max_factor_size is not valid");
     let mut next_index = PREFIX_TRIE_FIRST_IDS_START_FROM;
@@ -38,7 +38,7 @@ pub fn create_prefix_trie(
                 &mut next_index,
                 ls_index,
                 curr_ls_size,
-                str,
+                s_bytes,
                 is_custom_ls,
                 verbose,
             );
@@ -58,7 +58,7 @@ pub fn create_prefix_trie(
                     &mut next_index,
                     ls_index,
                     curr_ls_size,
-                    str,
+                    s_bytes,
                     is_custom_ls,
                     verbose,
                 );
@@ -83,8 +83,8 @@ pub struct PrefixTrie {
     pub rankings: Vec<usize>,
 }
 pub enum PrefixTrieData {
-    DirectChild((String, Box<PrefixTrie>)),
-    Children(BTreeMap<char, PrefixTrie>),
+    DirectChild((PrefixTrieString, Box<PrefixTrie>)),
+    Children(BTreeMap<PrefixTrieChar, PrefixTrie>),
     Leaf,
     InitRoot, // Will be replaced with "Children" as soon as First Layer Nodes come in.
 }
@@ -133,11 +133,13 @@ impl PrefixTrie {
         match &self.data {
             PrefixTrieData::Children(children) => {
                 for (char_key, child_node) in children {
-                    child_node.print(tabs_offset + 1, format!("{}{}", prefix_rec, char_key));
+                    let prefix_str = get_str_byte(*char_key);
+                    child_node.print(tabs_offset + 1, format!("{}{}", prefix_rec, prefix_str));
                 }
             }
             PrefixTrieData::DirectChild((prefix, child_node)) => {
-                child_node.print(tabs_offset + 1, format!("{}{}", prefix_rec, prefix));
+                let prefix_str = get_str_bytes(prefix.clone());
+                child_node.print(tabs_offset + 1, format!("{}{}", prefix_rec, prefix_str));
             }
             PrefixTrieData::Leaf => {}
             PrefixTrieData::InitRoot => {}
@@ -153,11 +155,15 @@ impl PrefixTrie {
         match &self.data {
             PrefixTrieData::Children(children) => {
                 for (char_key, child_node) in children {
-                    child_node.print_merged(tabs_offset + 1, format!("{}{}", prefix_rec, char_key));
+                    let prefix_str = get_str_byte(*char_key);
+                    let prefix_rec = format!("{}{}", prefix_rec, prefix_str);
+                    child_node.print_merged(tabs_offset + 1, prefix_rec);
                 }
             }
             PrefixTrieData::DirectChild((prefix, child_node)) => {
-                child_node.print_merged(tabs_offset + 1, format!("{}{}", prefix_rec, prefix));
+                let prefix_str = get_str_bytes(prefix.clone());
+                let prefix_rec = format!("{}{}", prefix_rec, prefix_str);
+                child_node.print_merged(tabs_offset + 1, prefix_rec);
             }
             PrefixTrieData::Leaf => {}
             PrefixTrieData::InitRoot => {}
@@ -170,17 +176,17 @@ impl PrefixTrie {
         next_index: &mut usize,
         ls_index: usize,
         ls_size: usize,
-        str: &str,
+        s_bytes: &[u8],
         is_custom_ls: bool,
         verbose: bool,
     ) {
         if verbose {
-            let ls_str = &str[ls_index..ls_index + ls_size];
+            let ls_str = &s_bytes[ls_index..ls_index + ls_size];
             println!(
                 "{}add_string > ls_index={ls_index}, ls_size={ls_size}, self.suffix_len={}, word={:?}",
                 "  ".repeat(self.suffix_len),
                 self.suffix_len,
-                ls_str,
+                get_str_bytes(ls_str.to_vec()),
             );
         }
 
@@ -203,15 +209,12 @@ impl PrefixTrie {
         }
 
         // From here on: "i_letter_ls < ls_size"
-        let curr_letter = (&str[ls_index + i_letter_ls..ls_index + i_letter_ls + 1])
-            .chars()
-            .next()
-            .unwrap();
+        let curr_letter: PrefixTrieChar = s_bytes[ls_index + i_letter_ls];
 
         match &mut self.data {
             PrefixTrieData::DirectChild((prefix, child_node)) => {
-                let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
-                if rest_of_ls == prefix {
+                let rest_of_ls = &s_bytes[ls_index + i_letter_ls..ls_index + ls_size];
+                if compare_str_bytes(rest_of_ls, prefix) {
                     child_node.update_rankings(ls_index, is_custom_ls);
 
                     return;
@@ -234,7 +237,7 @@ impl PrefixTrie {
                         next_index,
                         ranking_canonical,
                         self.suffix_len + prefix.len(),
-                        str,
+                        s_bytes,
                         false,
                         verbose,
                     );
@@ -244,18 +247,18 @@ impl PrefixTrie {
                         next_index,
                         ranking_custom,
                         self.suffix_len + prefix.len(),
-                        str,
+                        s_bytes,
                         true,
                         verbose,
                     );
                 }
 
-                let prefix_first_letter = (&prefix[0..1]).chars().next().unwrap();
+                let prefix_first_letter: PrefixTrieChar = prefix[0];
                 if verbose {
                     println!(
                         "{}     (setting on {})",
                         "  ".repeat(self.suffix_len),
-                        prefix_first_letter,
+                        get_str_byte(prefix_first_letter),
                     );
                 }
 
@@ -269,7 +272,7 @@ impl PrefixTrie {
                     next_index,
                     ls_index,
                     ls_size,
-                    str,
+                    s_bytes,
                     is_custom_ls,
                     verbose,
                 );
@@ -280,7 +283,7 @@ impl PrefixTrie {
                         println!(
                             "{}  > contained {}",
                             "  ".repeat(self.suffix_len),
-                            curr_letter,
+                            get_str_byte(curr_letter),
                         );
                     }
 
@@ -289,7 +292,7 @@ impl PrefixTrie {
                         next_index,
                         ls_index,
                         ls_size,
-                        str,
+                        s_bytes,
                         is_custom_ls,
                         verbose,
                     );
@@ -307,7 +310,7 @@ impl PrefixTrie {
                         next_index,
                         ls_index,
                         ls_size,
-                        str,
+                        s_bytes,
                         is_custom_ls,
                         verbose,
                     );
@@ -322,12 +325,13 @@ impl PrefixTrie {
                     // Here we are in a leaf. So we create a Direct Child Node instead of a Path
                     // made of multiple Child Nodes.
 
-                    let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
+                    let rest_of_ls = &s_bytes[ls_index + i_letter_ls..ls_index + ls_size];
                     if verbose {
+                        let rest_of_ls_str = get_str_bytes(rest_of_ls.to_vec());
                         println!(
                             "{}  > create direct child \"{}\"",
                             "  ".repeat(self.suffix_len),
-                            rest_of_ls,
+                            rest_of_ls_str,
                         );
                     }
 
@@ -338,9 +342,10 @@ impl PrefixTrie {
                     );
                     new_child_node.update_rankings(ls_index, is_custom_ls);
 
+                    // TODO: Avoid cloning
                     self.data = PrefixTrieData::DirectChild((
                         //
-                        rest_of_ls.to_string(),
+                        rest_of_ls.to_vec(),
                         Box::new(new_child_node),
                     ));
                 } else {
@@ -358,7 +363,7 @@ impl PrefixTrie {
                         next_index,
                         ls_index,
                         ls_size,
-                        str,
+                        s_bytes,
                         is_custom_ls,
                         verbose,
                     );
@@ -384,7 +389,7 @@ impl PrefixTrie {
                     next_index,
                     ls_index,
                     ls_size,
-                    str,
+                    s_bytes,
                     is_custom_ls,
                     verbose,
                 );
@@ -475,3 +480,27 @@ impl PrefixTrie {
         }
     }
 }
+
+// String comparison abstractions
+pub fn get_str_byte(char_type: PrefixTrieChar) -> String {
+    get_str_bytes(vec![char_type])
+}
+pub fn get_str_bytes(str_type: PrefixTrieString) -> String {
+    // TODO: Needs cloning
+    String::from_utf8(str_type).unwrap()
+}
+pub fn compare_str_bytes(a: &[u8], b: &PrefixTrieString) -> bool {
+    // TODO: Avoid different types for comparison
+    if a.len() != b.len() {
+        false
+    } else {
+        let mut i = 0;
+        while i < a.len() && a[i] == b[i] {
+            i += 1;
+        }
+        i >= a.len()
+    }
+}
+
+pub type PrefixTrieString = Vec<u8>;
+pub type PrefixTrieChar = u8;
