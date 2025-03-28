@@ -1,4 +1,6 @@
-use crate::suffix_array::prefix_trie::prefix_trie::{PrefixTrie, PrefixTrieData};
+use crate::suffix_array::prefix_trie::prefix_trie::{
+    PrefixTrie, PrefixTrieData,
+};
 use std::fs::File;
 use std::io::Write;
 
@@ -7,13 +9,13 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String) {
     match &root.data {
         PrefixTrieData::Children(children) => {
             for (char_key, child_node) in children {
-                let child_label = &format!("{}", char_key);
-                log_prefix_trie_recursive(child_node, child_label, &mut file, 0);
+                let child_label = format!("{}", char_key);
+                log_prefix_trie_recursive(child_node, &child_label, &mut file, 0);
             }
         }
         PrefixTrieData::DirectChild((prefix, child_node)) => {
-            let child_label = &format!("{}", prefix);
-            log_prefix_trie_recursive(child_node, child_label, &mut file, 0);
+            let child_label = format!("{}", prefix);
+            log_prefix_trie_recursive(child_node, &child_label, &mut file, 0);
         }
         PrefixTrieData::Leaf => {}
         PrefixTrieData::InitRoot => {}
@@ -36,14 +38,14 @@ fn log_prefix_trie_recursive(node: &PrefixTrie, node_label: &str, file: &mut Fil
     match &node.data {
         PrefixTrieData::Children(children) => {
             for (char_key, child_node) in children {
-                let child_label = &format!("{}{}", node_label, char_key);
-                log_prefix_trie_recursive(child_node, child_label, file, level + 1);
+                let child_label = format!("{}{}", node_label, char_key);
+                log_prefix_trie_recursive(child_node, &child_label, file, level + 1);
             }
         }
         PrefixTrieData::DirectChild((prefix, child_node)) => {
-            let child_label = &format!("{}{}", node_label, prefix);
-            // log_prefix_trie_recursive(child_node, child_label, file, level + 1);
-            log_prefix_trie_recursive(child_node, child_label, file, level + prefix.len());
+            let child_label = format!("{}{}", node_label, prefix);
+            // log_prefix_trie_recursive(child_node, &child_label, file, level + 1);
+            log_prefix_trie_recursive(child_node, &child_label, file, level + prefix.len());
         }
         PrefixTrieData::Leaf => {}
         PrefixTrieData::InitRoot => {}

@@ -175,11 +175,12 @@ impl PrefixTrie {
         verbose: bool,
     ) {
         if verbose {
+            let ls_str = &str[ls_index..ls_index + ls_size];
             println!(
                 "{}add_string > ls_index={ls_index}, ls_size={ls_size}, self.suffix_len={}, word={:?}",
                 "  ".repeat(self.suffix_len),
                 self.suffix_len,
-                &str[ls_index..ls_index + ls_size]
+                ls_str,
             );
         }
 
@@ -254,7 +255,7 @@ impl PrefixTrie {
                     println!(
                         "{}     (setting on {})",
                         "  ".repeat(self.suffix_len),
-                        prefix_first_letter
+                        prefix_first_letter,
                     );
                 }
 
@@ -263,7 +264,15 @@ impl PrefixTrie {
                 self.data = PrefixTrieData::Children(children);
 
                 // Re-try now that the Direct Child Node has been normalized (De-Directed).
-                self.add_string(next_index, ls_index, ls_size, str, is_custom_ls, verbose);
+                self.add_string(
+                    //
+                    next_index,
+                    ls_index,
+                    ls_size,
+                    str,
+                    is_custom_ls,
+                    verbose,
+                );
             }
             PrefixTrieData::Children(children) => {
                 if children.contains_key(&curr_letter) {
@@ -271,7 +280,7 @@ impl PrefixTrie {
                         println!(
                             "{}  > contained {}",
                             "  ".repeat(self.suffix_len),
-                            curr_letter
+                            curr_letter,
                         );
                     }
 
@@ -314,12 +323,11 @@ impl PrefixTrie {
                     // made of multiple Child Nodes.
 
                     let rest_of_ls = &str[ls_index + i_letter_ls..ls_index + ls_size];
-
                     if verbose {
                         println!(
                             "{}  > create direct child \"{}\"",
                             "  ".repeat(self.suffix_len),
-                            rest_of_ls
+                            rest_of_ls,
                         );
                     }
 
