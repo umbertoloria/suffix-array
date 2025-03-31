@@ -15,6 +15,7 @@ pub enum PrefixTrieData<'a> {
     Children(BTreeMap<PrefixTrieChar, PrefixTrie<'a>>),
     Leaf,
     InitRoot, // Will be replaced with "Children" as soon as First Layer Nodes come in.
+    Vec(Vec<PrefixTrie<'a>>),
 }
 impl<'a> PrefixTrie<'a> {
     pub fn new_using_next_index(next_index: &mut usize, suffix_len: usize) -> Self {
@@ -273,6 +274,11 @@ impl<'a> PrefixTrie<'a> {
                 children.insert(curr_letter, new_child_node);
                 self.data = PrefixTrieData::Children(children);
             }
+            PrefixTrieData::Vec(_) => {
+                // This type "PrefixTrieData::Vec" is only used from the Shrink Phase and after.
+                // Should never happen...
+                // exit(0x0100);
+            }
         }
     }
     fn update_rankings(&mut self, ls_index: usize, is_custom_ls: bool) {
@@ -280,6 +286,89 @@ impl<'a> PrefixTrie<'a> {
             self.rankings_custom.push(ls_index);
         } else {
             self.rankings_canonical.push(ls_index);
+        }
+    }
+
+    // SHRINK PHASE
+    fn is_bridge_node(&self) -> bool {
+        // Make sure to perform "shrink" before the "Merge Rankings and Sort" phase
+        self.rankings_canonical.is_empty() && self.rankings_custom.is_empty()
+    }
+    pub fn shrink(&mut self, prefix_rec: &str) {
+        match &mut self.data {
+            PrefixTrieData::DirectChild((prefix, child_node)) => {
+                let prefix_str = get_string_clone(prefix);
+                child_node.shrink(&format!("{}{}", prefix_rec, prefix_str));
+            }
+            PrefixTrieData::Children(children) => {
+                for (char_key, child_node) in children {
+                    let prefix_str = get_string_char_clone(*char_key);
+                    child_node.shrink(&format!("{}{}", prefix_rec, prefix_str));
+                }
+            }
+            PrefixTrieData::Leaf => {}
+            PrefixTrieData::InitRoot => {}
+            PrefixTrieData::Vec(_) => {
+                // Should never happen...
+                // exit(0x0100);
+            }
+        }
+
+        match &mut self.data {
+            PrefixTrieData::Children(children) => {
+                let mut become_vec = false;
+                for (_, child_node) in &mut *children {
+                    if child_node.is_bridge_node() {
+                        become_vec = true;
+                    }
+                }
+                if become_vec {
+                    let mut children_list_char_key = Vec::new();
+                    for (char_key, _) in &*children {
+                        children_list_char_key.push(*char_key);
+                    }
+                    let mut children_list_child_node: Vec<PrefixTrie> = Vec::new();
+                    for char_key in children_list_char_key {
+                        let child_node = children.remove(&char_key).unwrap();
+                        children_list_child_node.push(child_node);
+                    }
+                    let mut vec = Vec::new();
+                    for child_node in children_list_child_node {
+                        if child_node.is_bridge_node() {
+                            // This is a Bridge Node, so consider directly its Children.
+                            match child_node.data {
+                                PrefixTrieData::DirectChild((_, child_node)) => {
+                                    vec.push(*child_node);
+                                }
+                                PrefixTrieData::Children(children) => {
+                                    vec.extend(children.into_values());
+                                }
+                                PrefixTrieData::Leaf => {
+                                    // Should never happen...
+                                    // exit(0x0100);
+                                }
+                                PrefixTrieData::InitRoot => {
+                                    // Should never happen...
+                                    // exit(0x0100);
+                                }
+                                PrefixTrieData::Vec(children) => {
+                                    vec.extend(children);
+                                }
+                            }
+                        } else {
+                            vec.push(child_node);
+                        }
+                    }
+                    self.data = PrefixTrieData::Vec(vec);
+                }
+            }
+            PrefixTrieData::DirectChild((_, _)) => {
+                // Should never happen...
+                // exit(0x0100);
+            }
+            PrefixTrieData::Leaf => {}
+            PrefixTrieData::InitRoot => {}
+            PrefixTrieData::Vec(_) => {}
         }
     }
 
@@ -354,6 +443,11 @@ impl<'a> PrefixTrie<'a> {
             }
             PrefixTrieData::Leaf => {}
             PrefixTrieData::InitRoot => {}
+            PrefixTrieData::Vec(children) => {
+                for child_node in children {
+                    child_node.merge_rankings_and_sort_recursive(str);
+                }
+            }
         }
     }
 }

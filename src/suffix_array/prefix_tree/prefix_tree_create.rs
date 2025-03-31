@@ -51,6 +51,14 @@ fn create_prefix_tree_from_trie_deep(
             }
             PrefixTrieData::Leaf => {}
             PrefixTrieData::InitRoot => {}
+            PrefixTrieData::Vec(children) => {
+                for child_node in children {
+                    let (nodes_list, next_node_index_) =
+                        create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    node.children.extend(nodes_list);
+                    next_node_index = next_node_index_;
+                }
+            }
         }
         result.push(node);
     } else {
@@ -72,6 +80,14 @@ fn create_prefix_tree_from_trie_deep(
             }
             PrefixTrieData::Leaf => {}
             PrefixTrieData::InitRoot => {}
+            PrefixTrieData::Vec(children) => {
+                for child_node in children {
+                    let (nodes_list, next_node_index_) =
+                        create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    result.extend(nodes_list);
+                    next_node_index = next_node_index_;
+                }
+            }
         }
     }
 

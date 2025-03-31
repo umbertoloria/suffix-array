@@ -84,12 +84,13 @@ pub fn compute_innovative_suffix_array(
         debug_mode == DebugMode::Verbose,
         // true,
     );
+    prefix_trie.shrink("");
     monitor.phase2_1_prefix_trie_create_stop();
 
     // +
     if debug_mode == DebugMode::Verbose {
         println!("Before merge");
-        prefix_trie.print(0, "");
+        prefix_trie.print(0, "", str);
     }
     // -
 
@@ -105,6 +106,7 @@ pub fn compute_innovative_suffix_array(
         log_prefix_trie(
             &prefix_trie,
             get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
+            str,
         );
     }
 
@@ -122,7 +124,7 @@ pub fn compute_innovative_suffix_array(
 
     if debug_mode == DebugMode::Verbose {
         println!("Before PREFIX TREE CREATE");
-        prefix_trie.print_merged(0, "".into());
+        prefix_trie.print_merged(0, "".into(), str);
     }
     // -
 

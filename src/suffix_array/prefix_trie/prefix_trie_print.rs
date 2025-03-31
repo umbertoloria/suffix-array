@@ -3,7 +3,12 @@ use crate::suffix_array::prefix_trie::prefix_trie::{
 };
 
 impl<'a> PrefixTrie<'a> {
-    pub fn print(&self, tabs_offset: usize, prefix_rec: &str) {
+    pub fn get_label_from_first_ranking(&self, str: &'a str) -> &'a str {
+        // Make sure this node is not the Root Node, because it's the only one that has no Rankings.
+        let first_ranking = self.rankings[0];
+        &str[first_ranking..first_ranking + self.suffix_len]
+    }
+    pub fn print(&self, tabs_offset: usize, prefix_rec: &str, str: &str) {
         println!(
             "{}|{:2}: \"{}\" {}",
             "\t".repeat(tabs_offset),
@@ -19,18 +24,36 @@ impl<'a> PrefixTrie<'a> {
             PrefixTrieData::Children(children) => {
                 for (char_key, child_node) in children {
                     let prefix_str = get_string_char_clone(*char_key);
-                    child_node.print(tabs_offset + 1, &format!("{}{}", prefix_rec, prefix_str));
+                    child_node.print(
+                        tabs_offset + 1,
+                        &format!("{}{}", prefix_rec, prefix_str),
+                        str,
+                    );
                 }
             }
             PrefixTrieData::DirectChild((prefix, child_node)) => {
                 let prefix_str = get_string_clone(prefix);
-                child_node.print(tabs_offset + 1, &format!("{}{}", prefix_rec, prefix_str));
+                child_node.print(
+                    tabs_offset + 1,
+                    &format!("{}{}", prefix_rec, prefix_str),
+                    str,
+                );
             }
             PrefixTrieData::Leaf => {}
             PrefixTrieData::InitRoot => {}
+            PrefixTrieData::Vec(children) => {
+                for child_node in children {
+                    let prefix_str = child_node.get_label_from_first_ranking(str);
+                    child_node.print(
+                        tabs_offset + 1,
+                        &format!("{}{}", prefix_rec, prefix_str),
+                        str,
+                    );
+                }
+            }
         }
     }
-    pub fn print_merged(&self, tabs_offset: usize, prefix_rec: String) {
+    pub fn print_merged(&self, tabs_offset: usize, prefix_rec: String, str: &str) {
         println!(
             "{}\"{}\" {:?}",
             "\t".repeat(tabs_offset),
@@ -42,16 +65,23 @@ impl<'a> PrefixTrie<'a> {
                 for (char_key, child_node) in children {
                     let prefix_str = get_string_char_clone(*char_key);
                     let prefix_rec = format!("{}{}", prefix_rec, prefix_str);
-                    child_node.print_merged(tabs_offset + 1, prefix_rec);
+                    child_node.print_merged(tabs_offset + 1, prefix_rec, str);
                 }
             }
             PrefixTrieData::DirectChild((prefix, child_node)) => {
                 let prefix_str = get_string_clone(prefix);
                 let prefix_rec = format!("{}{}", prefix_rec, prefix_str);
-                child_node.print_merged(tabs_offset + 1, prefix_rec);
+                child_node.print_merged(tabs_offset + 1, prefix_rec, str);
             }
             PrefixTrieData::Leaf => {}
             PrefixTrieData::InitRoot => {}
+            PrefixTrieData::Vec(children) => {
+                for child_node in children {
+                    let prefix_str = child_node.get_label_from_first_ranking(str);
+                    let prefix_rec = format!("{}{}", prefix_rec, prefix_str);
+                    child_node.print_merged(tabs_offset + 1, prefix_rec, str);
+                }
+            }
         }
     }
 }
