@@ -3,13 +3,13 @@ use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
 impl PrefixTree {
     pub fn prepare_get_common_prefix_partition(
-        &mut self,
+        &self,
         sa: &mut Vec<usize>,
         str: &str,
         prog_sa: &ProgSuffixArray,
         verbose: bool,
     ) {
-        for first_layer_child in &mut self.children {
+        for first_layer_child in &self.children {
             sa.extend(first_layer_child.get_common_prefix_partition(str, prog_sa, verbose));
         }
     }

@@ -282,6 +282,8 @@ impl<'a> PrefixTrie<'a> {
             self.rankings_canonical.push(ls_index);
         }
     }
+
+    // MERGE RANKINGS
     pub fn merge_rankings_and_sort_recursive(&mut self, str: &str) {
         // Here we sort the Rankings Custom (all real Global Suffixes) and then try to merge the
         // two lists Rankings Canonical Rankings Custom (Sorted) by doing a pair-comparison.

@@ -89,7 +89,7 @@ pub fn compute_innovative_suffix_array(
     // +
     if debug_mode == DebugMode::Verbose {
         println!("Before merge");
-        prefix_trie.print(0, "".into());
+        prefix_trie.print(0, "");
     }
     // -
 
