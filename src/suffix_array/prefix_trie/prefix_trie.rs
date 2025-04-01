@@ -1,3 +1,4 @@
+use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::collections::BTreeMap;
 
@@ -8,7 +9,6 @@ pub struct PrefixTrie<'a> {
     pub data: PrefixTrieData<'a>,
     pub rankings_canonical: Vec<usize>,
     pub rankings_custom: Vec<usize>,
-    pub rankings: Vec<usize>,
 }
 pub enum PrefixTrieData<'a> {
     DirectChild((&'a PrefixTrieString, Box<PrefixTrie<'a>>)),
@@ -34,7 +34,6 @@ impl<'a> PrefixTrie<'a> {
             },
             rankings_canonical: Vec::new(),
             rankings_custom: Vec::new(),
-            rankings: Vec::new(),
         }
     }
 
@@ -218,7 +217,6 @@ impl<'a> PrefixTrie<'a> {
                     );
                     new_child_node.update_rankings(ls_index, is_custom_ls);
 
-                    // TODO: Avoid cloning
                     self.data = PrefixTrieData::DirectChild((
                         //
                         rest_of_ls,
@@ -294,16 +292,14 @@ impl<'a> PrefixTrie<'a> {
         // Make sure to perform "shrink" before the "Merge Rankings and Sort" phase
         self.rankings_canonical.is_empty() && self.rankings_custom.is_empty()
     }
-    pub fn shrink(&mut self, prefix_rec: &str) {
+    pub fn shrink(&mut self) {
         match &mut self.data {
-            PrefixTrieData::DirectChild((prefix, child_node)) => {
-                let prefix_str = get_string_clone(prefix);
-                child_node.shrink(&format!("{}{}", prefix_rec, prefix_str));
+            PrefixTrieData::DirectChild((_, child_node)) => {
+                child_node.shrink();
             }
             PrefixTrieData::Children(children) => {
-                for (char_key, child_node) in children {
-                    let prefix_str = get_string_char_clone(*char_key);
-                    child_node.shrink(&format!("{}{}", prefix_rec, prefix_str));
+                for (_, child_node) in children {
+                    child_node.shrink();
                 }
             }
             PrefixTrieData::Leaf => {}
@@ -373,7 +369,7 @@ impl<'a> PrefixTrie<'a> {
     }
 
     // MERGE RANKINGS
-    pub fn merge_rankings_and_sort_recursive(&mut self, str: &str) {
+    pub fn merge_rankings_and_sort_recursive(&mut self, str: &str, prog_sa: &mut ProgSuffixArray) {
         // Here we sort the Rankings Custom (all real Global Suffixes) and then try to merge the
         // two lists Rankings Canonical Rankings Custom (Sorted) by doing a pair-comparison.
         // We don't sort Rankings Canonical because that list already contains Global Suffixes in
@@ -398,8 +394,8 @@ impl<'a> PrefixTrie<'a> {
         let mut sorted_rankings_canonical = Vec::new();
         sorted_rankings_canonical.append(&mut self.rankings_canonical);
 
-        let mut unified_rankings = &mut self.rankings;
-        unified_rankings.reserve(sorted_rankings_canonical.len() + sorted_rankings_custom.len());
+        let mut unified_rankings =
+            Vec::with_capacity(sorted_rankings_canonical.len() + sorted_rankings_custom.len());
         let mut i_canonical = 0;
         let mut i_custom = 0;
         while i_canonical < sorted_rankings_canonical.len()
@@ -432,20 +428,21 @@ impl<'a> PrefixTrie<'a> {
         }
 
         // Recursive calls...
+        prog_sa.assign_rankings_to_node_index(self.id, &unified_rankings);
         match &mut self.data {
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
-                    child_node.merge_rankings_and_sort_recursive(str);
+                    child_node.merge_rankings_and_sort_recursive(str, prog_sa);
                 }
             }
             PrefixTrieData::DirectChild((_, child_node)) => {
-                child_node.merge_rankings_and_sort_recursive(str);
+                child_node.merge_rankings_and_sort_recursive(str, prog_sa);
             }
             PrefixTrieData::Leaf => {}
             PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
-                    child_node.merge_rankings_and_sort_recursive(str);
+                    child_node.merge_rankings_and_sort_recursive(str, prog_sa);
                 }
             }
         }

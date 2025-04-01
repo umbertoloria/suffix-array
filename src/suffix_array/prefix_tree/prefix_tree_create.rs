@@ -4,26 +4,29 @@ use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
 pub fn create_prefix_tree_from_prefix_trie(
     root_trie: PrefixTrie,
+    prog_sa_trie: &ProgSuffixArray,
     prog_sa: &mut ProgSuffixArray,
 ) -> PrefixTree {
-    let (nodes_list, _) = create_prefix_tree_from_trie_deep(root_trie, prog_sa, 0);
+    let (nodes_list, _) = create_prefix_tree_from_trie_deep(root_trie, prog_sa_trie, prog_sa, 0);
     PrefixTree {
         children: nodes_list,
     }
 }
 fn create_prefix_tree_from_trie_deep(
     real_node: PrefixTrie,
+    prog_sa_trie: &ProgSuffixArray,
     prog_sa: &mut ProgSuffixArray,
     next_node_index: usize,
 ) -> (Vec<PrefixTreeNode>, usize) {
     let mut result = Vec::new();
     let mut next_node_index = next_node_index;
 
-    if real_node.rankings.len() > 0 {
+    let real_node_rankings = prog_sa_trie.get_rankings(real_node.id);
+    if real_node_rankings.len() > 0 {
         // This Node has Rankings, so we consider it.
 
         // Create Prefix Tree Node
-        prog_sa.assign_rankings_to_node_index(next_node_index, &real_node.rankings);
+        prog_sa.assign_rankings_to_node_index(next_node_index, &real_node_rankings);
         let mut node = PrefixTreeNode {
             index: next_node_index,
             suffix_len: real_node.suffix_len,
@@ -37,15 +40,23 @@ fn create_prefix_tree_from_trie_deep(
         match real_node.data {
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
-                    let (nodes_list, next_node_index_) =
-                        create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    let (nodes_list, next_node_index_) = create_prefix_tree_from_trie_deep(
+                        child_node,
+                        prog_sa_trie,
+                        prog_sa,
+                        next_node_index,
+                    );
                     node.children.extend(nodes_list);
                     next_node_index = next_node_index_;
                 }
             }
             PrefixTrieData::DirectChild((_, child_node)) => {
-                let (nodes_list, next_node_index_) =
-                    create_prefix_tree_from_trie_deep(*child_node, prog_sa, next_node_index);
+                let (nodes_list, next_node_index_) = create_prefix_tree_from_trie_deep(
+                    *child_node,
+                    prog_sa_trie,
+                    prog_sa,
+                    next_node_index,
+                );
                 node.children.extend(nodes_list);
                 next_node_index = next_node_index_;
             }
@@ -53,8 +64,12 @@ fn create_prefix_tree_from_trie_deep(
             PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
-                    let (nodes_list, next_node_index_) =
-                        create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    let (nodes_list, next_node_index_) = create_prefix_tree_from_trie_deep(
+                        child_node,
+                        prog_sa_trie,
+                        prog_sa,
+                        next_node_index,
+                    );
                     node.children.extend(nodes_list);
                     next_node_index = next_node_index_;
                 }
@@ -66,15 +81,23 @@ fn create_prefix_tree_from_trie_deep(
         match real_node.data {
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
-                    let (nodes_list, next_node_index_) =
-                        create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    let (nodes_list, next_node_index_) = create_prefix_tree_from_trie_deep(
+                        child_node,
+                        prog_sa_trie,
+                        prog_sa,
+                        next_node_index,
+                    );
                     result.extend(nodes_list);
                     next_node_index = next_node_index_;
                 }
             }
             PrefixTrieData::DirectChild((_, child_node)) => {
-                let (nodes_list, next_node_index_) =
-                    create_prefix_tree_from_trie_deep(*child_node, prog_sa, next_node_index);
+                let (nodes_list, next_node_index_) = create_prefix_tree_from_trie_deep(
+                    *child_node,
+                    prog_sa_trie,
+                    prog_sa,
+                    next_node_index,
+                );
                 result.extend(nodes_list);
                 next_node_index = next_node_index_;
             }
@@ -82,8 +105,12 @@ fn create_prefix_tree_from_trie_deep(
             PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
-                    let (nodes_list, next_node_index_) =
-                        create_prefix_tree_from_trie_deep(child_node, prog_sa, next_node_index);
+                    let (nodes_list, next_node_index_) = create_prefix_tree_from_trie_deep(
+                        child_node,
+                        prog_sa_trie,
+                        prog_sa,
+                        next_node_index,
+                    );
                     result.extend(nodes_list);
                     next_node_index = next_node_index_;
                 }

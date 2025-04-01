@@ -10,6 +10,7 @@ pub fn create_prefix_trie<'a>(
     depths: &mut Vec<usize>,
     monitor: &mut Monitor,
     verbose: bool,
+    str: &str,
 ) -> PrefixTrie<'a> {
     let str_length = s_bytes.len();
     let max_factor_size =
@@ -43,7 +44,7 @@ pub fn create_prefix_trie<'a>(
             );
             depths[ls_index] = curr_ls_size;
             if verbose {
-                // root.print(0, "", str);
+                root.print(0, "", str);
             }
         }
 
@@ -63,7 +64,7 @@ pub fn create_prefix_trie<'a>(
                 );
                 depths[ls_index] = curr_ls_size;
                 if verbose {
-                    // root.print(0, "");
+                    root.print(0, "", str);
                 }
             }
         }

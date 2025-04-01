@@ -16,7 +16,7 @@ impl PrefixTree {
 }
 impl PrefixTreeNode {
     pub fn get_label_from_first_ranking<'a>(&self, str: &'a str, rankings: &[usize]) -> &'a str {
-        // Unfortunately (maybe), each caller has its own reason to already have "rankings"...
+        // Make sure this node is not the Root Node, because it's the only one that has no Rankings.
         let first_ranking = rankings[0];
         &str[first_ranking..first_ranking + self.suffix_len]
     }

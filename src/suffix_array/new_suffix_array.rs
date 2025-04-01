@@ -82,9 +82,9 @@ pub fn compute_innovative_suffix_array(
         &mut depths,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
-        // true,
+        str,
     );
-    prefix_trie.shrink("");
+    prefix_trie.shrink();
     monitor.phase2_1_prefix_trie_create_stop();
 
     // +
@@ -96,7 +96,10 @@ pub fn compute_innovative_suffix_array(
 
     // Merge Rankings (Canonical and Custom)
     monitor.phase2_2_prefix_trie_merge_rankings_start();
-    prefix_trie.merge_rankings_and_sort_recursive(str);
+    // This "prog_sa_trie" is going to store all Rankings from Trie Nodes. It's not going to be used
+    // to build the actual Suffix Array. Above, the "prog_sa" will actually be used for that.
+    let mut prog_sa_trie = ProgSuffixArray::new(str_length);
+    prefix_trie.merge_rankings_and_sort_recursive(str, &mut prog_sa_trie);
     monitor.phase2_2_prefix_trie_merge_rankings_stop();
 
     // +
@@ -107,6 +110,7 @@ pub fn compute_innovative_suffix_array(
             &prefix_trie,
             get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
             str,
+            &prog_sa_trie,
         );
     }
 
@@ -124,13 +128,14 @@ pub fn compute_innovative_suffix_array(
 
     if debug_mode == DebugMode::Verbose {
         println!("Before PREFIX TREE CREATE");
-        prefix_trie.print_merged(0, "".into(), str);
+        prefix_trie.print_merged(0, "", str, &prog_sa_trie);
     }
     // -
 
     monitor.phase2_3_prefix_tree_create_start();
     let mut prog_sa = ProgSuffixArray::new(str_length);
-    let mut prefix_tree = create_prefix_tree_from_prefix_trie(prefix_trie, &mut prog_sa);
+    let mut prefix_tree =
+        create_prefix_tree_from_prefix_trie(prefix_trie, &prog_sa_trie, &mut prog_sa);
     monitor.phase2_3_prefix_tree_create_stop();
 
     monitor.phase2_4_prefix_tree_in_prefix_merge_start();
@@ -147,25 +152,6 @@ pub fn compute_innovative_suffix_array(
         debug_mode == DebugMode::Verbose,
     );
     monitor.phase2_4_prefix_tree_in_prefix_merge_stop();
-
-    /*
-    prefix_tree.shrink_bottom_up(
-        &mut wbsa,
-        &mut depths,
-        str,
-        &icfl_indexes,
-        &is_custom_vec,
-        &icfl_factor_list,
-    );
-    match debug_mode {
-        DebugMode::Overview => {
-            println!("After SHRINK");
-            prefix_tree.print(str);
-            println!("{:?}", wbsa);
-        }
-        _ => {}
-    }
-    */
 
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
