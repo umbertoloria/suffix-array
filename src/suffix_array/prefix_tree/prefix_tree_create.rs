@@ -8,113 +8,87 @@ pub fn create_prefix_tree_from_prefix_trie(
     prog_sa: &mut ProgSuffixArray,
 ) -> PrefixTree {
     let mut next_node_index = 0;
-
-    // Prefix Tree Node
-    let mut node = PrefixTree {
-        children: Vec::new(),
-    };
-
-    // Add children
-    match root_trie.data {
-        PrefixTrieData::Children(children) => {
-            for (_, child_node) in children {
-                let (child_tree_node, next_node_index_) = create_prefix_tree_from_trie_deep(
-                    child_node,
-                    prog_sa_trie,
-                    prog_sa,
-                    next_node_index,
-                );
-                node.children.push(child_tree_node);
-                next_node_index = next_node_index_;
-            }
-        }
-        PrefixTrieData::DirectChild((_, child_node)) => {
-            let (child_tree_node, next_node_index_) = create_prefix_tree_from_trie_deep(
-                *child_node,
-                prog_sa_trie,
-                prog_sa,
-                next_node_index,
-            );
-            node.children.push(child_tree_node);
-            next_node_index = next_node_index_;
-        }
-        PrefixTrieData::Leaf => {}
-        PrefixTrieData::InitRoot => {}
-        PrefixTrieData::Vec(children) => {
-            for child_node in children {
-                let (child_tree_node, next_node_index_) = create_prefix_tree_from_trie_deep(
-                    child_node,
-                    prog_sa_trie,
-                    prog_sa,
-                    next_node_index,
-                );
-                node.children.push(child_tree_node);
-                next_node_index = next_node_index_;
-            }
-        }
+    PrefixTree {
+        children: create_children_tree_nodes_from_node_trie_children(
+            root_trie,
+            prog_sa_trie,
+            prog_sa,
+            &mut next_node_index,
+        ),
     }
-    node
 }
-fn create_prefix_tree_from_trie_deep(
-    real_node: PrefixTrie,
+
+fn create_children_tree_nodes_from_node_trie_children(
+    node_trie: PrefixTrie,
     prog_sa_trie: &ProgSuffixArray,
     prog_sa: &mut ProgSuffixArray,
-    next_node_index: usize,
-) -> (PrefixTreeNode, usize) {
-    // Every Node here has Rankings, so we consider it.
-
-    let mut next_node_index = next_node_index;
-
-    // Prefix Tree Node
-    let real_node_rankings = prog_sa_trie.get_rankings(real_node.id);
-    prog_sa.assign_rankings_to_node_index(next_node_index, &real_node_rankings);
-    let mut node = PrefixTreeNode {
-        index: next_node_index,
-        suffix_len: real_node.suffix_len,
-        children: Vec::new(),
-        min_father: None,
-        max_father: None,
-    };
-    next_node_index += 1;
-
-    // Add children
-    match real_node.data {
+    next_node_index: &mut usize,
+) -> Vec<PrefixTreeNode> {
+    let mut node_children = Vec::new();
+    match node_trie.data {
         PrefixTrieData::Children(children) => {
             for (_, child_node) in children {
-                let (child_tree_node, next_node_index_) = create_prefix_tree_from_trie_deep(
-                    child_node,
-                    prog_sa_trie,
-                    prog_sa,
-                    next_node_index,
+                node_children.push(
+                    //
+                    create_prefix_tree_node_and_assign_rankings_and_index(
+                        child_node,
+                        prog_sa_trie,
+                        prog_sa,
+                        next_node_index,
+                    ),
                 );
-                node.children.push(child_tree_node);
-                next_node_index = next_node_index_;
             }
         }
         PrefixTrieData::DirectChild((_, child_node)) => {
-            let (child_tree_node, next_node_index_) = create_prefix_tree_from_trie_deep(
-                *child_node,
-                prog_sa_trie,
-                prog_sa,
-                next_node_index,
+            node_children.push(
+                //
+                create_prefix_tree_node_and_assign_rankings_and_index(
+                    *child_node,
+                    prog_sa_trie,
+                    prog_sa,
+                    next_node_index,
+                ),
             );
-            node.children.push(child_tree_node);
-            next_node_index = next_node_index_;
         }
         PrefixTrieData::Leaf => {}
         PrefixTrieData::InitRoot => {}
         PrefixTrieData::Vec(children) => {
             for child_node in children {
-                let (child_tree_node, next_node_index_) = create_prefix_tree_from_trie_deep(
-                    child_node,
-                    prog_sa_trie,
-                    prog_sa,
-                    next_node_index,
+                node_children.push(
+                    //
+                    create_prefix_tree_node_and_assign_rankings_and_index(
+                        child_node,
+                        prog_sa_trie,
+                        prog_sa,
+                        next_node_index,
+                    ),
                 );
-                node.children.push(child_tree_node);
-                next_node_index = next_node_index_;
             }
         }
     }
-    (node, next_node_index)
+    node_children
+}
+
+fn create_prefix_tree_node_and_assign_rankings_and_index(
+    node_trie: PrefixTrie,
+    prog_sa_trie: &ProgSuffixArray,
+    prog_sa: &mut ProgSuffixArray,
+    next_node_index: &mut usize,
+) -> PrefixTreeNode {
+    // Every Node here has Rankings, so we consider it.
+    let node_index = *next_node_index;
+    *next_node_index += 1;
+    prog_sa.assign_rankings_to_node_index(node_index, prog_sa_trie.get_rankings(node_trie.id));
+    PrefixTreeNode {
+        index: node_index,
+        suffix_len: node_trie.suffix_len,
+        children: create_children_tree_nodes_from_node_trie_children(
+            node_trie,
+            prog_sa_trie,
+            prog_sa,
+            next_node_index,
+        ),
+        min_father: None,
+        max_father: None,
+    }
 }
