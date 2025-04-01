@@ -1,64 +1,32 @@
 A [34, 18, 0]
  AA [17]
        AACCTCGA [27]
- AC
-  ACA
-     ACAGAA [13]
-  ACC [8]
-      ACCTCGA [28]
- AG
-  AGA
-   AGAA [15]
-         AGAACCTCGA [25]
-   AGAC
-    AGACC [6]
-   AGAG
-               AGAGGTAGAACCTCGA [19]
-  AGG
-             AGGTAGAACCTCGA [21]
+ ACAGAA [13]
+ ACC [8]
+     ACCTCGA [28]
+ AGAA [15]
+       AGAACCTCGA [25]
+ AGACC [6]
+ AGAGGTAGAACCTCGA [19]
+ AGGTAGAACCTCGA [21]
 C [1, 10]
- CA
-    CAGAA [14]
+ CAGAA [14]
  CC [9]
      CCTCGA [29]
- CG
-  CGA [32]
-  CGT
-       CGTAGACC [3]
- CT
-    CTCGA [30]
-G
- GA [33]
-  GAA [16]
-        GAACCTCGA [26]
-  GAC
-   GACC [7]
-  GAG
-              GAGGTAGAACCTCGA [20]
- GG
-            GGTAGAACCTCGA [22]
- GT
-  GTA
-   GTAG
-    GTAGA
-     GTAGAA
-           GTAGAACCTCGA [23]
-     GTAGAC
-      GTAGACC [4]
-T
- TA
-  TAC
-      TACAGAA [12]
-  TAG
-   TAGA
-    TAGAA
-          TAGAACCTCGA [24]
-    TAGAC
-     TAGACC [5]
- TC
-  TCG
-   TCGA [31]
-   TCGT
-        TCGTAGACC [2]
- TT
-       TTACAGAA [11]
+ CGA [32]
+ CGTAGACC [3]
+ CTCGA [30]
+GA [33]
+ GAA [16]
+       GAACCTCGA [26]
+ GACC [7]
+ GAGGTAGAACCTCGA [20]
+GGTAGAACCTCGA [22]
+GTAGAACCTCGA [23]
+GTAGACC [4]
+TACAGAA [12]
+TAGAACCTCGA [24]
+TAGACC [5]
+TCGA [31]
+TCGTAGACC [2]
+TTACAGAA [11]

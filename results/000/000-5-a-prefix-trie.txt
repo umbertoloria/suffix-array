@@ -1,13 +1,10 @@
 A [16, 2, 9]
  AA [1]
   AAA [0]
-  AAB
-    AABCA [12, 5]
- AB
-   ABCA [13, 6]
+  AABCA [12, 5]
+ ABCA [13, 6]
 B [3]
   BCA [14, 7]
 C [11, 4]
  CA [15, 8]
-D
- DC [10]
+DC [10]

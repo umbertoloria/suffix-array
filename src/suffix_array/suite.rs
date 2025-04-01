@@ -125,7 +125,7 @@ fn run_and_validate_test(
         &execution_timing.duration_p12,
     );
     print_duration(
-        " > Phase 2.1: Trie Create         ",
+        " > Phase 2.1: Trie create         ",
         &execution_timing.duration_p21,
     );
     print_duration(
