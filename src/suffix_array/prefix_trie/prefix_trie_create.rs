@@ -44,7 +44,7 @@ pub fn create_prefix_trie<'a>(
             );
             depths[ls_index] = curr_ls_size;
             if verbose {
-                root.print(0, "", str);
+                root.print_before_merged_rankings(0, "", str);
             }
         }
 
@@ -64,7 +64,7 @@ pub fn create_prefix_trie<'a>(
                 );
                 depths[ls_index] = curr_ls_size;
                 if verbose {
-                    root.print(0, "", str);
+                    root.print_before_merged_rankings(0, "", str);
                 }
             }
         }

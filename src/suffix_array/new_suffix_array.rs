@@ -90,7 +90,7 @@ pub fn compute_innovative_suffix_array(
     // +
     if debug_mode == DebugMode::Verbose {
         println!("Before merge");
-        prefix_trie.print(0, "", str);
+        prefix_trie.print_before_merged_rankings(0, "", str);
     }
     // -
 
@@ -128,7 +128,7 @@ pub fn compute_innovative_suffix_array(
 
     if debug_mode == DebugMode::Verbose {
         println!("Before PREFIX TREE CREATE");
-        prefix_trie.print_merged(0, "", str, &prog_sa_trie);
+        prefix_trie.print_with_rankings(0, "", str, &prog_sa_trie);
     }
     // -
 

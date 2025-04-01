@@ -6,6 +6,7 @@ use std::fs::File;
 use std::io::Write;
 
 pub fn log_prefix_trie(root: &PrefixTrie, filepath: String, str: &str, prog_sa: &ProgSuffixArray) {
+    // This can be used only if Prefix Trie has inserted its Rankings inside Prog. S.A.
     let mut file = File::create(filepath).expect("Unable to create file");
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
     match &root.data {
