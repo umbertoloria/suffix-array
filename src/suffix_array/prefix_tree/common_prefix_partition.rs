@@ -9,8 +9,8 @@ impl PrefixTree {
         prog_sa: &ProgSuffixArray,
         verbose: bool,
     ) {
-        for first_layer_child in &self.children {
-            sa.extend(first_layer_child.get_common_prefix_partition(str, prog_sa, verbose));
+        for child_node in &self.children {
+            sa.extend(child_node.get_common_prefix_partition(str, prog_sa, verbose));
         }
     }
 }

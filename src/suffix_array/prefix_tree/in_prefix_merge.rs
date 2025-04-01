@@ -17,8 +17,8 @@ impl PrefixTree {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        for child in &mut self.children {
-            child.in_prefix_merge(
+        for child_node in &mut self.children {
+            child_node.in_prefix_merge_on_children(
                 str,
                 prog_sa,
                 depths,
@@ -32,9 +32,8 @@ impl PrefixTree {
         }
     }
 }
-
 impl PrefixTreeNode {
-    pub fn in_prefix_merge(
+    fn in_prefix_merge_on_children(
         &mut self,
         str: &str,
         prog_sa: &mut ProgSuffixArray,
@@ -46,8 +45,8 @@ impl PrefixTreeNode {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        for child in &mut self.children {
-            child.in_prefix_merge_deep(
+        for child_node in &mut self.children {
+            child_node.in_prefix_merge_deep(
                 str,
                 prog_sa,
                 depths,
@@ -232,19 +231,16 @@ impl PrefixTreeNode {
         }
 
         // Now it's your turn to be the parent.
-        for child in &mut self.children {
-            child.in_prefix_merge_deep(
-                str,
-                prog_sa,
-                depths,
-                icfl_indexes,
-                is_custom_vec,
-                icfl_factor_list,
-                self.index,
-                compare_cache,
-                monitor,
-                verbose,
-            );
-        }
+        self.in_prefix_merge_on_children(
+            str,
+            prog_sa,
+            depths,
+            icfl_indexes,
+            is_custom_vec,
+            icfl_factor_list,
+            compare_cache,
+            monitor,
+            verbose,
+        );
     }
 }
