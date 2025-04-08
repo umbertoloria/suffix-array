@@ -362,14 +362,13 @@ impl<'a> PrefixTrie<'a> {
         // We don't sort Rankings Canonical because that list already contains Global Suffixes in
         // the right order (unlike Ranking Custom, that we have to sort).
         let mut sorted_rankings_custom = Vec::new();
-        let mut old_rankings_custom = Vec::new();
-        old_rankings_custom.append(&mut self.rankings_custom);
-        if !old_rankings_custom.is_empty() {
+        if !self.rankings_custom.is_empty() {
             let mut sorted_rankings_custom_pairs_list = Vec::new();
-            for local_suffix_index in old_rankings_custom {
-                sorted_rankings_custom_pairs_list
-                    .push((local_suffix_index, &str[local_suffix_index..]));
+            for &gs_index in &self.rankings_custom {
+                let gs = &str[gs_index..];
+                sorted_rankings_custom_pairs_list.push((gs_index, gs));
             }
+            self.rankings_custom.clear();
             // TODO: Monitor string compare
             sort_pair_vector_of_indexed_strings(&mut sorted_rankings_custom_pairs_list);
             for (custom_gs_index, _) in sorted_rankings_custom_pairs_list {
@@ -378,17 +377,13 @@ impl<'a> PrefixTrie<'a> {
         }
         // OK, now Rankings Customs is sorted as well. Rankings Canonical was already sorted. Now we
         // perform the merge between these lists.
-        let mut sorted_rankings_canonical = Vec::new();
-        sorted_rankings_canonical.append(&mut self.rankings_canonical);
-
         let mut unified_rankings =
-            Vec::with_capacity(sorted_rankings_canonical.len() + sorted_rankings_custom.len());
+            Vec::with_capacity(self.rankings_canonical.len() + sorted_rankings_custom.len());
         let mut i_canonical = 0;
         let mut i_custom = 0;
-        while i_canonical < sorted_rankings_canonical.len()
-            && i_custom < sorted_rankings_custom.len()
+        while i_canonical < self.rankings_canonical.len() && i_custom < sorted_rankings_custom.len()
         {
-            let canonical_gs_index = sorted_rankings_canonical[i_canonical];
+            let canonical_gs_index = self.rankings_canonical[i_canonical];
             let canonical_gs = &str[canonical_gs_index..];
 
             let custom_gs_index = sorted_rankings_custom[i_custom];
@@ -403,21 +398,18 @@ impl<'a> PrefixTrie<'a> {
                 i_custom += 1;
             }
         }
-        while i_canonical < sorted_rankings_canonical.len() {
-            let canonical_gs_index = sorted_rankings_canonical[i_canonical];
+        while i_canonical < self.rankings_canonical.len() {
+            let canonical_gs_index = self.rankings_canonical[i_canonical];
             unified_rankings.push(canonical_gs_index);
             i_canonical += 1;
         }
+        self.rankings_canonical.clear();
         while i_custom < sorted_rankings_custom.len() {
             let custom_gs_index = sorted_rankings_custom[i_custom];
             unified_rankings.push(custom_gs_index);
             i_custom += 1;
         }
         prog_sa.assign_rankings_to_node_index(self.id, &unified_rankings);
-
-        // TODO: Understand if this free is slowing the process or is helpful
-        self.rankings_canonical.clear();
-        self.rankings_custom.clear();
 
         // Recursive calls...
         match &mut self.data {
