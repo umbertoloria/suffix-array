@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 183886,
-    "duration_phases_with_extra____": 1521988,
-    "phase_1_1_factorization_icfl__": 28381,
-    "phase_1_2_factorization_custom": 4327,
-    "phase_2_1_trie_create_________": 15708,
-    "phase_2_2_trie_merge_rankings_": 130656,
-    "phase_2_3_trie_in_prefix_merge": 1774,
-    "phase_2_4_tree_create_________": 0,
-    "phase_3_0_suffix_array________": 3036
+    "duration_phases_______________": 191075,
+    "duration_phases_with_extra____": 1536729,
+    "phase_1_1_factorization_icfl__": 32551,
+    "phase_1_2_factorization_custom": 4881,
+    "phase_2_1_trie_create_________": 15805,
+    "phase_2_2_trie_merge_rankings_": 132984,
+    "phase_2_3_trie_in_prefix_merge": 1825,
+    "phase_2_4_tree_create_________": 7,
+    "phase_3_0_suffix_array________": 3020
   },
   "seconds": {
-    "duration_phases_______________": 0.184,
-    "duration_phases_with_extra____": 1.522,
-    "phase_1_1_factorization_icfl__": 0.028,
-    "phase_1_2_factorization_custom": 0.004,
+    "duration_phases_______________": 0.191,
+    "duration_phases_with_extra____": 1.537,
+    "phase_1_1_factorization_icfl__": 0.033,
+    "phase_1_2_factorization_custom": 0.005,
     "phase_2_1_trie_create_________": 0.016,
-    "phase_2_2_trie_merge_rankings_": 0.131,
+    "phase_2_2_trie_merge_rankings_": 0.133,
     "phase_2_3_trie_in_prefix_merge": 0.002,
     "phase_2_4_tree_create_________": 0.0,
     "phase_3_0_suffix_array________": 0.003
   },
   "percentages": {
-    "phase_1_1_factorization_icfl__": 15,
-    "phase_1_2_factorization_custom": 2,
-    "phase_2_1_trie_create_________": 9,
-    "phase_2_2_trie_merge_rankings_": 71,
+    "phase_1_1_factorization_icfl__": 17,
+    "phase_1_2_factorization_custom": 3,
+    "phase_2_1_trie_create_________": 8,
+    "phase_2_2_trie_merge_rankings_": 70,
     "phase_2_3_trie_in_prefix_merge": 1,
     "phase_2_4_tree_create_________": 0,
-    "phase_3_0_suffix_array________": 2
+    "phase_3_0_suffix_array________": 1
   }
 }
