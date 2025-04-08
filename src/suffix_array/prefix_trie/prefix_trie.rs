@@ -18,14 +18,9 @@ pub enum PrefixTrieData<'a> {
     Vec(Vec<PrefixTrie<'a>>),
 }
 impl<'a> PrefixTrie<'a> {
-    pub fn new_using_next_index(next_index: &mut usize, suffix_len: usize) -> Self {
-        let id = *next_index;
-        *next_index += 1;
-        Self::new(id, suffix_len)
-    }
-    pub fn new(id: usize, suffix_len: usize) -> Self {
+    pub fn new(suffix_len: usize) -> Self {
         Self {
-            id,
+            id: 0, // IDs not used before Merge Rankings Phase.
             suffix_len,
             data: if suffix_len == 0 {
                 PrefixTrieData::InitRoot
@@ -48,7 +43,6 @@ impl<'a> PrefixTrie<'a> {
     // Tree transformation
     pub fn add_string(
         &mut self,
-        next_index: &mut usize,
         ls_index: usize,
         ls_size: usize,
         s_bytes: &'a [u8],
@@ -106,10 +100,10 @@ impl<'a> PrefixTrie<'a> {
                 let old_child_node_rankings_custom = child_node.get_rankings_custom();
 
                 // Node "child_node" will disappear, so its ID will be used by "new_child_node"
-                let mut new_child_node = PrefixTrie::new(child_node.id, self.suffix_len + 1);
+                let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
                 for &ranking_canonical in old_child_node_rankings_canonical {
                     new_child_node.add_string(
-                        next_index,
+                        //
                         ranking_canonical,
                         self.suffix_len + prefix.len(),
                         s_bytes,
@@ -119,7 +113,7 @@ impl<'a> PrefixTrie<'a> {
                 }
                 for &ranking_custom in old_child_node_rankings_custom {
                     new_child_node.add_string(
-                        next_index,
+                        //
                         ranking_custom,
                         self.suffix_len + prefix.len(),
                         s_bytes,
@@ -144,7 +138,6 @@ impl<'a> PrefixTrie<'a> {
                 // Re-try now that the Direct Child Node has been normalized (De-Directed).
                 self.add_string(
                     //
-                    next_index,
                     ls_index,
                     ls_size,
                     s_bytes,
@@ -164,7 +157,7 @@ impl<'a> PrefixTrie<'a> {
 
                     let child_node = children.get_mut(&curr_letter).unwrap();
                     child_node.add_string(
-                        next_index,
+                        //
                         ls_index,
                         ls_size,
                         s_bytes,
@@ -176,13 +169,9 @@ impl<'a> PrefixTrie<'a> {
                         println!("{}  > create regular child", "  ".repeat(self.suffix_len));
                     }
 
-                    let mut new_child_node = PrefixTrie::new_using_next_index(
-                        //
-                        next_index,
-                        self.suffix_len + 1,
-                    );
+                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
                     new_child_node.add_string(
-                        next_index,
+                        //
                         ls_index,
                         ls_size,
                         s_bytes,
@@ -211,10 +200,7 @@ impl<'a> PrefixTrie<'a> {
                     }
 
                     // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new_using_next_index(
-                        //
-                        next_index, ls_size,
-                    );
+                    let mut new_child_node = PrefixTrie::new(ls_size);
                     new_child_node.update_rankings(ls_index, is_custom_ls);
 
                     self.data = PrefixTrieData::DirectChild((
@@ -228,13 +214,9 @@ impl<'a> PrefixTrie<'a> {
                     }
 
                     // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new_using_next_index(
-                        //
-                        next_index,
-                        self.suffix_len + 1,
-                    );
+                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
                     new_child_node.add_string(
-                        next_index,
+                        //
                         ls_index,
                         ls_size,
                         s_bytes,
@@ -254,13 +236,9 @@ impl<'a> PrefixTrie<'a> {
                 }
 
                 // This is the first inserted Child Node.
-                let mut new_child_node = PrefixTrie::new_using_next_index(
-                    //
-                    next_index,
-                    self.suffix_len + 1,
-                );
+                let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
                 new_child_node.add_string(
-                    next_index,
+                    //
                     ls_index,
                     ls_size,
                     s_bytes,
@@ -293,13 +271,21 @@ impl<'a> PrefixTrie<'a> {
         self.rankings_canonical.is_empty() && self.rankings_custom.is_empty()
     }
     pub fn shrink(&mut self) {
+        let mut next_id = 0;
+        self.shrink_(&mut next_id);
+    }
+    fn shrink_(&mut self, next_id: &mut usize) {
+        // Node "self" ID (following pre-order traversal, so like DFS visits)
+        self.id = *next_id;
+        *next_id += 1;
+
         match &mut self.data {
             PrefixTrieData::DirectChild((_, child_node)) => {
-                child_node.shrink();
+                child_node.shrink_(next_id);
             }
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
-                    child_node.shrink();
+                    child_node.shrink_(next_id);
                 }
             }
             PrefixTrieData::Leaf => {}
@@ -426,9 +412,13 @@ impl<'a> PrefixTrie<'a> {
             unified_rankings.push(custom_gs_index);
             i_custom += 1;
         }
+        prog_sa.assign_rankings_to_node_index(self.id, &unified_rankings);
+
+        // TODO: Understand if this free is slowing the process or is helpful
+        self.rankings_canonical.clear();
+        self.rankings_custom.clear();
 
         // Recursive calls...
-        prog_sa.assign_rankings_to_node_index(self.id, &unified_rankings);
         match &mut self.data {
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
