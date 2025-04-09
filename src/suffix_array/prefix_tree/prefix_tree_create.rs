@@ -7,13 +7,11 @@ pub fn create_prefix_tree_from_prefix_trie(
     prog_sa_trie: &ProgSuffixArray,
     prog_sa: &mut ProgSuffixArray,
 ) -> PrefixTree {
-    let mut next_node_index = 0;
     PrefixTree {
         children: create_children_tree_nodes_from_node_trie_children(
             root_trie,
             prog_sa_trie,
             prog_sa,
-            &mut next_node_index,
         ),
     }
 }
@@ -22,7 +20,6 @@ fn create_children_tree_nodes_from_node_trie_children(
     node_trie: PrefixTrie,
     prog_sa_trie: &ProgSuffixArray,
     prog_sa: &mut ProgSuffixArray,
-    next_node_index: &mut usize,
 ) -> Vec<PrefixTreeNode> {
     let mut node_children = Vec::new();
     match node_trie.data {
@@ -34,7 +31,6 @@ fn create_children_tree_nodes_from_node_trie_children(
                         child_node,
                         prog_sa_trie,
                         prog_sa,
-                        next_node_index,
                     ),
                 );
             }
@@ -46,7 +42,6 @@ fn create_children_tree_nodes_from_node_trie_children(
                     *child_node,
                     prog_sa_trie,
                     prog_sa,
-                    next_node_index,
                 ),
             );
         }
@@ -60,7 +55,6 @@ fn create_children_tree_nodes_from_node_trie_children(
                         child_node,
                         prog_sa_trie,
                         prog_sa,
-                        next_node_index,
                     ),
                 );
             }
@@ -73,11 +67,9 @@ fn create_prefix_tree_node_and_assign_rankings_and_index(
     node_trie: PrefixTrie,
     prog_sa_trie: &ProgSuffixArray,
     prog_sa: &mut ProgSuffixArray,
-    next_node_index: &mut usize,
 ) -> PrefixTreeNode {
     // Every Node here has Rankings, so we consider it.
-    let node_index = *next_node_index;
-    *next_node_index += 1;
+    let node_index = node_trie.id;
     prog_sa.assign_rankings_to_node_index(node_index, prog_sa_trie.get_rankings(node_trie.id));
     PrefixTreeNode {
         index: node_index,
@@ -86,7 +78,6 @@ fn create_prefix_tree_node_and_assign_rankings_and_index(
             node_trie,
             prog_sa_trie,
             prog_sa,
-            next_node_index,
         ),
         min_father: None,
         max_father: None,

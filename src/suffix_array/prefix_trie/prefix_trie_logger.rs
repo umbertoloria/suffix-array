@@ -40,7 +40,13 @@ fn log_prefix_trie_recursive(
     str: &str,
     prog_sa: &ProgSuffixArray,
 ) {
-    let mut line = format!("{}{}", " ".repeat(level), node_label);
+    let mut line = format!(
+        //
+        "{}{} <{}>",
+        " ".repeat(level),
+        node_label,
+        node.id,
+    );
     let rankings = prog_sa.get_rankings(node.id);
     line.push_str(" [");
     for i in 0..rankings.len() - 1 {
@@ -60,14 +66,8 @@ fn log_prefix_trie_recursive(
         }
         PrefixTrieData::DirectChild((prefix, child_node)) => {
             let child_label = format!("{}{}", node_label, get_string_clone(prefix));
-            log_prefix_trie_recursive(
-                child_node,
-                &child_label,
-                file,
-                level + prefix.len(),
-                str,
-                prog_sa,
-            );
+            // Before it was "level + prefix.len()".
+            log_prefix_trie_recursive(child_node, &child_label, file, level + 1, str, prog_sa);
         }
         PrefixTrieData::Leaf => {}
         PrefixTrieData::InitRoot => {}

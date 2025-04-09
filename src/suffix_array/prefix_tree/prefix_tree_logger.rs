@@ -24,9 +24,10 @@ fn log_prefix_tree_recursive(
 ) {
     let rankings = prog_sa.get_rankings(node.index);
     let mut line = format!(
-        "{}{}",
+        "{}{} <{}>",
         " ".repeat(level),
-        node.get_label_from_first_ranking(str, rankings)
+        node.get_label_from_first_ranking(str, rankings),
+        node.index,
     );
     line.push_str(" [");
     let last_ranking = rankings[rankings.len() - 1];

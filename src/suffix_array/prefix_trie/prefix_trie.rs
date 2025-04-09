@@ -280,8 +280,10 @@ impl<'a> PrefixTrie<'a> {
     }
     fn shrink_(&mut self, next_id: &mut usize) {
         // Node "self" ID (following pre-order traversal, so like DFS visits)
-        self.id = *next_id;
-        *next_id += 1;
+        if self.suffix_len == 0 || !self.is_bridge_node() {
+            self.id = *next_id;
+            *next_id += 1;
+        }
 
         // Shrink Children's Children if they are Bridges
         match &mut self.data {
