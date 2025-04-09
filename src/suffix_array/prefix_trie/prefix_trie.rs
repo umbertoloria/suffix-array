@@ -270,15 +270,20 @@ impl<'a> PrefixTrie<'a> {
         // Make sure to perform "shrink" before the "Merge Rankings and Sort" phase
         self.rankings_canonical.is_empty() && self.rankings_custom.is_empty()
     }
-    pub fn shrink(&mut self) {
+    pub fn shrink(&mut self) -> usize {
+        // Note: After "shrink" the only Bridge Node will be the Root Node :)
         let mut next_id = 0;
         self.shrink_(&mut next_id);
+
+        // Returning the Nodes Count
+        next_id
     }
     fn shrink_(&mut self, next_id: &mut usize) {
         // Node "self" ID (following pre-order traversal, so like DFS visits)
         self.id = *next_id;
         *next_id += 1;
 
+        // Shrink Children's Children if they are Bridges
         match &mut self.data {
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
@@ -296,6 +301,7 @@ impl<'a> PrefixTrie<'a> {
             }
         }
 
+        // Shrink Children if they are Bridges
         match &mut self.data {
             PrefixTrieData::Children(children) => {
                 let mut become_vec = false;

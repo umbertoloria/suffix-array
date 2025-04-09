@@ -137,7 +137,7 @@ fn run_and_validate_test(
         &execution_timing.duration_p23,
     );
     print_duration(
-        " > Phase 2.4: Trie In-prefix merge",
+        " > Phase 2.4: Tree In-prefix merge",
         &execution_timing.duration_p24,
     );
     print_duration(

@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 49883,
-    "duration_phases_with_extra____": 283697,
-    "phase_1_1_factorization_icfl__": 2948,
-    "phase_1_2_factorization_custom": 274,
-    "phase_2_1_trie_create_________": 14118,
-    "phase_2_2_trie_merge_rankings_": 7791,
-    "phase_2_3_trie_in_prefix_merge": 7033,
-    "phase_2_4_tree_create_________": 12798,
-    "phase_3_0_suffix_array________": 4919
+    "duration_phases_______________": 49090,
+    "duration_phases_with_extra____": 275764,
+    "phase_1_1_factorization_icfl__": 2805,
+    "phase_1_2_factorization_custom": 263,
+    "phase_2_1_trie_create_________": 14041,
+    "phase_2_2_trie_merge_rankings_": 6968,
+    "phase_2_3_tree_create_________": 6910,
+    "phase_2_4_tree_in_prefix_merge": 12889,
+    "phase_3_0_suffix_array________": 5210
   },
   "seconds": {
-    "duration_phases_______________": 0.05,
-    "duration_phases_with_extra____": 0.284,
+    "duration_phases_______________": 0.049,
+    "duration_phases_with_extra____": 0.276,
     "phase_1_1_factorization_icfl__": 0.003,
     "phase_1_2_factorization_custom": 0.0,
     "phase_2_1_trie_create_________": 0.014,
-    "phase_2_2_trie_merge_rankings_": 0.008,
-    "phase_2_3_trie_in_prefix_merge": 0.007,
-    "phase_2_4_tree_create_________": 0.013,
+    "phase_2_2_trie_merge_rankings_": 0.007,
+    "phase_2_3_tree_create_________": 0.007,
+    "phase_2_4_tree_in_prefix_merge": 0.013,
     "phase_3_0_suffix_array________": 0.005
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 6,
     "phase_1_2_factorization_custom": 1,
-    "phase_2_1_trie_create_________": 28,
-    "phase_2_2_trie_merge_rankings_": 16,
-    "phase_2_3_trie_in_prefix_merge": 14,
-    "phase_2_4_tree_create_________": 26,
-    "phase_3_0_suffix_array________": 9
+    "phase_2_1_trie_create_________": 29,
+    "phase_2_2_trie_merge_rankings_": 14,
+    "phase_2_3_tree_create_________": 14,
+    "phase_2_4_tree_in_prefix_merge": 26,
+    "phase_3_0_suffix_array________": 10
   }
 }

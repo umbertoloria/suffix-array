@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 136412,
-    "duration_phases_with_extra____": 534190,
-    "phase_1_1_factorization_icfl__": 2420,
-    "phase_1_2_factorization_custom": 122,
-    "phase_2_1_trie_create_________": 75773,
-    "phase_2_2_trie_merge_rankings_": 19197,
-    "phase_2_3_trie_in_prefix_merge": 18445,
-    "phase_2_4_tree_create_________": 11531,
-    "phase_3_0_suffix_array________": 8921
+    "duration_phases_______________": 123563,
+    "duration_phases_with_extra____": 510072,
+    "phase_1_1_factorization_icfl__": 2423,
+    "phase_1_2_factorization_custom": 120,
+    "phase_2_1_trie_create_________": 69564,
+    "phase_2_2_trie_merge_rankings_": 16133,
+    "phase_2_3_tree_create_________": 16280,
+    "phase_2_4_tree_in_prefix_merge": 10451,
+    "phase_3_0_suffix_array________": 8589
   },
   "seconds": {
-    "duration_phases_______________": 0.136,
-    "duration_phases_with_extra____": 0.534,
+    "duration_phases_______________": 0.124,
+    "duration_phases_with_extra____": 0.51,
     "phase_1_1_factorization_icfl__": 0.002,
     "phase_1_2_factorization_custom": 0.0,
-    "phase_2_1_trie_create_________": 0.076,
-    "phase_2_2_trie_merge_rankings_": 0.019,
-    "phase_2_3_trie_in_prefix_merge": 0.018,
-    "phase_2_4_tree_create_________": 0.012,
+    "phase_2_1_trie_create_________": 0.07,
+    "phase_2_2_trie_merge_rankings_": 0.016,
+    "phase_2_3_tree_create_________": 0.016,
+    "phase_2_4_tree_in_prefix_merge": 0.01,
     "phase_3_0_suffix_array________": 0.009
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 2,
     "phase_1_2_factorization_custom": 0,
     "phase_2_1_trie_create_________": 56,
-    "phase_2_2_trie_merge_rankings_": 14,
-    "phase_2_3_trie_in_prefix_merge": 14,
-    "phase_2_4_tree_create_________": 8,
-    "phase_3_0_suffix_array________": 6
+    "phase_2_2_trie_merge_rankings_": 13,
+    "phase_2_3_tree_create_________": 13,
+    "phase_2_4_tree_in_prefix_merge": 8,
+    "phase_3_0_suffix_array________": 8
   }
 }

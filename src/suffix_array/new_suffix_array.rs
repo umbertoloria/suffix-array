@@ -84,7 +84,7 @@ pub fn compute_innovative_suffix_array(
         debug_mode == DebugMode::Verbose,
         str,
     );
-    prefix_trie.shrink();
+    let _ = prefix_trie.shrink();
     monitor.phase2_1_prefix_trie_create_stop();
 
     // +

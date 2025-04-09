@@ -28,8 +28,8 @@ impl ProgSuffixArray {
         if let Some(rankings_forced) = self.indexes_rankings_forced.get(&node_index) {
             &rankings_forced[0..]
         } else {
-            let (p, q) = self.indexes_map.get(&node_index).unwrap();
-            &self.buffer[*p..*q]
+            let (p, q) = *self.indexes_map.get(&node_index).unwrap();
+            &self.buffer[p..q]
         }
     }
     pub fn save_rankings_forced(&mut self, node_index: usize, rankings_forced: Vec<usize>) {

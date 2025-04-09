@@ -317,17 +317,6 @@ impl ExecutionTiming {
             prop_p3,
         }
     }
-    fn get_list(&self) -> Vec<Duration> {
-        vec![
-            self.duration_p11,
-            self.duration_p12,
-            self.duration_p21,
-            self.duration_p22,
-            self.duration_p23,
-            self.duration_p24,
-            self.duration_p3,
-        ]
-    }
 }
 pub struct ExecutionOutcome {
     pub compares_with_two_cfs: usize,

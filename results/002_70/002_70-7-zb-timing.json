@@ -1,33 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 38368,
-    "duration_phases_with_extra____": 238637,
-    "phase_1_1_factorization_icfl__": 3032,
-    "phase_1_2_factorization_custom": 274,
-    "phase_2_1_trie_create_________": 8573,
-    "phase_2_2_trie_merge_rankings_": 8167,
-    "phase_2_3_trie_in_prefix_merge": 4124,
-    "phase_2_4_tree_create_________": 11132,
-    "phase_3_0_suffix_array________": 3064
+    "duration_phases_______________": 36315,
+    "duration_phases_with_extra____": 231184,
+    "phase_1_1_factorization_icfl__": 2703,
+    "phase_1_2_factorization_custom": 269,
+    "phase_2_1_trie_create_________": 8563,
+    "phase_2_2_trie_merge_rankings_": 6726,
+    "phase_2_3_tree_create_________": 3808,
+    "phase_2_4_tree_in_prefix_merge": 11303,
+    "phase_3_0_suffix_array________": 2940
   },
   "seconds": {
-    "duration_phases_______________": 0.038,
-    "duration_phases_with_extra____": 0.239,
+    "duration_phases_______________": 0.036,
+    "duration_phases_with_extra____": 0.231,
     "phase_1_1_factorization_icfl__": 0.003,
     "phase_1_2_factorization_custom": 0.0,
     "phase_2_1_trie_create_________": 0.009,
-    "phase_2_2_trie_merge_rankings_": 0.008,
-    "phase_2_3_trie_in_prefix_merge": 0.004,
-    "phase_2_4_tree_create_________": 0.011,
+    "phase_2_2_trie_merge_rankings_": 0.007,
+    "phase_2_3_tree_create_________": 0.004,
+    "phase_2_4_tree_in_prefix_merge": 0.011,
     "phase_3_0_suffix_array________": 0.003
   },
   "percentages": {
-    "phase_1_1_factorization_icfl__": 8,
+    "phase_1_1_factorization_icfl__": 7,
     "phase_1_2_factorization_custom": 1,
-    "phase_2_1_trie_create_________": 22,
-    "phase_2_2_trie_merge_rankings_": 21,
-    "phase_2_3_trie_in_prefix_merge": 11,
-    "phase_2_4_tree_create_________": 29,
+    "phase_2_1_trie_create_________": 24,
+    "phase_2_2_trie_merge_rankings_": 19,
+    "phase_2_3_tree_create_________": 10,
+    "phase_2_4_tree_in_prefix_merge": 31,
     "phase_3_0_suffix_array________": 8
   }
 }
