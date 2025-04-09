@@ -1,33 +1,30 @@
 {
   "micros": {
-    "duration_phases_______________": 1598948,
-    "duration_phases_with_extra____": 5132700,
-    "phase_1_1_factorization_icfl__": 31280,
-    "phase_1_2_factorization_custom": 1894,
-    "phase_2_1_trie_create_________": 765515,
-    "phase_2_2_trie_merge_rankings_": 225509,
-    "phase_2_3_tree_create_________": 227324,
-    "phase_2_4_tree_in_prefix_merge": 221045,
-    "phase_3_0_suffix_array________": 126377
+    "duration_phases_______________": 1357216,
+    "duration_phases_with_extra____": 4936651,
+    "phase_1_1_factorization_icfl__": 28864,
+    "phase_1_2_factorization_custom": 1854,
+    "phase_2_1_trie_create_________": 750748,
+    "phase_2_2_trie_merge_rankings_": 212077,
+    "phase_2_4_trie_in_prefix_merge": 229469,
+    "phase_3_0_suffix_array________": 134202
   },
   "seconds": {
-    "duration_phases_______________": 1.599,
-    "duration_phases_with_extra____": 5.133,
-    "phase_1_1_factorization_icfl__": 0.031,
+    "duration_phases_______________": 1.357,
+    "duration_phases_with_extra____": 4.937,
+    "phase_1_1_factorization_icfl__": 0.029,
     "phase_1_2_factorization_custom": 0.002,
-    "phase_2_1_trie_create_________": 0.766,
-    "phase_2_2_trie_merge_rankings_": 0.226,
-    "phase_2_3_tree_create_________": 0.227,
-    "phase_2_4_tree_in_prefix_merge": 0.221,
-    "phase_3_0_suffix_array________": 0.126
+    "phase_2_1_trie_create_________": 0.751,
+    "phase_2_2_trie_merge_rankings_": 0.212,
+    "phase_2_4_trie_in_prefix_merge": 0.229,
+    "phase_3_0_suffix_array________": 0.134
   },
   "percentages": {
     "phase_1_1_factorization_icfl__": 2,
     "phase_1_2_factorization_custom": 0,
-    "phase_2_1_trie_create_________": 48,
-    "phase_2_2_trie_merge_rankings_": 14,
-    "phase_2_3_tree_create_________": 14,
-    "phase_2_4_tree_in_prefix_merge": 14,
-    "phase_3_0_suffix_array________": 8
+    "phase_2_1_trie_create_________": 55,
+    "phase_2_2_trie_merge_rankings_": 16,
+    "phase_2_4_trie_in_prefix_merge": 17,
+    "phase_3_0_suffix_array________": 10
   }
 }
