@@ -18,7 +18,7 @@ impl ExecutionInfoFileFormat {
                 phase_1_2_factorization_custom: et.duration_p12.as_micros(),
                 phase_2_1_trie_create_________: et.duration_p21.as_micros(),
                 phase_2_2_trie_merge_rankings_: et.duration_p22.as_micros(),
-                phase_2_4_trie_in_prefix_merge: et.duration_p24.as_micros(),
+                phase_2_4_trie_in_prefix_merge: et.duration_p23.as_micros(),
                 phase_3_0_suffix_array________: et.duration_p3.as_micros(),
             },
             seconds: ExecutionInfoFileFormatSeconds {
@@ -28,7 +28,7 @@ impl ExecutionInfoFileFormat {
                 phase_1_2_factorization_custom: round_secs_x_xxx(et.duration_p12),
                 phase_2_1_trie_create_________: round_secs_x_xxx(et.duration_p21),
                 phase_2_2_trie_merge_rankings_: round_secs_x_xxx(et.duration_p22),
-                phase_2_4_trie_in_prefix_merge: round_secs_x_xxx(et.duration_p24),
+                phase_2_4_trie_in_prefix_merge: round_secs_x_xxx(et.duration_p23),
                 phase_3_0_suffix_array________: round_secs_x_xxx(et.duration_p3),
             },
             percentages: ExecutionInfoFileFormatPercentages {
@@ -36,7 +36,7 @@ impl ExecutionInfoFileFormat {
                 phase_1_2_factorization_custom: et.prop_p12,
                 phase_2_1_trie_create_________: et.prop_p21,
                 phase_2_2_trie_merge_rankings_: et.prop_p22,
-                phase_2_4_trie_in_prefix_merge: et.prop_p24,
+                phase_2_4_trie_in_prefix_merge: et.prop_p23,
                 phase_3_0_suffix_array________: et.prop_p3,
             },
         }

@@ -131,7 +131,7 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
-    monitor.phase2_4_prefix_tree_in_prefix_merge_start();
+    monitor.phase2_3_in_prefix_merge_start();
     let mut node_father_bank = NodeFatherBank::new(nodes_count);
     let mut compare_cache = CompareCache::new();
     prefix_trie.in_prefix_merge(
@@ -146,7 +146,7 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
-    monitor.phase2_4_prefix_tree_in_prefix_merge_stop();
+    monitor.phase2_3_in_prefix_merge_stop();
 
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {

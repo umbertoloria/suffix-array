@@ -133,8 +133,8 @@ fn run_and_validate_test(
         &execution_timing.duration_p22,
     );
     print_duration(
-        " > Phase 2.4: Trie In-prefix merge",
-        &execution_timing.duration_p24,
+        " > Phase 2.3: Trie In-prefix merge",
+        &execution_timing.duration_p23,
     );
     print_duration(
         " > Phase 3  : Suffix Array        ",
