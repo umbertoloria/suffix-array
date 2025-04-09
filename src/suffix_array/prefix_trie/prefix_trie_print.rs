@@ -4,11 +4,6 @@ use crate::suffix_array::prefix_trie::prefix_trie::{
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
 impl<'a> PrefixTrie<'a> {
-    pub fn get_label_from_first_ranking(&self, str: &'a str, rankings: &[usize]) -> &'a str {
-        // Make sure this node is not the Root Node, because it's the only one that has no Rankings.
-        let first_ranking = rankings[0];
-        &str[first_ranking..first_ranking + self.suffix_len]
-    }
     pub fn print_before_merged_rankings(&self, tabs_offset: usize, self_label: &str, str: &str) {
         println!(
             "{}|{:2}: \"{}\" {}",

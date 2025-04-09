@@ -1,11 +1,11 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_tree::prefix_tree::{PrefixTree, PrefixTreeNode};
 use crate::suffix_array::prefix_trie::node_father_bank::NodeFatherBank;
+use crate::suffix_array::prefix_trie::prefix_trie::{PrefixTrie, PrefixTrieData};
 use crate::suffix_array::prefix_trie::rules::rules_safe;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
-impl PrefixTree {
+impl<'a> PrefixTrie<'a> {
     pub fn in_prefix_merge(
         &mut self,
         str: &str,
@@ -19,23 +19,57 @@ impl PrefixTree {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        for child_node in &mut self.children {
-            child_node.in_prefix_merge_on_children(
-                str,
-                prog_sa,
-                depths,
-                icfl_indexes,
-                is_custom_vec,
-                icfl_factor_list,
-                node_father_bank,
-                compare_cache,
-                monitor,
-                verbose,
-            );
+        match &mut self.data {
+            PrefixTrieData::DirectChild((_, child_node)) => {
+                child_node.in_prefix_merge_on_children(
+                    str,
+                    prog_sa,
+                    depths,
+                    icfl_indexes,
+                    is_custom_vec,
+                    icfl_factor_list,
+                    node_father_bank,
+                    compare_cache,
+                    monitor,
+                    verbose,
+                );
+            }
+            PrefixTrieData::Children(children) => {
+                for (_, child_node) in children {
+                    child_node.in_prefix_merge_on_children(
+                        str,
+                        prog_sa,
+                        depths,
+                        icfl_indexes,
+                        is_custom_vec,
+                        icfl_factor_list,
+                        node_father_bank,
+                        compare_cache,
+                        monitor,
+                        verbose,
+                    );
+                }
+            }
+            PrefixTrieData::Leaf => {}
+            PrefixTrieData::InitRoot => {}
+            PrefixTrieData::Vec(children) => {
+                for child_node in children {
+                    child_node.in_prefix_merge_on_children(
+                        str,
+                        prog_sa,
+                        depths,
+                        icfl_indexes,
+                        is_custom_vec,
+                        icfl_factor_list,
+                        node_father_bank,
+                        compare_cache,
+                        monitor,
+                        verbose,
+                    );
+                }
+            }
         }
     }
-}
-impl PrefixTreeNode {
     fn in_prefix_merge_on_children(
         &mut self,
         str: &str,
@@ -49,20 +83,59 @@ impl PrefixTreeNode {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        for child_node in &mut self.children {
-            child_node.in_prefix_merge_deep(
-                str,
-                prog_sa,
-                depths,
-                icfl_indexes,
-                is_custom_vec,
-                icfl_factor_list,
-                self.index,
-                node_father_bank,
-                compare_cache,
-                monitor,
-                verbose,
-            );
+        let self_id = self.id;
+        match &mut self.data {
+            PrefixTrieData::DirectChild((_, child_node)) => {
+                child_node.in_prefix_merge_deep(
+                    str,
+                    prog_sa,
+                    depths,
+                    icfl_indexes,
+                    is_custom_vec,
+                    icfl_factor_list,
+                    self_id,
+                    node_father_bank,
+                    compare_cache,
+                    monitor,
+                    verbose,
+                );
+            }
+            PrefixTrieData::Children(children) => {
+                for (_, child_node) in children {
+                    child_node.in_prefix_merge_deep(
+                        str,
+                        prog_sa,
+                        depths,
+                        icfl_indexes,
+                        is_custom_vec,
+                        icfl_factor_list,
+                        self_id,
+                        node_father_bank,
+                        compare_cache,
+                        monitor,
+                        verbose,
+                    );
+                }
+            }
+            PrefixTrieData::Leaf => {}
+            PrefixTrieData::InitRoot => {}
+            PrefixTrieData::Vec(children) => {
+                for child_node in children {
+                    child_node.in_prefix_merge_deep(
+                        str,
+                        prog_sa,
+                        depths,
+                        icfl_indexes,
+                        is_custom_vec,
+                        icfl_factor_list,
+                        self_id,
+                        node_father_bank,
+                        compare_cache,
+                        monitor,
+                        verbose,
+                    );
+                }
+            }
         }
     }
     fn in_prefix_merge_deep(
@@ -82,7 +155,7 @@ impl PrefixTreeNode {
         // Compare This Node's Rankings with Parent Node's Rankings.
         let parent_rankings = prog_sa.get_rankings(parent_index);
 
-        let this_rankings = prog_sa.get_rankings(self.index);
+        let this_rankings = prog_sa.get_rankings(self.id);
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
@@ -109,7 +182,7 @@ impl PrefixTreeNode {
                 i_parent += 1;
             } else {
                 // Found a Parent LS that is >= Curr LS.
-                node_father_bank.set_min_father(self.index, i_parent);
+                node_father_bank.set_min_father(self.id, i_parent);
                 break;
             }
         }
@@ -134,7 +207,7 @@ impl PrefixTreeNode {
                     // TODO: Monitor string compare
                     if curr_parent_ls == this_ls {
                         // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
-                        node_father_bank.set_max_father(self.index, i_parent + 1);
+                        node_father_bank.set_max_father(self.id, i_parent + 1);
                         i_parent += 1;
                     } else {
                         // Found a Parent LS that is > Curr LS.
@@ -142,7 +215,7 @@ impl PrefixTreeNode {
                     }
                 }
 
-                let self_node_data = node_father_bank.get_node_data(self.index);
+                let self_node_data = node_father_bank.get_node_data(self.id);
                 i_parent = self_node_data.min_father.unwrap();
                 let mut j_this = 0;
 
@@ -233,7 +306,7 @@ impl PrefixTreeNode {
                         println!("     > no parent rankings left to add");
                     }
                 }
-                prog_sa.save_rankings_forced(self.index, new_rankings);
+                prog_sa.save_rankings_forced(self.id, new_rankings);
             }
         }
 

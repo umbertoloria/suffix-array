@@ -9,8 +9,6 @@ use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
-use crate::suffix_array::prefix_tree::prefix_tree_create::create_prefix_tree_from_prefix_trie;
-use crate::suffix_array::prefix_tree::prefix_tree_logger::log_prefix_tree;
 use crate::suffix_array::prefix_trie::node_father_bank::NodeFatherBank;
 use crate::suffix_array::prefix_trie::prefix_trie_create::create_prefix_trie;
 use crate::suffix_array::prefix_trie::prefix_trie_logger::log_prefix_trie;
@@ -99,8 +97,8 @@ pub fn compute_innovative_suffix_array(
     monitor.phase2_2_prefix_trie_merge_rankings_start();
     // This "prog_sa_trie" is going to store all Rankings from Trie Nodes. It's not going to be used
     // to build the actual Suffix Array. Above, the "prog_sa" will actually be used for that.
-    let mut prog_sa_trie = ProgSuffixArray::new(str_length);
-    prefix_trie.merge_rankings_and_sort_recursive(str, &mut prog_sa_trie);
+    let mut prog_sa = ProgSuffixArray::new(str_length);
+    prefix_trie.merge_rankings_and_sort_recursive(str, &mut prog_sa);
     monitor.phase2_2_prefix_trie_merge_rankings_stop();
 
     // +
@@ -111,7 +109,7 @@ pub fn compute_innovative_suffix_array(
             &prefix_trie,
             get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
             str,
-            &prog_sa_trie,
+            &prog_sa,
         );
     }
 
@@ -129,21 +127,14 @@ pub fn compute_innovative_suffix_array(
 
     if debug_mode == DebugMode::Verbose {
         println!("Before PREFIX TREE CREATE");
-        prefix_trie.print_with_rankings(0, "", str, &prog_sa_trie);
+        prefix_trie.print_with_rankings(0, "", str, &prog_sa);
     }
     // -
 
-    monitor.phase2_3_prefix_tree_create_start();
-    let mut prog_sa = ProgSuffixArray::new(str_length);
-    let mut prefix_tree =
-        create_prefix_tree_from_prefix_trie(prefix_trie, &prog_sa_trie, &mut prog_sa);
-    monitor.phase2_3_prefix_tree_create_stop();
-
     monitor.phase2_4_prefix_tree_in_prefix_merge_start();
-    // Variable "nodes_count" applies for both Prefix Trie and Prefix Tree.
     let mut node_father_bank = NodeFatherBank::new(nodes_count);
     let mut compare_cache = CompareCache::new();
-    prefix_tree.in_prefix_merge(
+    prefix_trie.in_prefix_merge(
         str,
         &mut prog_sa,
         &mut depths,
@@ -160,21 +151,21 @@ pub fn compute_innovative_suffix_array(
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         println!("After IN_PREFIX_MERGE");
-        prefix_tree.print(str, &prog_sa, &node_father_bank);
+        prefix_trie.print_with_rankings(0, "", str, &prog_sa);
     }
     if perform_logging {
-        log_prefix_tree(
-            &prefix_tree,
+        log_prefix_trie(
+            &prefix_trie,
+            get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
             str,
             &prog_sa,
-            get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
         );
     }
     // -
 
     monitor.phase3_suffix_array_compose_start();
     let mut sa = Vec::new();
-    prefix_tree.prepare_get_common_prefix_partition(
+    prefix_trie.prepare_get_common_prefix_partition(
         &mut sa,
         str,
         &prog_sa,

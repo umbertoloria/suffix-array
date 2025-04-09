@@ -107,7 +107,6 @@ pub fn draw_plot_from_monitor(
         GREY_600,   // execution_timing.prop_p12,
         ORANGE_300, // execution_timing.prop_p21,
         RED_600,    // execution_timing.prop_p22,
-        ORANGE_600, // execution_timing.prop_p23,
         GREEN_500,  // execution_timing.prop_p24,
         YELLOW_600, // execution_timing.prop_p3,
         GREY_700,   // execution_timing.prop_extra,
@@ -123,7 +122,6 @@ pub fn draw_plot_from_monitor(
             execution_timing.prop_p12,
             execution_timing.prop_p21,
             execution_timing.prop_p22,
-            execution_timing.prop_p23,
             execution_timing.prop_p24,
             execution_timing.prop_p3,
         ];
