@@ -79,7 +79,5 @@ fn create_prefix_tree_node_and_assign_rankings_and_index(
             prog_sa_trie,
             prog_sa,
         ),
-        min_father: None,
-        max_father: None,
     }
 }

@@ -11,6 +11,7 @@ use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
 use crate::suffix_array::prefix_tree::prefix_tree_create::create_prefix_tree_from_prefix_trie;
 use crate::suffix_array::prefix_tree::prefix_tree_logger::log_prefix_tree;
+use crate::suffix_array::prefix_trie::node_father_bank::NodeFatherBank;
 use crate::suffix_array::prefix_trie::prefix_trie_create::create_prefix_trie;
 use crate::suffix_array::prefix_trie::prefix_trie_logger::log_prefix_trie;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
@@ -84,7 +85,7 @@ pub fn compute_innovative_suffix_array(
         debug_mode == DebugMode::Verbose,
         str,
     );
-    let _ = prefix_trie.shrink();
+    let nodes_count = prefix_trie.shrink();
     monitor.phase2_1_prefix_trie_create_stop();
 
     // +
@@ -139,6 +140,8 @@ pub fn compute_innovative_suffix_array(
     monitor.phase2_3_prefix_tree_create_stop();
 
     monitor.phase2_4_prefix_tree_in_prefix_merge_start();
+    // Variable "nodes_count" applies for both Prefix Trie and Prefix Tree.
+    let mut node_father_bank = NodeFatherBank::new(nodes_count);
     let mut compare_cache = CompareCache::new();
     prefix_tree.in_prefix_merge(
         str,
@@ -147,6 +150,7 @@ pub fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &icfl_factor_list,
+        &mut node_father_bank,
         &mut compare_cache,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
@@ -156,7 +160,7 @@ pub fn compute_innovative_suffix_array(
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         println!("After IN_PREFIX_MERGE");
-        prefix_tree.print(str, &prog_sa);
+        prefix_tree.print(str, &prog_sa, &node_father_bank);
     }
     if perform_logging {
         log_prefix_tree(
@@ -174,6 +178,7 @@ pub fn compute_innovative_suffix_array(
         &mut sa,
         str,
         &prog_sa,
+        &node_father_bank,
         debug_mode == DebugMode::Verbose,
     );
     monitor.phase3_suffix_array_compose_stop();
