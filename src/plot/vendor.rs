@@ -6,17 +6,17 @@ use plotters::prelude::full_palette::GREY_800;
 use plotters::prelude::{Color, IntoDrawingArea, IntoSegmentedCoord, RGBColor, SegmentValue};
 
 pub fn draw_plot(
-    path: String,
+    path: &str,
     width: u32,
     height: u32,
-    plot_title: String,
+    plot_title: &str,
     num_cols_per_data_item: u32,
     min_x: u32,
     max_x: u32,
     max_height: i32,
-    groups_of_bars: Vec<GroupOfBars>,
+    groups_of_bars: &Vec<GroupOfBars>,
 ) {
-    let root_area = BitMapBackend::new(&path, (width, height)).into_drawing_area();
+    let root_area = BitMapBackend::new(path, (width, height)).into_drawing_area();
     // root_area.fill(&WHITE).unwrap();
     root_area.fill(&GREY_800).unwrap();
 
@@ -29,7 +29,7 @@ pub fn draw_plot(
     let mut ctx = ChartBuilder::on(&root_area)
         .set_label_area_size(LabelAreaPosition::Left, 40)
         .set_label_area_size(LabelAreaPosition::Bottom, 40)
-        .caption(&plot_title, ("sans-serif", 40))
+        .caption(plot_title, ("sans-serif", 40))
         .build_cartesian_2d((x_range.0..x_range.1 + 10).into_segmented(), 0..max_height)
         .unwrap();
     ctx.configure_mesh().draw().unwrap();

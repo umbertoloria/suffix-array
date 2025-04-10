@@ -25,9 +25,10 @@ pub fn compute_classic_suffix_array(
         suffix_array_indexes.push(index);
     }
     let after = Instant::now();
+    let duration = after - before;
 
     if debug_verbose {
-        for (index, suffix) in &suffix_array_pairs {
+        for &(index, suffix) in &suffix_array_pairs {
             println!(" > SUFFIX_ARRAY [{:3}] = {}", index, suffix);
         }
     }
@@ -37,6 +38,6 @@ pub fn compute_classic_suffix_array(
     ClassicSuffixArrayComputationResults {
         suffix_array: suffix_array_indexes,
         suffix_array_pairs,
-        duration: after - before,
+        duration,
     }
 }

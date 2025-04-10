@@ -10,7 +10,7 @@ use std::time::Duration;
 pub fn suite_complete_on_fasta_file(
     fasta_file_name: &str,
     chunk_size_interval: (usize, usize), // Both incl.
-    excessive_sum_phases_duration: u32,
+    max_duration_in_micros: u32,
     perform_logging: bool,
     debug_mode: DebugMode,
 ) {
@@ -20,7 +20,11 @@ pub fn suite_complete_on_fasta_file(
     let src_str = &get_fasta_content(get_path_in_generated_folder(fasta_file_name));
 
     // CLASSIC SUFFIX ARRAY
-    let classic_suffix_array_computation = compute_classic_suffix_array(src_str, false);
+    let classic_suffix_array_computation = compute_classic_suffix_array(
+        //
+        src_str,
+        debug_mode == DebugMode::Verbose,
+    );
     let classic_suffix_array = classic_suffix_array_computation.suffix_array;
     println!("CLASSIC SUFFIX ARRAY CALCULATION");
     println!(
@@ -68,8 +72,9 @@ pub fn suite_complete_on_fasta_file(
     // Plots
     draw_plot_from_monitor(
         fasta_file_name,
+        classic_suffix_array_computation.duration,
         chunk_size_and_execution_info_list,
-        excessive_sum_phases_duration,
+        max_duration_in_micros,
     );
 }
 

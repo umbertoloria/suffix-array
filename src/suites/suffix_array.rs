@@ -24,11 +24,11 @@ pub fn main_suffix_array() {
     // let dm = DebugMode::Overview;
     let dm = DebugMode::Silent;
 
-    // suite_complete_on_fasta_file("000", chunk_size_interval, 1, pl, dm);
-    // suite_complete_on_fasta_file("001", chunk_size_interval, 1, pl, dm);
-    // suite_complete_on_fasta_file("002_mini", chunk_size_interval, 1, pl, dm);
-    suite_complete_on_fasta_file("002_70", chunk_size_interval, 250, pl, dm);
-    // suite_complete_on_fasta_file("002_700", chunk_size_interval, 3_500, pl, dm);
+    // suite_complete_on_fasta_file("000", chunk_size_interval, 100, pl, dm);
+    // suite_complete_on_fasta_file("001", chunk_size_interval, 70, pl, dm);
+    // suite_complete_on_fasta_file("002_mini", chunk_size_interval, 100, pl, dm);
+    suite_complete_on_fasta_file("002_70", chunk_size_interval, 150_000, pl, dm);
+    // suite_complete_on_fasta_file("002_700", chunk_size_interval, 2_100_000, pl, dm);
     // suite_complete_on_fasta_file("002_7000", chunk_size_interval, pl, dm);
     // suite_complete_on_fasta_file("002_70000", chunk_size_interval, pl, dm);
 }

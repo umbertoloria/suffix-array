@@ -3,13 +3,13 @@ use plotters::element::Rectangle;
 use plotters::prelude::{RGBColor, SegmentValue};
 
 #[derive(Debug)]
-pub struct SingleBarRectangle {
+pub struct CompositeBarRectangle {
     pub x: u32,
     pub y_bottom: i32,
     pub y_top: i32,
     pub color: RGBColor,
 }
-impl SingleBarRectangle {
+impl CompositeBarRectangle {
     pub fn new(x: u32, y_bottom: i32, y_top: i32, color: RGBColor) -> Self {
         Self {
             x,
@@ -24,16 +24,21 @@ impl SingleBarRectangle {
 }
 
 #[derive(Debug)]
-pub struct SingleBar {
-    pub rectangles: Vec<SingleBarRectangle>,
+pub struct CompositeBar {
+    rectangles: Vec<CompositeBarRectangle>,
 }
-impl SingleBar {
+impl CompositeBar {
     pub fn new() -> Self {
         Self {
             rectangles: Vec::new(),
         }
     }
-    pub fn add_rectangle(&mut self, rectangle: SingleBarRectangle) {
+    pub fn new_only_one(single_rectangle: CompositeBarRectangle) -> Self {
+        Self {
+            rectangles: vec![single_rectangle],
+        }
+    }
+    pub fn add_rectangle(&mut self, rectangle: CompositeBarRectangle) {
         self.rectangles.push(rectangle);
     }
     pub fn create_rectangle(&self) -> Vec<Rectangle<(SegmentValue<u32>, i32)>> {
@@ -47,19 +52,24 @@ impl SingleBar {
 }
 
 pub struct GroupOfBars {
-    pub bars: Vec<SingleBar>,
+    pub bars: Vec<CompositeBar>,
 }
 impl GroupOfBars {
     pub fn new() -> Self {
         Self { bars: Vec::new() }
     }
-    pub fn add_bar(&mut self, bar: SingleBar) {
+    pub fn new_only_one(single_composite_bar: CompositeBar) -> Self {
+        Self {
+            bars: vec![single_composite_bar],
+        }
+    }
+    pub fn add_bar(&mut self, bar: CompositeBar) {
         self.bars.push(bar);
     }
     pub fn get_bars_count(&self) -> usize {
         self.bars.len()
     }
-    pub fn get_bar(&self, index: usize) -> &SingleBar {
+    pub fn get_bar(&self, index: usize) -> &CompositeBar {
         &self.bars[index]
     }
 }
@@ -79,19 +89,18 @@ impl BarPlot {
     }
     pub fn draw(
         &self,
-        path: String,
+        path: &str,
         num_cols_per_data_item: u32,
         min_x: u32,
         max_x: u32,
         max_height: i32,
-        groups_of_bars: Vec<GroupOfBars>,
+        groups_of_bars: &Vec<GroupOfBars>,
     ) {
         draw_plot(
             path,
             self.width,
             self.height,
-            // TODO: Is this cloning?
-            self.plot_title.to_string(),
+            &self.plot_title,
             num_cols_per_data_item,
             min_x,
             max_x,
