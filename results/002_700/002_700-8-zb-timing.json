@@ -1,30 +1,33 @@
 {
   "micros": {
-    "duration_phases_______________": 361327,
-    "duration_phases_with_extra____": 2161720,
-    "phase_1_1_factorization_icfl__": 31306,
-    "phase_1_2_factorization_custom": 2353,
-    "phase_2_1_trie_create_________": 85638,
-    "phase_2_2_trie_merge_rankings_": 65353,
-    "phase_2_4_trie_in_prefix_merge": 143972,
-    "phase_3_0_suffix_array________": 32703
+    "duration_phases_______________": 369987,
+    "duration_phases_with_extra____": 2182831,
+    "phase_1_1_factorization_icfl__": 35479,
+    "phase_1_2_factorization_custom": 2193,
+    "phase_2_1_trie_create_________": 84297,
+    "phase_2_2_trie_shrink_________": 2546,
+    "phase_2_3_trie_merge_rankings_": 66984,
+    "phase_2_4_trie_in_prefix_merge": 144861,
+    "phase_3_0_suffix_array________": 33624
   },
   "seconds": {
-    "duration_phases_______________": 0.361,
-    "duration_phases_with_extra____": 2.162,
-    "phase_1_1_factorization_icfl__": 0.031,
+    "duration_phases_______________": 0.37,
+    "duration_phases_with_extra____": 2.183,
+    "phase_1_1_factorization_icfl__": 0.035,
     "phase_1_2_factorization_custom": 0.002,
-    "phase_2_1_trie_create_________": 0.086,
-    "phase_2_2_trie_merge_rankings_": 0.065,
-    "phase_2_4_trie_in_prefix_merge": 0.144,
-    "phase_3_0_suffix_array________": 0.033
+    "phase_2_1_trie_create_________": 0.084,
+    "phase_2_2_trie_shrink_________": 0.003,
+    "phase_2_3_trie_merge_rankings_": 0.067,
+    "phase_2_4_trie_in_prefix_merge": 0.145,
+    "phase_3_0_suffix_array________": 0.034
   },
   "percentages": {
-    "phase_1_1_factorization_icfl__": 9,
+    "phase_1_1_factorization_icfl__": 10,
     "phase_1_2_factorization_custom": 1,
-    "phase_2_1_trie_create_________": 24,
-    "phase_2_2_trie_merge_rankings_": 18,
-    "phase_2_4_trie_in_prefix_merge": 40,
+    "phase_2_1_trie_create_________": 23,
+    "phase_2_2_trie_shrink_________": 1,
+    "phase_2_3_trie_merge_rankings_": 18,
+    "phase_2_4_trie_in_prefix_merge": 39,
     "phase_3_0_suffix_array________": 8
   }
 }
