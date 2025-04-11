@@ -13,10 +13,7 @@ pub struct Monitor {
     pub p3_sa_compose: MonitorInterval,
 
     // Values
-    pub compares_with_two_cfs: usize,
-    pub compares_with_one_cf: usize,
-    pub compares_using_rules: usize,
-    pub compares_using_strcmp: usize,
+    pub execution_outcome: ExecutionOutcome,
 }
 impl Monitor {
     pub fn new() -> Self {
@@ -28,120 +25,37 @@ impl Monitor {
             p22_trie_merge_rankings: MonitorInterval::new(),
             p23_in_prefix_merge: MonitorInterval::new(),
             p3_sa_compose: MonitorInterval::new(),
-            compares_with_two_cfs: 0,
-            compares_with_one_cf: 0,
-            compares_using_rules: 0,
-            compares_using_strcmp: 0,
+            execution_outcome: ExecutionOutcome::new(),
         }
     }
 
-    // Phase 1.1
-    pub fn phase1_1_icfl_factorization_start(&mut self) {
-        let now = Instant::now();
-        self.p11_icfl.set_start(now);
-    }
-    pub fn phase1_1_icfl_factorization_stop(&mut self) {
-        let now = Instant::now();
-        self.p11_icfl.set_end(now);
-    }
-
-    // Phase 1.2
-    pub fn phase1_2_custom_factorization_start(&mut self) {
-        let now = Instant::now();
-        self.p12_custom.set_start(now);
-    }
-    pub fn phase1_2_custom_factorization_stop(&mut self) {
-        let now = Instant::now();
-        self.p12_custom.set_end(now);
-    }
-
-    // Phase 2.1
-    pub fn phase2_1_prefix_trie_create_start(&mut self) {
-        let now = Instant::now();
-        self.p21_trie_create.set_start(now);
-    }
-    pub fn phase2_1_prefix_trie_create_stop(&mut self) {
-        let now = Instant::now();
-        self.p21_trie_create.set_end(now);
-    }
-
-    // Phase 2.2
-    pub fn phase2_2_prefix_trie_merge_rankings_start(&mut self) {
-        let now = Instant::now();
-        self.p22_trie_merge_rankings.set_start(now);
-    }
-    pub fn phase2_2_prefix_trie_merge_rankings_stop(&mut self) {
-        let now = Instant::now();
-        self.p22_trie_merge_rankings.set_end(now);
-    }
-
-    // Phase 2.3
-    pub fn phase2_3_in_prefix_merge_start(&mut self) {
-        let now = Instant::now();
-        self.p23_in_prefix_merge.set_start(now);
-    }
-    pub fn phase2_3_in_prefix_merge_stop(&mut self) {
-        let now = Instant::now();
-        self.p23_in_prefix_merge.set_end(now);
-    }
-
-    // Phase 3
-    pub fn phase3_suffix_array_compose_start(&mut self) {
-        let now = Instant::now();
-        self.p3_sa_compose.set_start(now);
-    }
-    pub fn phase3_suffix_array_compose_stop(&mut self) {
-        let now = Instant::now();
-        self.p3_sa_compose.set_end(now);
-    }
-
-    // Whole Process
-    pub fn process_start(&mut self) {
-        let now = Instant::now();
-        self.whole_duration.set_start(now);
-    }
-    pub fn process_end(&mut self) {
-        let now = Instant::now();
-        self.whole_duration.set_end(now);
-    }
-
+    // EXECUTION OUTCOME
     pub fn new_compare_of_two_ls_in_custom_factors(&mut self) {
-        self.compares_with_two_cfs += 1;
+        self.execution_outcome.compares_with_two_cfs += 1;
     }
     pub fn new_compare_one_ls_in_custom_factor(&mut self) {
-        self.compares_with_one_cf += 1;
+        self.execution_outcome.compares_with_one_cf += 1;
     }
     pub fn new_compare_using_rules(&mut self) {
-        self.compares_using_rules += 1;
+        self.execution_outcome.compares_using_rules += 1;
     }
     pub fn new_compare_using_actual_string_compare(&mut self) {
-        self.compares_using_strcmp += 1;
+        self.execution_outcome.compares_using_strcmp += 1;
     }
 
     // EVALUATE TIMING AND PROPORTIONS
     pub fn transform_info_execution_info(self) -> ExecutionInfo {
         ExecutionInfo {
-            execution_timing: self.transform_into_execution_timing(),
-            execution_outcome: self.transform_into_execution_outcome(),
-        }
-    }
-    fn transform_into_execution_timing(&self) -> ExecutionTiming {
-        ExecutionTiming::new(
-            self.p11_icfl.get_duration().unwrap(),
-            self.p12_custom.get_duration().unwrap(),
-            self.p21_trie_create.get_duration().unwrap(),
-            self.p22_trie_merge_rankings.get_duration().unwrap(),
-            self.p23_in_prefix_merge.get_duration().unwrap(),
-            self.p3_sa_compose.get_duration().unwrap(),
-            self.whole_duration.get_duration().unwrap(),
-        )
-    }
-    fn transform_into_execution_outcome(&self) -> ExecutionOutcome {
-        ExecutionOutcome {
-            compares_with_two_cfs: self.compares_with_two_cfs,
-            compares_with_one_cf: self.compares_with_one_cf,
-            compares_using_rules: self.compares_using_rules,
-            compares_using_strcmp: self.compares_using_strcmp,
+            execution_timing: ExecutionTiming::new(
+                self.p11_icfl.get_duration().unwrap(),
+                self.p12_custom.get_duration().unwrap(),
+                self.p21_trie_create.get_duration().unwrap(),
+                self.p22_trie_merge_rankings.get_duration().unwrap(),
+                self.p23_in_prefix_merge.get_duration().unwrap(),
+                self.p3_sa_compose.get_duration().unwrap(),
+                self.whole_duration.get_duration().unwrap(),
+            ),
+            execution_outcome: self.execution_outcome,
         }
     }
 }
@@ -158,11 +72,13 @@ impl MonitorInterval {
             end: None,
         }
     }
-    pub fn set_start(&mut self, start: Instant) {
-        self.start = Some(start);
+    pub fn start(&mut self) {
+        let now = Instant::now();
+        self.start = Some(now);
     }
-    pub fn set_end(&mut self, end: Instant) {
-        self.end = Some(end);
+    pub fn stop(&mut self) {
+        let now = Instant::now();
+        self.end = Some(now);
     }
     pub fn get_duration(&self) -> Option<Duration> {
         if let Some(start) = self.start {
@@ -271,6 +187,7 @@ impl ExecutionTiming {
         }
     }
 }
+#[derive(Debug)]
 pub struct ExecutionOutcome {
     pub compares_with_two_cfs: usize,
     pub compares_with_one_cf: usize,
@@ -278,6 +195,14 @@ pub struct ExecutionOutcome {
     pub compares_using_strcmp: usize,
 }
 impl ExecutionOutcome {
+    pub fn new() -> Self {
+        Self {
+            compares_with_two_cfs: 0,
+            compares_with_one_cf: 0,
+            compares_using_rules: 0,
+            compares_using_strcmp: 0,
+        }
+    }
     pub fn print(&self) {
         println!("Execution Outcome:");
         println!(" > two custom: {}", self.compares_with_two_cfs);

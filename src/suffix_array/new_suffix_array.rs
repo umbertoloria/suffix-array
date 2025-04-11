@@ -40,16 +40,16 @@ pub fn compute_innovative_suffix_array(
     let str_length = str.len();
 
     let mut monitor = Monitor::new();
-    monitor.process_start();
+    monitor.whole_duration.start();
 
     // ICFL Factorization
-    monitor.phase1_1_icfl_factorization_start();
+    monitor.p11_icfl.start();
     let s_bytes = str.as_bytes();
     let icfl_indexes = get_icfl_indexes(s_bytes);
-    monitor.phase1_1_icfl_factorization_stop();
+    monitor.p11_icfl.stop();
 
     // Custom Factorization
-    monitor.phase1_2_custom_factorization_start();
+    monitor.p12_custom.start();
     let mut custom_indexes = Vec::new();
     let mut is_custom_vec = Vec::new();
     let mut icfl_factor_list = Vec::new();
@@ -71,10 +71,10 @@ pub fn compute_innovative_suffix_array(
         icfl_factor_list = icfl_factor_list_;
         */
     }
-    monitor.phase1_2_custom_factorization_stop();
+    monitor.p12_custom.stop();
 
     // Prefix Trie Structure create
-    monitor.phase2_1_prefix_trie_create_start();
+    monitor.p21_trie_create.start();
     let mut depths = vec![0usize; str_length];
     let mut prefix_trie = create_prefix_trie(
         s_bytes,
@@ -86,7 +86,7 @@ pub fn compute_innovative_suffix_array(
         str,
     );
     let nodes_count = prefix_trie.shrink();
-    monitor.phase2_1_prefix_trie_create_stop();
+    monitor.p21_trie_create.stop();
 
     // +
     if debug_mode == DebugMode::Verbose {
@@ -96,12 +96,12 @@ pub fn compute_innovative_suffix_array(
     // -
 
     // Merge Rankings (Canonical and Custom)
-    monitor.phase2_2_prefix_trie_merge_rankings_start();
+    monitor.p22_trie_merge_rankings.start();
     // This "prog_sa_trie" is going to store all Rankings from Trie Nodes. It's not going to be used
     // to build the actual Suffix Array. Above, the "prog_sa" will actually be used for that.
     let mut prog_sa = ProgSuffixArray::new(str_length);
     prefix_trie.merge_rankings_and_sort_recursive(str, &mut prog_sa);
-    monitor.phase2_2_prefix_trie_merge_rankings_stop();
+    monitor.p22_trie_merge_rankings.stop();
 
     // +
     let chunk_size_num_for_log = chunk_size.unwrap_or(0);
@@ -133,7 +133,7 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
-    monitor.phase2_3_in_prefix_merge_start();
+    monitor.p23_in_prefix_merge.start();
     let mut node_father_bank = NodeFatherBank::new(nodes_count);
     let mut compare_cache = CompareCache::new();
     prefix_trie.in_prefix_merge(
@@ -148,7 +148,7 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
-    monitor.phase2_3_in_prefix_merge_stop();
+    monitor.p23_in_prefix_merge.stop();
 
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
@@ -165,7 +165,7 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
-    monitor.phase3_suffix_array_compose_start();
+    monitor.p3_sa_compose.start();
     let mut sa = Vec::new();
     prefix_trie.prepare_get_common_prefix_partition(
         &mut sa,
@@ -174,7 +174,7 @@ pub fn compute_innovative_suffix_array(
         &node_father_bank,
         debug_mode == DebugMode::Verbose,
     );
-    monitor.phase3_suffix_array_compose_stop();
+    monitor.p3_sa_compose.stop();
 
     // +
     if perform_logging {
@@ -185,7 +185,7 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
-    monitor.process_end();
+    monitor.whole_duration.stop();
 
     // +
     let execution_info = monitor.transform_info_execution_info();
