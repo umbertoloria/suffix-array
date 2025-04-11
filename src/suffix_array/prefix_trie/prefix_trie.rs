@@ -28,11 +28,10 @@ impl<'a> PrefixTrie<'a> {
     }
 
     // Rankings
-    pub fn get_rankings_canonical(&self) -> &Vec<usize> {
-        &self.rankings_canonical
-    }
-    pub fn get_rankings_custom(&self) -> &Vec<usize> {
-        &self.rankings_custom
+    pub fn get_both_rankings(&self) -> (&[usize], &[usize]) {
+        let rankings_canonical = &self.rankings_canonical;
+        let rankings_custom = &self.rankings_custom;
+        (rankings_canonical, rankings_custom)
     }
 
     // Tree Population
@@ -175,8 +174,8 @@ impl<'a> PrefixTrie<'a> {
                     );
                 }
 
-                let old_child_node_rankings_canonical = child_node.get_rankings_canonical();
-                let old_child_node_rankings_custom = child_node.get_rankings_custom();
+                let (old_child_node_rankings_canonical, old_child_node_rankings_custom) =
+                    child_node.get_both_rankings();
 
                 // Node "child_node" will disappear, so its ID will be used by "new_child_node"
                 let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
@@ -242,7 +241,8 @@ impl<'a> PrefixTrie<'a> {
     // SHRINK PHASE
     fn is_bridge_node(&self) -> bool {
         // Make sure to perform "shrink" before the "Merge Rankings and Sort" phase
-        self.rankings_canonical.is_empty() && self.rankings_custom.is_empty()
+        let (rankings_canonical, rankings_custom) = self.get_both_rankings();
+        rankings_canonical.is_empty() && rankings_custom.is_empty()
     }
     pub fn shrink(&mut self) -> usize {
         // Note: After "shrink" the only Bridge Node will be the Root Node :)
@@ -338,13 +338,17 @@ impl<'a> PrefixTrie<'a> {
         // We don't sort Rankings Canonical because that list already contains Global Suffixes in
         // the right order (unlike Ranking Custom, that we have to sort).
         let mut sorted_rankings_custom = Vec::new();
-        if !self.rankings_custom.is_empty() {
+
+        let rankings_canonical = &mut self.rankings_canonical;
+        let rankings_custom = &mut self.rankings_custom;
+
+        if !rankings_custom.is_empty() {
             let mut sorted_rankings_custom_pairs_list = Vec::new();
-            for &gs_index in &self.rankings_custom {
+            for &gs_index in &*rankings_custom {
                 let gs = &str[gs_index..];
                 sorted_rankings_custom_pairs_list.push((gs_index, gs));
             }
-            self.rankings_custom.clear();
+            rankings_custom.clear();
             // TODO: Monitor string compare
             sort_pair_vector_of_indexed_strings(&mut sorted_rankings_custom_pairs_list);
             for (custom_gs_index, _) in sorted_rankings_custom_pairs_list {
@@ -354,12 +358,11 @@ impl<'a> PrefixTrie<'a> {
         // OK, now Rankings Customs is sorted as well. Rankings Canonical was already sorted. Now we
         // perform the merge between these lists.
         let mut unified_rankings =
-            Vec::with_capacity(self.rankings_canonical.len() + sorted_rankings_custom.len());
+            Vec::with_capacity(rankings_canonical.len() + sorted_rankings_custom.len());
         let mut i_canonical = 0;
         let mut i_custom = 0;
-        while i_canonical < self.rankings_canonical.len() && i_custom < sorted_rankings_custom.len()
-        {
-            let canonical_gs_index = self.rankings_canonical[i_canonical];
+        while i_canonical < rankings_canonical.len() && i_custom < sorted_rankings_custom.len() {
+            let canonical_gs_index = rankings_canonical[i_canonical];
             let canonical_gs = &str[canonical_gs_index..];
 
             let custom_gs_index = sorted_rankings_custom[i_custom];
@@ -374,12 +377,12 @@ impl<'a> PrefixTrie<'a> {
                 i_custom += 1;
             }
         }
-        while i_canonical < self.rankings_canonical.len() {
-            let canonical_gs_index = self.rankings_canonical[i_canonical];
+        while i_canonical < rankings_canonical.len() {
+            let canonical_gs_index = rankings_canonical[i_canonical];
             unified_rankings.push(canonical_gs_index);
             i_canonical += 1;
         }
-        self.rankings_canonical.clear();
+        rankings_canonical.clear();
         while i_custom < sorted_rankings_custom.len() {
             let custom_gs_index = sorted_rankings_custom[i_custom];
             unified_rankings.push(custom_gs_index);
