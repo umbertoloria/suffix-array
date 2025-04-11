@@ -46,6 +46,7 @@ pub fn compute_innovative_suffix_array(
     monitor.phase1_1_icfl_factorization_start();
     let s_bytes = str.as_bytes();
     let icfl_indexes = get_icfl_indexes(s_bytes);
+    monitor.phase1_1_icfl_factorization_stop();
 
     // Custom Factorization
     monitor.phase1_2_custom_factorization_start();
@@ -70,6 +71,7 @@ pub fn compute_innovative_suffix_array(
         icfl_factor_list = icfl_factor_list_;
         */
     }
+    monitor.phase1_2_custom_factorization_stop();
 
     // Prefix Trie Structure create
     monitor.phase2_1_prefix_trie_create_start();

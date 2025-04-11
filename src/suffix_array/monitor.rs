@@ -40,18 +40,24 @@ impl Monitor {
         let now = Instant::now();
         self.p11_icfl.set_start(now);
     }
+    pub fn phase1_1_icfl_factorization_stop(&mut self) {
+        let now = Instant::now();
+        self.p11_icfl.set_end(now);
+    }
 
     // Phase 1.2
     pub fn phase1_2_custom_factorization_start(&mut self) {
         let now = Instant::now();
-        self.p11_icfl.set_end(now);
         self.p12_custom.set_start(now);
+    }
+    pub fn phase1_2_custom_factorization_stop(&mut self) {
+        let now = Instant::now();
+        self.p12_custom.set_end(now);
     }
 
     // Phase 2.1
     pub fn phase2_1_prefix_trie_create_start(&mut self) {
         let now = Instant::now();
-        self.p12_custom.set_end(now);
         self.p21_trie_create.set_start(now);
     }
     pub fn phase2_1_prefix_trie_create_stop(&mut self) {
