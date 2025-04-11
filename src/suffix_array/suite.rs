@@ -123,27 +123,27 @@ fn run_and_validate_test(
     );
     print_duration(
         " > Phase 1.1: Factorization ICFL  ",
-        &execution_timing.p11_icfl,
+        &execution_timing.p11_icfl.dur,
     );
     print_duration(
         " > Phase 1.2: Factorization Custom",
-        &execution_timing.p12_cust_fact,
+        &execution_timing.p12_cust_fact.dur,
     );
     print_duration(
         " > Phase 2.1: Trie create         ",
-        &execution_timing.p21_trie_create,
+        &execution_timing.p21_trie_create.dur,
     );
     print_duration(
         " > Phase 2.2: Shrink              ",
-        &execution_timing.p22_shrink,
+        &execution_timing.p22_shrink.dur,
     );
     print_duration(
         " > Phase 2.3: In-prefix merge     ",
-        &execution_timing.p23_merge_rankings,
+        &execution_timing.p23_merge_rankings.dur,
     );
     print_duration(
         " > Phase 3  : Suffix Array        ",
-        &execution_timing.p3_suffix_array,
+        &execution_timing.p3_suffix_array.dur,
     );
     if debug_mode == DebugMode::Overview || debug_mode == DebugMode::Verbose {
         execution_outcome.print();

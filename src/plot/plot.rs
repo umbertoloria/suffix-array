@@ -22,7 +22,7 @@ pub fn draw_plot_from_monitor(
 
     // Innovative Technique Executions
     for (_, execution_info) in &chunk_size_and_execution_info_list {
-        let execution_timing = &execution_info.execution_timing;
+        let et = &execution_info.execution_timing;
         groups_of_bars.push(
             //
             GroupOfBars::new_only_one(
@@ -30,25 +30,13 @@ pub fn draw_plot_from_monitor(
                 create_composite_bar_from_parts(
                     curr_x,
                     vec![
-                        (execution_timing.p11_icfl.as_micros() as i32, GREY_500),
-                        (execution_timing.p12_cust_fact.as_micros() as i32, GREY_600),
-                        (
-                            execution_timing.p21_trie_create.as_micros() as i32,
-                            ORANGE_300,
-                        ),
-                        (execution_timing.p22_shrink.as_micros() as i32, ORANGE_600),
-                        (
-                            execution_timing.p23_merge_rankings.as_micros() as i32,
-                            RED_600,
-                        ),
-                        (
-                            execution_timing.p24_in_prefix_merge.as_micros() as i32,
-                            GREEN_500,
-                        ),
-                        (
-                            execution_timing.p3_suffix_array.as_micros() as i32,
-                            YELLOW_600,
-                        ),
+                        (et.p11_icfl.dur.as_micros() as i32, GREY_500),
+                        (et.p12_cust_fact.dur.as_micros() as i32, GREY_600),
+                        (et.p21_trie_create.dur.as_micros() as i32, ORANGE_300),
+                        (et.p22_shrink.dur.as_micros() as i32, ORANGE_600),
+                        (et.p23_merge_rankings.dur.as_micros() as i32, RED_600),
+                        (et.p24_in_prefix_merge.dur.as_micros() as i32, GREEN_500),
+                        (et.p3_suffix_array.dur.as_micros() as i32, YELLOW_600),
                     ],
                     abs_max_value,
                     diagram_max_y,

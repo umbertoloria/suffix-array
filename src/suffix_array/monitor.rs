@@ -45,7 +45,6 @@ impl Monitor {
         self.execution_outcome.compares_using_strcmp += 1;
     }
 
-    // EVALUATE TIMING AND PROPORTIONS
     pub fn transform_info_execution_info(self) -> ExecutionInfo {
         ExecutionInfo {
             execution_timing: ExecutionTiming::new(&self),
@@ -89,33 +88,23 @@ pub struct ExecutionInfo {
     pub execution_outcome: ExecutionOutcome,
 }
 
+pub struct ExecutionTimingPhase {
+    pub dur: Duration,
+    // pub perc_with_extra: f64,
+    pub perc: u16, // From 0 to 100 (sum 100).
+}
 pub struct ExecutionTiming {
     // These parameters are the ones used for Plotting, Execution Logging and Suite Output
-    pub p11_icfl: Duration,
-    pub p12_cust_fact: Duration,
-    pub p21_trie_create: Duration,
-    pub p22_shrink: Duration,
-    pub p23_merge_rankings: Duration,
-    pub p24_in_prefix_merge: Duration,
-    pub p3_suffix_array: Duration,
     pub sum_duration_only_phases: Duration,
     pub whole_duration: Duration,
-    // pub prop_with_extra_p11: f64,
-    // pub prop_with_extra_p12: f64,
-    // pub prop_with_extra_p21: f64,
-    // pub prop_with_extra_p22: f64,
-    // pub prop_with_extra_p23: f64,
-    // pub prop_with_extra_p24: f64,
-    // pub prop_with_extra_p3: f64,
-    // pub prop_with_extra_extra: f64,
-    // Those are from 0 to 100 (sum 100).
-    pub prop_p11_icfl: u16,
-    pub prop_p12_cust_fact: u16,
-    pub prop_p21_trie_create: u16,
-    pub prop_p22_shrink: u16,
-    pub prop_p23_merge_rankings: u16,
-    pub prop_p24_in_prefix_merge: u16,
-    pub prop_p3_suffix_array: u16,
+    // Phases
+    pub p11_icfl: ExecutionTimingPhase,
+    pub p12_cust_fact: ExecutionTimingPhase,
+    pub p21_trie_create: ExecutionTimingPhase,
+    pub p22_shrink: ExecutionTimingPhase,
+    pub p23_merge_rankings: ExecutionTimingPhase,
+    pub p24_in_prefix_merge: ExecutionTimingPhase,
+    pub p3_suffix_array: ExecutionTimingPhase,
 }
 impl ExecutionTiming {
     pub fn new(monitor: &Monitor) -> Self {
@@ -137,70 +126,84 @@ impl ExecutionTiming {
             + p24_in_prefix_merge
             + p3_suffix_array;
 
-        // Proportions (with extra)
+        // Percentages with extra
         /*let duration_extra = whole_duration - sum_duration_only_phases;
         let sum_micros_incl_extra = whole_duration.as_micros();*/
 
-        // Props
+        // Percentages
         let sum_micros_excl_extra = sum_duration_only_phases.as_micros() as f32;
-        let prop_p11_icfl = round_int_100(p11_icfl.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p12_cust_fact =
+        let p11_icfl_perc = round_int_100(p11_icfl.as_micros() as f32 / sum_micros_excl_extra);
+        let p12_cust_fact_perc =
             round_int_100(p12_cust_fact.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p21_trie_create =
+        let p21_trie_create_perc =
             round_int_100(p21_trie_create.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p22_shrink = round_int_100(p22_shrink.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p23_merge_rankings =
+        let p22_shrink_perc = round_int_100(p22_shrink.as_micros() as f32 / sum_micros_excl_extra);
+        let p23_merge_rankings_perc =
             round_int_100(p23_merge_rankings.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p24_in_prefix_merge =
+        let p24_in_prefix_merge_perc =
             round_int_100(p24_in_prefix_merge.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p3_suffix_array = 100
-            - (prop_p11_icfl
-                + prop_p12_cust_fact
-                + prop_p21_trie_create
-                + prop_p22_shrink
-                + prop_p23_merge_rankings
-                + prop_p24_in_prefix_merge)
+        let p3_suffix_array_perc = 100
+            - (p11_icfl_perc
+                + p12_cust_fact_perc
+                + p21_trie_create_perc
+                + p22_shrink_perc
+                + p23_merge_rankings_perc
+                + p24_in_prefix_merge_perc)
                 .min(100);
-        /*let prop_p3 = round_int_5(p3_suffix_array.as_micros() as f32 / sum_micros_excl_extra);
-        let check_sum = prop_p11_icfl
-            + prop_p12_cust_fact
-            + prop_p21_trie_create
-            + prop_p22_shrink
-            + prop_p23_merge_rankings
-            + prop_p24_in_prefix_merge
-            + prop_p3;
+        /*let perc_p3_suffix_array = round_int_5(p3_suffix_array.as_micros() as f32 / sum_micros_excl_extra);
+        let check_sum = perc_p11_icfl
+            + perc_p12_cust_fact
+            + perc_p21_trie_create
+            + perc_p22_shrink
+            + perc_p23_merge_rankings
+            + perc_p24_in_prefix_merge
+            + perc_p3_suffix_array;
         if check_sum != 100 {
             // PROBLEM
         }*/
 
         Self {
-            p11_icfl,
-            p12_cust_fact,
-            p21_trie_create,
-            p22_shrink,
-            p23_merge_rankings,
-            p24_in_prefix_merge,
-            p3_suffix_array,
             sum_duration_only_phases,
             whole_duration,
             /*duration_extra,
-            prop_with_extra_p11: p11_icfl.as_micros() as f64 / sum_micros_incl_extra as f64,
-            prop_with_extra_p12: p12_cust_fact.as_micros() as f64 / sum_micros_incl_extra as f64,
-            prop_with_extra_p21: p21_trie_create.as_micros() as f64 / sum_micros_incl_extra as f64,
-            prop_with_extra_p22: p22_shrink.as_micros() as f64 / sum_micros_incl_extra as f64,
-            prop_with_extra_p23: p23_merge_rankings.as_micros() as f64
+            perc_with_extra_p11: p11_icfl.as_micros() as f64 / sum_micros_incl_extra as f64,
+            perc_with_extra_p12: p12_cust_fact.as_micros() as f64 / sum_micros_incl_extra as f64,
+            perc_with_extra_p21: p21_trie_create.as_micros() as f64 / sum_micros_incl_extra as f64,
+            perc_with_extra_p22: p22_shrink.as_micros() as f64 / sum_micros_incl_extra as f64,
+            perc_with_extra_p23: p23_merge_rankings.as_micros() as f64
                 / sum_micros_incl_extra as f64,
-            prop_with_extra_p24: p24_in_prefix_merge.as_micros() as f64
+            perc_with_extra_p24: p24_in_prefix_merge.as_micros() as f64
                 / sum_micros_incl_extra as f64,
-            prop_with_extra_p3: p3_suffix_array.as_micros() as f64 / sum_micros_incl_extra as f64,
-            prop_with_extra_extra: duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64,*/
-            prop_p11_icfl,
-            prop_p12_cust_fact,
-            prop_p21_trie_create,
-            prop_p22_shrink,
-            prop_p23_merge_rankings,
-            prop_p24_in_prefix_merge,
-            prop_p3_suffix_array,
+            perc_with_extra_p3: p3_suffix_array.as_micros() as f64 / sum_micros_incl_extra as f64,
+            perc_with_extra_extra: duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64,*/
+            p11_icfl: ExecutionTimingPhase {
+                dur: p11_icfl,
+                perc: p11_icfl_perc,
+            },
+            p12_cust_fact: ExecutionTimingPhase {
+                dur: p12_cust_fact,
+                perc: p12_cust_fact_perc,
+            },
+            p21_trie_create: ExecutionTimingPhase {
+                dur: p21_trie_create,
+                perc: p21_trie_create_perc,
+            },
+            p22_shrink: ExecutionTimingPhase {
+                dur: p22_shrink,
+                perc: p22_shrink_perc,
+            },
+            p23_merge_rankings: ExecutionTimingPhase {
+                dur: p23_merge_rankings,
+                perc: p23_merge_rankings_perc,
+            },
+            p24_in_prefix_merge: ExecutionTimingPhase {
+                dur: p24_in_prefix_merge,
+                perc: p24_in_prefix_merge_perc,
+            },
+            p3_suffix_array: ExecutionTimingPhase {
+                dur: p3_suffix_array,
+                perc: p3_suffix_array_perc,
+            },
         }
     }
 }
