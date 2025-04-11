@@ -14,7 +14,9 @@ pub fn create_prefix_trie<'a>(
     let str_length = s_bytes.len();
     let max_factor_size =
         get_max_factor_size(&custom_indexes, str_length).expect("max_factor_size is not valid");
-    let mut root = PrefixTrie::new(0);
+    let mut next_index_src = 0;
+    let next_index = &mut next_index_src;
+    let mut root = PrefixTrie::new(next_index, 0);
 
     let custom_indexes_len = custom_indexes.len();
     let last_factor_size = str_length - custom_indexes[custom_indexes_len - 1];
@@ -54,7 +56,15 @@ pub fn create_prefix_trie<'a>(
 
     // LSs that come from Canonical Factors (already sorted)
     for (ls_index, ls_size) in params_canonical {
-        root.add_string(ls_index, ls_size, false, s_bytes, is_custom_vec, verbose);
+        root.add_string(
+            ls_index,
+            ls_size,
+            false,
+            next_index,
+            s_bytes,
+            is_custom_vec,
+            verbose,
+        );
         depths[ls_index] = ls_size;
         if verbose {
             root.print_before_shrink(0, "", str);
@@ -63,7 +73,15 @@ pub fn create_prefix_trie<'a>(
 
     // LSs that come from Custom Factors (to sort)
     for (ls_index, ls_size) in params_custom {
-        root.add_string(ls_index, ls_size, true, s_bytes, is_custom_vec, verbose);
+        root.add_string(
+            ls_index,
+            ls_size,
+            true,
+            next_index,
+            s_bytes,
+            is_custom_vec,
+            verbose,
+        );
         depths[ls_index] = ls_size;
         if verbose {
             root.print_before_shrink(0, "", str);

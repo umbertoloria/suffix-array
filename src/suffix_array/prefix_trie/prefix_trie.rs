@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 
 const MIN_SIZE_DIRECT_CHILD_SUBSTRING: usize = 2;
 pub struct PrefixTrie<'a> {
+    pub id0: usize,
     pub id: usize,
     pub suffix_len: usize,
     pub data: PrefixTrieData<'a>,
@@ -15,8 +16,14 @@ pub enum PrefixTrieData<'a> {
     Vec(Vec<PrefixTrie<'a>>),
 }
 impl<'a> PrefixTrie<'a> {
-    pub fn new(suffix_len: usize) -> Self {
+    pub fn new(next_index: &mut usize, suffix_len: usize) -> Self {
+        let id0 = *next_index;
+        *next_index += 1;
+        Self::new_direct(id0, suffix_len)
+    }
+    pub fn new_direct(id0: usize, suffix_len: usize) -> Self {
         Self {
+            id0,
             id: 0, // IDs not used before Merge Rankings Phase.
             suffix_len,
             data: PrefixTrieData::Leaf,
@@ -30,6 +37,7 @@ impl<'a> PrefixTrie<'a> {
         ls_index: usize,
         ls_size: usize,
         is_custom_ls: bool,
+        next_index: &mut usize,
         s_bytes: &'a [u8],
         is_custom_vec: &Vec<bool>, // This is used to distinguish a Ranking as Canonical or Custom.
         verbose: bool,
@@ -84,7 +92,7 @@ impl<'a> PrefixTrie<'a> {
                     }
 
                     // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new(ls_size);
+                    let mut new_child_node = PrefixTrie::new(next_index, ls_size);
                     new_child_node.update_rankings(ls_index, is_custom_ls, s_bytes);
 
                     self.data = PrefixTrieData::DirectChild((
@@ -98,12 +106,13 @@ impl<'a> PrefixTrie<'a> {
                     }
 
                     // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
+                    let mut new_child_node = PrefixTrie::new(next_index, self.suffix_len + 1);
                     new_child_node.add_string(
                         //
                         ls_index,
                         ls_size,
                         is_custom_ls,
+                        next_index,
                         s_bytes,
                         is_custom_vec,
                         verbose,
@@ -130,7 +139,8 @@ impl<'a> PrefixTrie<'a> {
                 }
 
                 // Node "child_node" will disappear, so its ID will be used by "new_child_node"
-                let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
+                let mut new_child_node =
+                    PrefixTrie::new_direct(child_node.id0, self.suffix_len + 1);
 
                 let mut old_child_node_rankings_canonical = Vec::new();
                 let mut old_child_node_rankings_custom = Vec::new();
@@ -149,6 +159,7 @@ impl<'a> PrefixTrie<'a> {
                         ranking_canonical,
                         self.suffix_len + prefix.len(),
                         false,
+                        next_index,
                         s_bytes,
                         is_custom_vec,
                         verbose,
@@ -160,6 +171,7 @@ impl<'a> PrefixTrie<'a> {
                         ranking_custom,
                         self.suffix_len + prefix.len(),
                         true,
+                        next_index,
                         s_bytes,
                         is_custom_vec,
                         verbose,
@@ -185,6 +197,7 @@ impl<'a> PrefixTrie<'a> {
                     ls_index,
                     ls_size,
                     is_custom_ls,
+                    next_index,
                     s_bytes,
                     is_custom_vec,
                     verbose,
@@ -206,6 +219,7 @@ impl<'a> PrefixTrie<'a> {
                         ls_index,
                         ls_size,
                         is_custom_ls,
+                        next_index,
                         s_bytes,
                         is_custom_vec,
                         verbose,
@@ -215,12 +229,13 @@ impl<'a> PrefixTrie<'a> {
                         println!("{}  > create regular child", "  ".repeat(self.suffix_len));
                     }
 
-                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
+                    let mut new_child_node = PrefixTrie::new(next_index, self.suffix_len + 1);
                     new_child_node.add_string(
                         //
                         ls_index,
                         ls_size,
                         is_custom_ls,
+                        next_index,
                         s_bytes,
                         is_custom_vec,
                         verbose,
