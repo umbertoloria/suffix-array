@@ -51,7 +51,6 @@ impl<'a> PrefixTrie<'a> {
                 }
             }
             PrefixTrieData::Leaf => {}
-            PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     child_node.in_prefix_merge_on_children(
@@ -118,7 +117,6 @@ impl<'a> PrefixTrie<'a> {
                 }
             }
             PrefixTrieData::Leaf => {}
-            PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     child_node.in_prefix_merge_deep(

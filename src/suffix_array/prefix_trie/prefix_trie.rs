@@ -14,7 +14,6 @@ pub enum PrefixTrieData<'a> {
     DirectChild((&'a PrefixTrieString, Box<PrefixTrie<'a>>)),
     Children(BTreeMap<PrefixTrieChar, PrefixTrie<'a>>),
     Leaf,
-    InitRoot, // Will be replaced with "Children" as soon as First Layer Nodes come in.
     Vec(Vec<PrefixTrie<'a>>),
 }
 impl<'a> PrefixTrie<'a> {
@@ -22,11 +21,7 @@ impl<'a> PrefixTrie<'a> {
         Self {
             id: 0, // IDs not used before Merge Rankings Phase.
             suffix_len,
-            data: if suffix_len == 0 {
-                PrefixTrieData::InitRoot
-            } else {
-                PrefixTrieData::Leaf
-            },
+            data: PrefixTrieData::Leaf,
             rankings_canonical: Vec::new(),
             rankings_custom: Vec::new(),
         }
@@ -185,7 +180,7 @@ impl<'a> PrefixTrie<'a> {
             PrefixTrieData::Leaf => {
                 // Assuming "self.suffix_len > 0".
 
-                if ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING {
+                if self.suffix_len > 0 && ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING {
                     // Here we are in a leaf. So we create a Direct Child Node instead of a Path
                     // made of multiple Child Nodes.
 
@@ -228,27 +223,6 @@ impl<'a> PrefixTrie<'a> {
                     children.insert(curr_letter, new_child_node);
                     self.data = PrefixTrieData::Children(children);
                 }
-            }
-            PrefixTrieData::InitRoot => {
-                // This will become a (Root) Node with Children.
-                if verbose {
-                    println!("{}  > create regular child", "  ".repeat(self.suffix_len));
-                }
-
-                // This is the first inserted Child Node.
-                let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
-                new_child_node.add_string(
-                    //
-                    ls_index,
-                    ls_size,
-                    is_custom_ls,
-                    s_bytes,
-                    verbose,
-                );
-
-                let mut children = BTreeMap::new();
-                children.insert(curr_letter, new_child_node);
-                self.data = PrefixTrieData::Children(children);
             }
             PrefixTrieData::Vec(_) => {
                 // This type "PrefixTrieData::Vec" is only used from the Shrink Phase and after.
@@ -296,7 +270,6 @@ impl<'a> PrefixTrie<'a> {
                 child_node.shrink_(next_id);
             }
             PrefixTrieData::Leaf => {}
-            PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(_) => {
                 // Should never happen...
                 // exit(0x0100);
@@ -338,10 +311,6 @@ impl<'a> PrefixTrie<'a> {
                                     // Should never happen...
                                     // exit(0x0100);
                                 }
-                                PrefixTrieData::InitRoot => {
-                                    // Should never happen...
-                                    // exit(0x0100);
-                                }
                                 PrefixTrieData::Vec(children) => {
                                     vec.extend(children);
                                 }
@@ -358,7 +327,6 @@ impl<'a> PrefixTrie<'a> {
                 // exit(0x0100);
             }
             PrefixTrieData::Leaf => {}
-            PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(_) => {}
         }
     }
@@ -430,7 +398,6 @@ impl<'a> PrefixTrie<'a> {
                 child_node.merge_rankings_and_sort_recursive(str, prog_sa);
             }
             PrefixTrieData::Leaf => {}
-            PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     child_node.merge_rankings_and_sort_recursive(str, prog_sa);

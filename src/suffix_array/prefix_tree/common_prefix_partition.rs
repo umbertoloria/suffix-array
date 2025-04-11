@@ -23,7 +23,6 @@ impl<'a> PrefixTrie<'a> {
                 }
             }
             PrefixTrieData::Leaf => {}
-            PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     sa.extend(
@@ -101,7 +100,6 @@ impl<'a> PrefixTrie<'a> {
                 }
             }
             PrefixTrieData::Leaf => {}
-            PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     let child_cpp =

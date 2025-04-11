@@ -39,7 +39,6 @@ impl<'a> PrefixTrie<'a> {
                 );
             }
             PrefixTrieData::Leaf => {}
-            PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     let mut prefix_str = "";
@@ -99,7 +98,6 @@ impl<'a> PrefixTrie<'a> {
                 );
             }
             PrefixTrieData::Leaf => {}
-            PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     let child_rankings = prog_sa.get_rankings(child_node.id);

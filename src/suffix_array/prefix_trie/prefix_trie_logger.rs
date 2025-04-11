@@ -21,7 +21,6 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String, str: &str, prog_sa: 
             log_prefix_trie_recursive(child_node, &child_label, &mut file, 0, str, prog_sa);
         }
         PrefixTrieData::Leaf => {}
-        PrefixTrieData::InitRoot => {}
         PrefixTrieData::Vec(children) => {
             for child_node in children {
                 let child_rankings = prog_sa.get_rankings(child_node.id);
@@ -70,7 +69,6 @@ fn log_prefix_trie_recursive(
             log_prefix_trie_recursive(child_node, &child_label, file, level + 1, str, prog_sa);
         }
         PrefixTrieData::Leaf => {}
-        PrefixTrieData::InitRoot => {}
         PrefixTrieData::Vec(children) => {
             for child_node in children {
                 let child_rankings = prog_sa.get_rankings(child_node.id);
