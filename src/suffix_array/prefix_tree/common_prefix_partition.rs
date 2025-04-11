@@ -12,6 +12,7 @@ impl<'a> PrefixTrie<'a> {
         verbose: bool,
     ) {
         match &self.data {
+            PrefixTrieData::Leaf => {}
             PrefixTrieData::DirectChild((_, child_node)) => {
                 sa.extend(child_node.get_common_prefix_partition(str, prog_sa, tree_bank, verbose));
             }
@@ -22,7 +23,6 @@ impl<'a> PrefixTrie<'a> {
                     );
                 }
             }
-            PrefixTrieData::Leaf => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     sa.extend(
@@ -49,6 +49,7 @@ impl<'a> PrefixTrie<'a> {
         let this_rankings = prog_sa.get_rankings(self.id);
         let mut position = 0;
         match &self.data {
+            PrefixTrieData::Leaf => {}
             PrefixTrieData::DirectChild((_, child_node)) => {
                 let child_cpp =
                     child_node.get_common_prefix_partition(str, prog_sa, tree_bank, verbose);
@@ -99,7 +100,6 @@ impl<'a> PrefixTrie<'a> {
                     }
                 }
             }
-            PrefixTrieData::Leaf => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     let child_cpp =

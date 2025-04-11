@@ -20,6 +20,7 @@ impl<'a> PrefixTrie<'a> {
         verbose: bool,
     ) {
         match &mut self.data {
+            PrefixTrieData::Leaf => {}
             PrefixTrieData::DirectChild((_, child_node)) => {
                 child_node.in_prefix_merge_on_children(
                     str,
@@ -50,7 +51,6 @@ impl<'a> PrefixTrie<'a> {
                     );
                 }
             }
-            PrefixTrieData::Leaf => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     child_node.in_prefix_merge_on_children(
@@ -84,6 +84,7 @@ impl<'a> PrefixTrie<'a> {
     ) {
         let self_id = self.id;
         match &mut self.data {
+            PrefixTrieData::Leaf => {}
             PrefixTrieData::DirectChild((_, child_node)) => {
                 child_node.in_prefix_merge_deep(
                     str,
@@ -116,7 +117,6 @@ impl<'a> PrefixTrie<'a> {
                     );
                 }
             }
-            PrefixTrieData::Leaf => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     child_node.in_prefix_merge_deep(

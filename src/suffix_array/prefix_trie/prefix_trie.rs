@@ -11,9 +11,9 @@ pub struct PrefixTrie<'a> {
     pub rankings_custom: Vec<usize>,
 }
 pub enum PrefixTrieData<'a> {
+    Leaf,
     DirectChild((&'a PrefixTrieString, Box<PrefixTrie<'a>>)),
     Children(BTreeMap<PrefixTrieChar, PrefixTrie<'a>>),
-    Leaf,
     Vec(Vec<PrefixTrie<'a>>),
 }
 impl<'a> PrefixTrie<'a> {
@@ -76,6 +76,53 @@ impl<'a> PrefixTrie<'a> {
         let curr_letter: PrefixTrieChar = s_bytes[ls_index + i_letter_ls];
 
         match &mut self.data {
+            PrefixTrieData::Leaf => {
+                // Assuming "self.suffix_len > 0".
+
+                if self.suffix_len > 0 && ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING {
+                    // Here we are in a leaf. So we create a Direct Child Node instead of a Path
+                    // made of multiple Child Nodes.
+
+                    let rest_of_ls = &s_bytes[ls_index + i_letter_ls..ls_index + ls_size];
+                    if verbose {
+                        let rest_of_ls_str = get_string_clone(&rest_of_ls);
+                        println!(
+                            "{}  > create direct child \"{}\"",
+                            "  ".repeat(self.suffix_len),
+                            rest_of_ls_str,
+                        );
+                    }
+
+                    // This is the first inserted Child Node.
+                    let mut new_child_node = PrefixTrie::new(ls_size);
+                    new_child_node.update_rankings(ls_index, is_custom_ls);
+
+                    self.data = PrefixTrieData::DirectChild((
+                        //
+                        rest_of_ls,
+                        Box::new(new_child_node),
+                    ));
+                } else {
+                    if verbose {
+                        println!("{}  > create regular child", "  ".repeat(self.suffix_len));
+                    }
+
+                    // This is the first inserted Child Node.
+                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
+                    new_child_node.add_string(
+                        //
+                        ls_index,
+                        ls_size,
+                        is_custom_ls,
+                        s_bytes,
+                        verbose,
+                    );
+
+                    let mut children = BTreeMap::new();
+                    children.insert(curr_letter, new_child_node);
+                    self.data = PrefixTrieData::Children(children);
+                }
+            }
             PrefixTrieData::Children(children) => {
                 if children.contains_key(&curr_letter) {
                     if verbose {
@@ -177,53 +224,6 @@ impl<'a> PrefixTrie<'a> {
                     verbose,
                 );
             }
-            PrefixTrieData::Leaf => {
-                // Assuming "self.suffix_len > 0".
-
-                if self.suffix_len > 0 && ls_size - i_letter_ls >= MIN_SIZE_DIRECT_CHILD_SUBSTRING {
-                    // Here we are in a leaf. So we create a Direct Child Node instead of a Path
-                    // made of multiple Child Nodes.
-
-                    let rest_of_ls = &s_bytes[ls_index + i_letter_ls..ls_index + ls_size];
-                    if verbose {
-                        let rest_of_ls_str = get_string_clone(&rest_of_ls);
-                        println!(
-                            "{}  > create direct child \"{}\"",
-                            "  ".repeat(self.suffix_len),
-                            rest_of_ls_str,
-                        );
-                    }
-
-                    // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new(ls_size);
-                    new_child_node.update_rankings(ls_index, is_custom_ls);
-
-                    self.data = PrefixTrieData::DirectChild((
-                        //
-                        rest_of_ls,
-                        Box::new(new_child_node),
-                    ));
-                } else {
-                    if verbose {
-                        println!("{}  > create regular child", "  ".repeat(self.suffix_len));
-                    }
-
-                    // This is the first inserted Child Node.
-                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
-                    new_child_node.add_string(
-                        //
-                        ls_index,
-                        ls_size,
-                        is_custom_ls,
-                        s_bytes,
-                        verbose,
-                    );
-
-                    let mut children = BTreeMap::new();
-                    children.insert(curr_letter, new_child_node);
-                    self.data = PrefixTrieData::Children(children);
-                }
-            }
             PrefixTrieData::Vec(_) => {
                 // This type "PrefixTrieData::Vec" is only used from the Shrink Phase and after.
                 // Should never happen...
@@ -261,6 +261,7 @@ impl<'a> PrefixTrie<'a> {
 
         // Shrink Children's Children if they are Bridges
         match &mut self.data {
+            PrefixTrieData::Leaf => {}
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
                     child_node.shrink_(next_id);
@@ -269,7 +270,6 @@ impl<'a> PrefixTrie<'a> {
             PrefixTrieData::DirectChild((_, child_node)) => {
                 child_node.shrink_(next_id);
             }
-            PrefixTrieData::Leaf => {}
             PrefixTrieData::Vec(_) => {
                 // Should never happen...
                 // exit(0x0100);
@@ -278,6 +278,7 @@ impl<'a> PrefixTrie<'a> {
 
         // Shrink Children if they are Bridges
         match &mut self.data {
+            PrefixTrieData::Leaf => {}
             PrefixTrieData::Children(children) => {
                 let mut become_vec = false;
                 for (_, child_node) in &mut *children {
@@ -300,16 +301,16 @@ impl<'a> PrefixTrie<'a> {
                         if child_node.is_bridge_node() {
                             // This is a Bridge Node, so consider directly its Children.
                             match child_node.data {
+                                PrefixTrieData::Leaf => {
+                                    // Should never happen...
+                                    // exit(0x0100);
+                                }
                                 PrefixTrieData::Children(children) => {
                                     let children_list = children.into_values();
                                     vec.extend(children_list);
                                 }
                                 PrefixTrieData::DirectChild((_, child_node)) => {
                                     vec.push(*child_node);
-                                }
-                                PrefixTrieData::Leaf => {
-                                    // Should never happen...
-                                    // exit(0x0100);
                                 }
                                 PrefixTrieData::Vec(children) => {
                                     vec.extend(children);
@@ -326,7 +327,6 @@ impl<'a> PrefixTrie<'a> {
                 // Should never happen...
                 // exit(0x0100);
             }
-            PrefixTrieData::Leaf => {}
             PrefixTrieData::Vec(_) => {}
         }
     }
@@ -389,6 +389,7 @@ impl<'a> PrefixTrie<'a> {
 
         // Recursive calls...
         match &mut self.data {
+            PrefixTrieData::Leaf => {}
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
                     child_node.merge_rankings_and_sort_recursive(str, prog_sa);
@@ -397,7 +398,6 @@ impl<'a> PrefixTrie<'a> {
             PrefixTrieData::DirectChild((_, child_node)) => {
                 child_node.merge_rankings_and_sort_recursive(str, prog_sa);
             }
-            PrefixTrieData::Leaf => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     child_node.merge_rankings_and_sort_recursive(str, prog_sa);

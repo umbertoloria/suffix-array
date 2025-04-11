@@ -10,6 +10,7 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String, str: &str, prog_sa: 
     let mut file = File::create(filepath).expect("Unable to create file");
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
     match &root.data {
+        PrefixTrieData::Leaf => {}
         PrefixTrieData::Children(children) => {
             for (char_key, child_node) in children {
                 let child_label = get_string_char_clone(*char_key);
@@ -20,7 +21,6 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String, str: &str, prog_sa: 
             let child_label = get_string_clone(prefix);
             log_prefix_trie_recursive(child_node, &child_label, &mut file, 0, str, prog_sa);
         }
-        PrefixTrieData::Leaf => {}
         PrefixTrieData::Vec(children) => {
             for child_node in children {
                 let child_rankings = prog_sa.get_rankings(child_node.id);
@@ -57,6 +57,7 @@ fn log_prefix_trie_recursive(
     file.write(line.as_bytes()).expect("Unable to write line");
 
     match &node.data {
+        PrefixTrieData::Leaf => {}
         PrefixTrieData::Children(children) => {
             for (char_key, child_node) in children {
                 let child_label = format!("{}{}", node_label, get_string_char_clone(*char_key));
@@ -68,7 +69,6 @@ fn log_prefix_trie_recursive(
             // Before it was "level + prefix.len()".
             log_prefix_trie_recursive(child_node, &child_label, file, level + 1, str, prog_sa);
         }
-        PrefixTrieData::Leaf => {}
         PrefixTrieData::Vec(children) => {
             for child_node in children {
                 let child_rankings = prog_sa.get_rankings(child_node.id);

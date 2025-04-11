@@ -17,6 +17,7 @@ impl<'a> PrefixTrie<'a> {
             ),
         );
         match &self.data {
+            PrefixTrieData::Leaf => {}
             PrefixTrieData::Children(children) => {
                 for (char_key, child_node) in children {
                     let prefix_str = get_string_char_clone(*char_key);
@@ -38,7 +39,6 @@ impl<'a> PrefixTrie<'a> {
                     str,
                 );
             }
-            PrefixTrieData::Leaf => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     let mut prefix_str = "";
@@ -74,6 +74,7 @@ impl<'a> PrefixTrie<'a> {
             self_rankings,
         );
         match &self.data {
+            PrefixTrieData::Leaf => {}
             PrefixTrieData::Children(children) => {
                 for (char_key, child_node) in children {
                     let prefix_str = get_string_char_clone(*char_key);
@@ -97,7 +98,6 @@ impl<'a> PrefixTrie<'a> {
                     prog_sa,
                 );
             }
-            PrefixTrieData::Leaf => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
                     let child_rankings = prog_sa.get_rankings(child_node.id);
