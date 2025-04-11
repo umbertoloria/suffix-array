@@ -8,8 +8,9 @@ pub struct Monitor {
     pub p11_icfl: MonitorInterval,
     pub p12_custom: MonitorInterval,
     pub p21_trie_create: MonitorInterval,
-    pub p22_trie_merge_rankings: MonitorInterval,
-    pub p23_in_prefix_merge: MonitorInterval,
+    pub p22_trie_shrink: MonitorInterval,
+    pub p23_trie_merge_rankings: MonitorInterval,
+    pub p24_in_prefix_merge: MonitorInterval,
     pub p3_sa_compose: MonitorInterval,
 
     // Values
@@ -22,8 +23,9 @@ impl Monitor {
             p11_icfl: MonitorInterval::new(),
             p12_custom: MonitorInterval::new(),
             p21_trie_create: MonitorInterval::new(),
-            p22_trie_merge_rankings: MonitorInterval::new(),
-            p23_in_prefix_merge: MonitorInterval::new(),
+            p22_trie_shrink: MonitorInterval::new(),
+            p23_trie_merge_rankings: MonitorInterval::new(),
+            p24_in_prefix_merge: MonitorInterval::new(),
             p3_sa_compose: MonitorInterval::new(),
             execution_outcome: ExecutionOutcome::new(),
         }
@@ -50,8 +52,9 @@ impl Monitor {
                 self.p11_icfl.get_duration().unwrap(),
                 self.p12_custom.get_duration().unwrap(),
                 self.p21_trie_create.get_duration().unwrap(),
-                self.p22_trie_merge_rankings.get_duration().unwrap(),
-                self.p23_in_prefix_merge.get_duration().unwrap(),
+                self.p22_trie_shrink.get_duration().unwrap(),
+                self.p23_trie_merge_rankings.get_duration().unwrap(),
+                self.p24_in_prefix_merge.get_duration().unwrap(),
                 self.p3_sa_compose.get_duration().unwrap(),
                 self.whole_duration.get_duration().unwrap(),
             ),
@@ -90,17 +93,19 @@ impl MonitorInterval {
     }
 }
 
-// MONITOR LOGGER
 pub struct ExecutionInfo {
     pub execution_timing: ExecutionTiming,
     pub execution_outcome: ExecutionOutcome,
 }
+
 pub struct ExecutionTiming {
+    // These parameters are the ones used for Plotting and Execution Logging
     pub duration_p11: Duration,
     pub duration_p12: Duration,
     pub duration_p21: Duration,
     pub duration_p22: Duration,
     pub duration_p23: Duration,
+    pub duration_p24: Duration,
     pub duration_p3: Duration,
     pub duration_extra: Duration,
     pub sum_duration_only_phases: Duration,
@@ -110,6 +115,7 @@ pub struct ExecutionTiming {
     pub prop_with_extra_p21: f64,
     pub prop_with_extra_p22: f64,
     pub prop_with_extra_p23: f64,
+    pub prop_with_extra_p24: f64,
     pub prop_with_extra_p3: f64,
     pub prop_with_extra_extra: f64,
     // Those are from 0 to 100 (sum 100).
@@ -118,6 +124,7 @@ pub struct ExecutionTiming {
     pub prop_p21: u16,
     pub prop_p22: u16,
     pub prop_p23: u16,
+    pub prop_p24: u16,
     pub prop_p3: u16,
 }
 impl ExecutionTiming {
@@ -127,12 +134,18 @@ impl ExecutionTiming {
         duration_p21: Duration,
         duration_p22: Duration,
         duration_p23: Duration,
+        duration_p24: Duration,
         duration_p3: Duration,
         whole_duration: Duration,
     ) -> Self {
         // Sum Durations (Only Phases)
-        let sum_duration_only_phases =
-            duration_p11 + duration_p12 + duration_p21 + duration_p22 + duration_p23 + duration_p3;
+        let sum_duration_only_phases = duration_p11
+            + duration_p12
+            + duration_p21
+            + duration_p22
+            + duration_p23
+            + duration_p24
+            + duration_p3;
 
         // Extra Duration
         let duration_extra = whole_duration - sum_duration_only_phases;
@@ -144,6 +157,7 @@ impl ExecutionTiming {
         let prop_with_extra_p21 = duration_p21.as_micros() as f64 / sum_micros_incl_extra as f64;
         let prop_with_extra_p22 = duration_p22.as_micros() as f64 / sum_micros_incl_extra as f64;
         let prop_with_extra_p23 = duration_p23.as_micros() as f64 / sum_micros_incl_extra as f64;
+        let prop_with_extra_p24 = duration_p24.as_micros() as f64 / sum_micros_incl_extra as f64;
         let prop_with_extra_p3 = duration_p3.as_micros() as f64 / sum_micros_incl_extra as f64;
         let prop_with_extra_extra =
             duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64;
@@ -154,9 +168,11 @@ impl ExecutionTiming {
         let prop_p21 = round_int_100(duration_p21.as_micros() as f32 / sum_micros_excl_extra);
         let prop_p22 = round_int_100(duration_p22.as_micros() as f32 / sum_micros_excl_extra);
         let prop_p23 = round_int_100(duration_p23.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p3 = 100 - (prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23).min(100);
+        let prop_p24 = round_int_100(duration_p24.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p3 =
+            100 - (prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p24).min(100);
         /*let prop_p3 = round_int_5(duration_p3.as_micros() as f32 / sum_micros_excl_extra);
-        let check_sum = prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p3;
+        let check_sum = prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p24 + prop_p3;
         if check_sum != 100 {
             // PROBLEM
         }*/
@@ -167,6 +183,7 @@ impl ExecutionTiming {
             duration_p21,
             duration_p22,
             duration_p23,
+            duration_p24,
             duration_p3,
             sum_duration_only_phases,
             whole_duration,
@@ -176,6 +193,7 @@ impl ExecutionTiming {
             prop_with_extra_p21,
             prop_with_extra_p22,
             prop_with_extra_p23,
+            prop_with_extra_p24,
             prop_with_extra_p3,
             prop_with_extra_extra,
             prop_p11,
@@ -183,10 +201,12 @@ impl ExecutionTiming {
             prop_p21,
             prop_p22,
             prop_p23,
+            prop_p24,
             prop_p3,
         }
     }
 }
+
 #[derive(Debug)]
 pub struct ExecutionOutcome {
     pub compares_with_two_cfs: usize,
@@ -210,22 +230,4 @@ impl ExecutionOutcome {
         println!(" > rules: {}", self.compares_using_rules);
         println!(" > string compares: {}", self.compares_using_strcmp);
     }
-}
-
-fn format_duration(prefix: &str, duration: &Duration, percentage: Option<f64>) -> String {
-    let mut result = String::new();
-
-    result.push_str(&format!(
-        "{}: {:15} micros / {:15.3} seconds",
-        prefix,
-        duration.as_micros(),
-        duration.as_secs_f64(),
-    ));
-    if let Some(percentage) = percentage {
-        result.push_str(&format!(" / {:7.3}%\n", percentage));
-    } else {
-        result.push_str(&"\n");
-    }
-
-    result
 }

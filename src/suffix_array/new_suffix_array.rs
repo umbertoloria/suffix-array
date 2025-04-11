@@ -85,7 +85,6 @@ pub fn compute_innovative_suffix_array(
         debug_mode == DebugMode::Verbose,
         str,
     );
-    let nodes_count = prefix_trie.shrink();
     monitor.p21_trie_create.stop();
 
     // +
@@ -95,13 +94,18 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
+    // Shrink Trie
+    monitor.p22_trie_shrink.start();
+    let nodes_count = prefix_trie.shrink();
+    monitor.p22_trie_shrink.stop();
+
     // Merge Rankings (Canonical and Custom)
-    monitor.p22_trie_merge_rankings.start();
+    monitor.p23_trie_merge_rankings.start();
     // This "prog_sa_trie" is going to store all Rankings from Trie Nodes. It's not going to be used
     // to build the actual Suffix Array. Above, the "prog_sa" will actually be used for that.
     let mut prog_sa = ProgSuffixArray::new(str_length);
     prefix_trie.merge_rankings_and_sort_recursive(str, &mut prog_sa);
-    monitor.p22_trie_merge_rankings.stop();
+    monitor.p23_trie_merge_rankings.stop();
 
     // +
     let chunk_size_num_for_log = chunk_size.unwrap_or(0);
@@ -133,7 +137,7 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
-    monitor.p23_in_prefix_merge.start();
+    monitor.p24_in_prefix_merge.start();
     let mut node_father_bank = NodeFatherBank::new(nodes_count);
     let mut compare_cache = CompareCache::new();
     prefix_trie.in_prefix_merge(
@@ -148,7 +152,7 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
-    monitor.p23_in_prefix_merge.stop();
+    monitor.p24_in_prefix_merge.stop();
 
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {

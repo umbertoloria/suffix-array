@@ -4,7 +4,7 @@ use crate::suffix_array::monitor::ExecutionInfo;
 use plotters::prelude::full_palette::{
     GREEN_500, GREY_500, GREY_600, ORANGE_300, RED_600, YELLOW_600,
 };
-use plotters::style::full_palette::PURPLE_500;
+use plotters::style::full_palette::{ORANGE_600, PURPLE_500};
 use plotters::style::RGBColor;
 use std::time::Duration;
 
@@ -33,8 +33,9 @@ pub fn draw_plot_from_monitor(
                         (execution_timing.duration_p11.as_micros() as i32, GREY_500),
                         (execution_timing.duration_p12.as_micros() as i32, GREY_600),
                         (execution_timing.duration_p21.as_micros() as i32, ORANGE_300),
-                        (execution_timing.duration_p22.as_micros() as i32, RED_600),
-                        (execution_timing.duration_p23.as_micros() as i32, GREEN_500),
+                        (execution_timing.duration_p22.as_micros() as i32, ORANGE_600),
+                        (execution_timing.duration_p23.as_micros() as i32, RED_600),
+                        (execution_timing.duration_p24.as_micros() as i32, GREEN_500),
                         (execution_timing.duration_p3.as_micros() as i32, YELLOW_600),
                     ],
                     abs_max_value,
