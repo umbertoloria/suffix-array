@@ -40,13 +40,13 @@ impl<'a> PrefixTrie<'a> {
         &self.rankings_custom
     }
 
-    // Tree transformation
+    // Tree Population
     pub fn add_string(
         &mut self,
         ls_index: usize,
         ls_size: usize,
-        s_bytes: &'a [u8],
         is_custom_ls: bool,
+        s_bytes: &'a [u8],
         verbose: bool,
     ) {
         if verbose {
@@ -96,8 +96,8 @@ impl<'a> PrefixTrie<'a> {
                         //
                         ls_index,
                         ls_size,
-                        s_bytes,
                         is_custom_ls,
+                        s_bytes,
                         verbose,
                     );
                 } else {
@@ -110,8 +110,8 @@ impl<'a> PrefixTrie<'a> {
                         //
                         ls_index,
                         ls_size,
-                        s_bytes,
                         is_custom_ls,
+                        s_bytes,
                         verbose,
                     );
 
@@ -143,8 +143,8 @@ impl<'a> PrefixTrie<'a> {
                         //
                         ranking_canonical,
                         self.suffix_len + prefix.len(),
-                        s_bytes,
                         false,
+                        s_bytes,
                         verbose,
                     );
                 }
@@ -153,8 +153,8 @@ impl<'a> PrefixTrie<'a> {
                         //
                         ranking_custom,
                         self.suffix_len + prefix.len(),
-                        s_bytes,
                         true,
+                        s_bytes,
                         verbose,
                     );
                 }
@@ -177,8 +177,8 @@ impl<'a> PrefixTrie<'a> {
                     //
                     ls_index,
                     ls_size,
-                    s_bytes,
                     is_custom_ls,
+                    s_bytes,
                     verbose,
                 );
             }
@@ -219,8 +219,8 @@ impl<'a> PrefixTrie<'a> {
                         //
                         ls_index,
                         ls_size,
-                        s_bytes,
                         is_custom_ls,
+                        s_bytes,
                         verbose,
                     );
 
@@ -241,8 +241,8 @@ impl<'a> PrefixTrie<'a> {
                     //
                     ls_index,
                     ls_size,
-                    s_bytes,
                     is_custom_ls,
+                    s_bytes,
                     verbose,
                 );
 

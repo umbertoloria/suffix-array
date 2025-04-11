@@ -9,9 +9,9 @@ use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
-use crate::suffix_array::prefix_trie::node_father_bank::NodeFatherBank;
 use crate::suffix_array::prefix_trie::prefix_trie_create::create_prefix_trie;
 use crate::suffix_array::prefix_trie::prefix_trie_logger::log_prefix_trie;
+use crate::suffix_array::prefix_trie::tree_bank::TreeBank;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use crate::suffix_array::suffix_array::suffix_array_logger::{
     log_suffix_array, make_sure_directory_exist,
@@ -37,13 +37,12 @@ pub fn compute_innovative_suffix_array(
     perform_logging: bool,
     debug_mode: DebugMode,
 ) -> InnovativeSuffixArrayComputationResults {
-    let str_length = str.len();
-
     let mut monitor = Monitor::new();
     monitor.whole_duration.start();
 
     // ICFL Factorization
     monitor.p11_icfl.start();
+    let str_length = str.len();
     let s_bytes = str.as_bytes();
     let icfl_indexes = get_icfl_indexes(s_bytes);
     monitor.p11_icfl.stop();
@@ -73,7 +72,7 @@ pub fn compute_innovative_suffix_array(
     }
     monitor.p12_cust_fact.stop();
 
-    // Prefix Trie Structure create
+    // Prefix Trie Create
     monitor.p21_trie_create.start();
     let mut depths = vec![0usize; str_length];
     let mut prefix_trie = create_prefix_trie(
@@ -137,8 +136,9 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
+    // In-prefix Merge
     monitor.p24_in_prefix_merge.start();
-    let mut node_father_bank = NodeFatherBank::new(nodes_count);
+    let mut tree_bank = TreeBank::new(nodes_count);
     let mut compare_cache = CompareCache::new();
     prefix_trie.in_prefix_merge(
         str,
@@ -147,7 +147,7 @@ pub fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &icfl_factor_list,
-        &mut node_father_bank,
+        &mut tree_bank,
         &mut compare_cache,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
@@ -169,13 +169,14 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
+    // Suffix Array
     monitor.p3_suffix_array.start();
     let mut sa = Vec::new();
     prefix_trie.prepare_get_common_prefix_partition(
         &mut sa,
         str,
         &prog_sa,
-        &node_father_bank,
+        &tree_bank,
         debug_mode == DebugMode::Verbose,
     );
     monitor.p3_suffix_array.stop();

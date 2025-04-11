@@ -27,14 +27,7 @@ pub fn create_prefix_trie<'a>(
         if curr_ls_size <= last_factor_size {
             let ls_index = str_length - curr_ls_size;
             let is_custom_ls = is_custom_vec[ls_index];
-            root.add_string(
-                //
-                ls_index,
-                curr_ls_size,
-                s_bytes,
-                is_custom_ls,
-                verbose,
-            );
+            root.add_string(ls_index, curr_ls_size, is_custom_ls, s_bytes, verbose);
             depths[ls_index] = curr_ls_size;
             if verbose {
                 root.print_before_merged_rankings(0, "", str);
@@ -47,14 +40,7 @@ pub fn create_prefix_trie<'a>(
             if curr_ls_size <= curr_factor_size {
                 let ls_index = custom_indexes[i_factor + 1] - curr_ls_size;
                 let is_custom_ls = is_custom_vec[ls_index];
-                root.add_string(
-                    //
-                    ls_index,
-                    curr_ls_size,
-                    s_bytes,
-                    is_custom_ls,
-                    verbose,
-                );
+                root.add_string(ls_index, curr_ls_size, is_custom_ls, s_bytes, verbose);
                 depths[ls_index] = curr_ls_size;
                 if verbose {
                     root.print_before_merged_rankings(0, "", str);

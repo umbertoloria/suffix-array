@@ -1,5 +1,5 @@
-use crate::suffix_array::prefix_trie::node_father_bank::NodeFatherBank;
 use crate::suffix_array::prefix_trie::prefix_trie::{PrefixTrie, PrefixTrieData};
+use crate::suffix_array::prefix_trie::tree_bank::TreeBank;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
 impl<'a> PrefixTrie<'a> {
@@ -8,38 +8,27 @@ impl<'a> PrefixTrie<'a> {
         sa: &mut Vec<usize>,
         str: &str,
         prog_sa: &ProgSuffixArray,
-        node_father_bank: &NodeFatherBank,
+        tree_bank: &TreeBank,
         verbose: bool,
     ) {
         match &self.data {
             PrefixTrieData::DirectChild((_, child_node)) => {
-                sa.extend(child_node.get_common_prefix_partition(
-                    str,
-                    prog_sa,
-                    node_father_bank,
-                    verbose,
-                ));
+                sa.extend(child_node.get_common_prefix_partition(str, prog_sa, tree_bank, verbose));
             }
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
-                    sa.extend(child_node.get_common_prefix_partition(
-                        str,
-                        prog_sa,
-                        node_father_bank,
-                        verbose,
-                    ));
+                    sa.extend(
+                        child_node.get_common_prefix_partition(str, prog_sa, tree_bank, verbose),
+                    );
                 }
             }
             PrefixTrieData::Leaf => {}
             PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
-                    sa.extend(child_node.get_common_prefix_partition(
-                        str,
-                        prog_sa,
-                        node_father_bank,
-                        verbose,
-                    ));
+                    sa.extend(
+                        child_node.get_common_prefix_partition(str, prog_sa, tree_bank, verbose),
+                    );
                 }
             }
         }
@@ -53,7 +42,7 @@ impl<'a> PrefixTrie<'a> {
         &self,
         str: &str,
         prog_sa: &ProgSuffixArray,
-        node_father_bank: &NodeFatherBank,
+        tree_bank: &TreeBank,
         verbose: bool,
     ) -> Vec<usize> {
         let mut result = Vec::new();
@@ -62,14 +51,9 @@ impl<'a> PrefixTrie<'a> {
         let mut position = 0;
         match &self.data {
             PrefixTrieData::DirectChild((_, child_node)) => {
-                let child_cpp = child_node.get_common_prefix_partition(
-                    //
-                    str,
-                    prog_sa,
-                    node_father_bank,
-                    verbose,
-                );
-                let child_node_data = node_father_bank.get_node_data(child_node.id);
+                let child_cpp =
+                    child_node.get_common_prefix_partition(str, prog_sa, tree_bank, verbose);
+                let child_node_data = tree_bank.get_node_data(child_node.id);
                 if let Some(min_father) = child_node_data.min_father {
                     if verbose {
                         println!("Here self=?? and child=??");
@@ -92,14 +76,9 @@ impl<'a> PrefixTrie<'a> {
             }
             PrefixTrieData::Children(children) => {
                 for (_, child_node) in children {
-                    let child_cpp = child_node.get_common_prefix_partition(
-                        //
-                        str,
-                        prog_sa,
-                        node_father_bank,
-                        verbose,
-                    );
-                    let child_node_data = node_father_bank.get_node_data(child_node.id);
+                    let child_cpp =
+                        child_node.get_common_prefix_partition(str, prog_sa, tree_bank, verbose);
+                    let child_node_data = tree_bank.get_node_data(child_node.id);
                     if let Some(min_father) = child_node_data.min_father {
                         if verbose {
                             println!("Here self=?? and child=??");
@@ -125,14 +104,9 @@ impl<'a> PrefixTrie<'a> {
             PrefixTrieData::InitRoot => {}
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
-                    let child_cpp = child_node.get_common_prefix_partition(
-                        //
-                        str,
-                        prog_sa,
-                        node_father_bank,
-                        verbose,
-                    );
-                    let child_node_data = node_father_bank.get_node_data(child_node.id);
+                    let child_cpp =
+                        child_node.get_common_prefix_partition(str, prog_sa, tree_bank, verbose);
+                    let child_node_data = tree_bank.get_node_data(child_node.id);
                     if let Some(min_father) = child_node_data.min_father {
                         if verbose {
                             println!("Here self=?? and child=??");
@@ -158,7 +132,7 @@ impl<'a> PrefixTrie<'a> {
         result.extend(&this_rankings[position..]);
 
         if verbose {
-            let self_node_data = node_father_bank.get_node_data(self.id);
+            let self_node_data = tree_bank.get_node_data(self.id);
             println!(
                 "Node {} (m={:?}, M={:?}) {:?} => {:?}",
                 self.get_label_from_first_ranking(str, this_rankings),
