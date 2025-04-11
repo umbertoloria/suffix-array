@@ -49,7 +49,7 @@ pub fn compute_innovative_suffix_array(
     monitor.p11_icfl.stop();
 
     // Custom Factorization
-    monitor.p12_custom.start();
+    monitor.p12_cust_fact.start();
     let mut custom_indexes = Vec::new();
     let mut is_custom_vec = Vec::new();
     let mut icfl_factor_list = Vec::new();
@@ -71,7 +71,7 @@ pub fn compute_innovative_suffix_array(
         icfl_factor_list = icfl_factor_list_;
         */
     }
-    monitor.p12_custom.stop();
+    monitor.p12_cust_fact.stop();
 
     // Prefix Trie Structure create
     monitor.p21_trie_create.start();
@@ -95,17 +95,17 @@ pub fn compute_innovative_suffix_array(
     // -
 
     // Shrink Trie
-    monitor.p22_trie_shrink.start();
+    monitor.p22_shrink.start();
     let nodes_count = prefix_trie.shrink();
-    monitor.p22_trie_shrink.stop();
+    monitor.p22_shrink.stop();
 
     // Merge Rankings (Canonical and Custom)
-    monitor.p23_trie_merge_rankings.start();
+    monitor.p23_merge_rankings.start();
     // This "prog_sa_trie" is going to store all Rankings from Trie Nodes. It's not going to be used
     // to build the actual Suffix Array. Above, the "prog_sa" will actually be used for that.
     let mut prog_sa = ProgSuffixArray::new(str_length);
     prefix_trie.merge_rankings_and_sort_recursive(str, &mut prog_sa);
-    monitor.p23_trie_merge_rankings.stop();
+    monitor.p23_merge_rankings.stop();
 
     // +
     let chunk_size_num_for_log = chunk_size.unwrap_or(0);
@@ -169,7 +169,7 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
-    monitor.p3_sa_compose.start();
+    monitor.p3_suffix_array.start();
     let mut sa = Vec::new();
     prefix_trie.prepare_get_common_prefix_partition(
         &mut sa,
@@ -178,7 +178,7 @@ pub fn compute_innovative_suffix_array(
         &node_father_bank,
         debug_mode == DebugMode::Verbose,
     );
-    monitor.p3_sa_compose.stop();
+    monitor.p3_suffix_array.stop();
 
     // +
     if perform_logging {

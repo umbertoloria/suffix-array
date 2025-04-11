@@ -30,13 +30,25 @@ pub fn draw_plot_from_monitor(
                 create_composite_bar_from_parts(
                     curr_x,
                     vec![
-                        (execution_timing.duration_p11.as_micros() as i32, GREY_500),
-                        (execution_timing.duration_p12.as_micros() as i32, GREY_600),
-                        (execution_timing.duration_p21.as_micros() as i32, ORANGE_300),
-                        (execution_timing.duration_p22.as_micros() as i32, ORANGE_600),
-                        (execution_timing.duration_p23.as_micros() as i32, RED_600),
-                        (execution_timing.duration_p24.as_micros() as i32, GREEN_500),
-                        (execution_timing.duration_p3.as_micros() as i32, YELLOW_600),
+                        (execution_timing.p11_icfl.as_micros() as i32, GREY_500),
+                        (execution_timing.p12_cust_fact.as_micros() as i32, GREY_600),
+                        (
+                            execution_timing.p21_trie_create.as_micros() as i32,
+                            ORANGE_300,
+                        ),
+                        (execution_timing.p22_shrink.as_micros() as i32, ORANGE_600),
+                        (
+                            execution_timing.p23_merge_rankings.as_micros() as i32,
+                            RED_600,
+                        ),
+                        (
+                            execution_timing.p24_in_prefix_merge.as_micros() as i32,
+                            GREEN_500,
+                        ),
+                        (
+                            execution_timing.p3_suffix_array.as_micros() as i32,
+                            YELLOW_600,
+                        ),
                     ],
                     abs_max_value,
                     diagram_max_y,

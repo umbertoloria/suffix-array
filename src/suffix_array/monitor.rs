@@ -6,12 +6,12 @@ pub struct Monitor {
     // Timing
     pub whole_duration: MonitorInterval,
     pub p11_icfl: MonitorInterval,
-    pub p12_custom: MonitorInterval,
+    pub p12_cust_fact: MonitorInterval,
     pub p21_trie_create: MonitorInterval,
-    pub p22_trie_shrink: MonitorInterval,
-    pub p23_trie_merge_rankings: MonitorInterval,
+    pub p22_shrink: MonitorInterval,
+    pub p23_merge_rankings: MonitorInterval,
     pub p24_in_prefix_merge: MonitorInterval,
-    pub p3_sa_compose: MonitorInterval,
+    pub p3_suffix_array: MonitorInterval,
 
     // Values
     pub execution_outcome: ExecutionOutcome,
@@ -21,12 +21,12 @@ impl Monitor {
         Self {
             whole_duration: MonitorInterval::new(),
             p11_icfl: MonitorInterval::new(),
-            p12_custom: MonitorInterval::new(),
+            p12_cust_fact: MonitorInterval::new(),
             p21_trie_create: MonitorInterval::new(),
-            p22_trie_shrink: MonitorInterval::new(),
-            p23_trie_merge_rankings: MonitorInterval::new(),
+            p22_shrink: MonitorInterval::new(),
+            p23_merge_rankings: MonitorInterval::new(),
             p24_in_prefix_merge: MonitorInterval::new(),
-            p3_sa_compose: MonitorInterval::new(),
+            p3_suffix_array: MonitorInterval::new(),
             execution_outcome: ExecutionOutcome::new(),
         }
     }
@@ -48,16 +48,7 @@ impl Monitor {
     // EVALUATE TIMING AND PROPORTIONS
     pub fn transform_info_execution_info(self) -> ExecutionInfo {
         ExecutionInfo {
-            execution_timing: ExecutionTiming::new(
-                self.p11_icfl.get_duration().unwrap(),
-                self.p12_custom.get_duration().unwrap(),
-                self.p21_trie_create.get_duration().unwrap(),
-                self.p22_trie_shrink.get_duration().unwrap(),
-                self.p23_trie_merge_rankings.get_duration().unwrap(),
-                self.p24_in_prefix_merge.get_duration().unwrap(),
-                self.p3_sa_compose.get_duration().unwrap(),
-                self.whole_duration.get_duration().unwrap(),
-            ),
+            execution_timing: ExecutionTiming::new(&self),
             execution_outcome: self.execution_outcome,
         }
     }
@@ -99,110 +90,117 @@ pub struct ExecutionInfo {
 }
 
 pub struct ExecutionTiming {
-    // These parameters are the ones used for Plotting and Execution Logging
-    pub duration_p11: Duration,
-    pub duration_p12: Duration,
-    pub duration_p21: Duration,
-    pub duration_p22: Duration,
-    pub duration_p23: Duration,
-    pub duration_p24: Duration,
-    pub duration_p3: Duration,
-    pub duration_extra: Duration,
+    // These parameters are the ones used for Plotting, Execution Logging and Suite Output
+    pub p11_icfl: Duration,
+    pub p12_cust_fact: Duration,
+    pub p21_trie_create: Duration,
+    pub p22_shrink: Duration,
+    pub p23_merge_rankings: Duration,
+    pub p24_in_prefix_merge: Duration,
+    pub p3_suffix_array: Duration,
     pub sum_duration_only_phases: Duration,
     pub whole_duration: Duration,
-    pub prop_with_extra_p11: f64,
-    pub prop_with_extra_p12: f64,
-    pub prop_with_extra_p21: f64,
-    pub prop_with_extra_p22: f64,
-    pub prop_with_extra_p23: f64,
-    pub prop_with_extra_p24: f64,
-    pub prop_with_extra_p3: f64,
-    pub prop_with_extra_extra: f64,
+    // pub prop_with_extra_p11: f64,
+    // pub prop_with_extra_p12: f64,
+    // pub prop_with_extra_p21: f64,
+    // pub prop_with_extra_p22: f64,
+    // pub prop_with_extra_p23: f64,
+    // pub prop_with_extra_p24: f64,
+    // pub prop_with_extra_p3: f64,
+    // pub prop_with_extra_extra: f64,
     // Those are from 0 to 100 (sum 100).
-    pub prop_p11: u16,
-    pub prop_p12: u16,
-    pub prop_p21: u16,
-    pub prop_p22: u16,
-    pub prop_p23: u16,
-    pub prop_p24: u16,
-    pub prop_p3: u16,
+    pub prop_p11_icfl: u16,
+    pub prop_p12_cust_fact: u16,
+    pub prop_p21_trie_create: u16,
+    pub prop_p22_shrink: u16,
+    pub prop_p23_merge_rankings: u16,
+    pub prop_p24_in_prefix_merge: u16,
+    pub prop_p3_suffix_array: u16,
 }
 impl ExecutionTiming {
-    pub fn new(
-        duration_p11: Duration,
-        duration_p12: Duration,
-        duration_p21: Duration,
-        duration_p22: Duration,
-        duration_p23: Duration,
-        duration_p24: Duration,
-        duration_p3: Duration,
-        whole_duration: Duration,
-    ) -> Self {
-        // Sum Durations (Only Phases)
-        let sum_duration_only_phases = duration_p11
-            + duration_p12
-            + duration_p21
-            + duration_p22
-            + duration_p23
-            + duration_p24
-            + duration_p3;
+    pub fn new(monitor: &Monitor) -> Self {
+        let p11_icfl = monitor.p11_icfl.get_duration().unwrap();
+        let p12_cust_fact = monitor.p12_cust_fact.get_duration().unwrap();
+        let p21_trie_create = monitor.p21_trie_create.get_duration().unwrap();
+        let p22_shrink = monitor.p22_shrink.get_duration().unwrap();
+        let p23_merge_rankings = monitor.p23_merge_rankings.get_duration().unwrap();
+        let p24_in_prefix_merge = monitor.p24_in_prefix_merge.get_duration().unwrap();
+        let p3_suffix_array = monitor.p3_suffix_array.get_duration().unwrap();
+        let whole_duration = monitor.whole_duration.get_duration().unwrap();
 
-        // Extra Duration
-        let duration_extra = whole_duration - sum_duration_only_phases;
+        // Sum Durations (Only Phases)
+        let sum_duration_only_phases = p11_icfl
+            + p12_cust_fact
+            + p21_trie_create
+            + p22_shrink
+            + p23_merge_rankings
+            + p24_in_prefix_merge
+            + p3_suffix_array;
 
         // Proportions (with extra)
-        let sum_micros_incl_extra = whole_duration.as_micros();
-        let prop_with_extra_p11 = duration_p11.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_with_extra_p12 = duration_p12.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_with_extra_p21 = duration_p21.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_with_extra_p22 = duration_p22.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_with_extra_p23 = duration_p23.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_with_extra_p24 = duration_p24.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_with_extra_p3 = duration_p3.as_micros() as f64 / sum_micros_incl_extra as f64;
-        let prop_with_extra_extra =
-            duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64;
+        /*let duration_extra = whole_duration - sum_duration_only_phases;
+        let sum_micros_incl_extra = whole_duration.as_micros();*/
 
+        // Props
         let sum_micros_excl_extra = sum_duration_only_phases.as_micros() as f32;
-        let prop_p11 = round_int_100(duration_p11.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p12 = round_int_100(duration_p12.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p21 = round_int_100(duration_p21.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p22 = round_int_100(duration_p22.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p23 = round_int_100(duration_p23.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p24 = round_int_100(duration_p24.as_micros() as f32 / sum_micros_excl_extra);
-        let prop_p3 =
-            100 - (prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p24).min(100);
-        /*let prop_p3 = round_int_5(duration_p3.as_micros() as f32 / sum_micros_excl_extra);
-        let check_sum = prop_p11 + prop_p12 + prop_p21 + prop_p22 + prop_p23 + prop_p24 + prop_p3;
+        let prop_p11_icfl = round_int_100(p11_icfl.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p12_cust_fact =
+            round_int_100(p12_cust_fact.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p21_trie_create =
+            round_int_100(p21_trie_create.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p22_shrink = round_int_100(p22_shrink.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p23_merge_rankings =
+            round_int_100(p23_merge_rankings.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p24_in_prefix_merge =
+            round_int_100(p24_in_prefix_merge.as_micros() as f32 / sum_micros_excl_extra);
+        let prop_p3_suffix_array = 100
+            - (prop_p11_icfl
+                + prop_p12_cust_fact
+                + prop_p21_trie_create
+                + prop_p22_shrink
+                + prop_p23_merge_rankings
+                + prop_p24_in_prefix_merge)
+                .min(100);
+        /*let prop_p3 = round_int_5(p3_suffix_array.as_micros() as f32 / sum_micros_excl_extra);
+        let check_sum = prop_p11_icfl
+            + prop_p12_cust_fact
+            + prop_p21_trie_create
+            + prop_p22_shrink
+            + prop_p23_merge_rankings
+            + prop_p24_in_prefix_merge
+            + prop_p3;
         if check_sum != 100 {
             // PROBLEM
         }*/
 
         Self {
-            duration_p11,
-            duration_p12,
-            duration_p21,
-            duration_p22,
-            duration_p23,
-            duration_p24,
-            duration_p3,
+            p11_icfl,
+            p12_cust_fact,
+            p21_trie_create,
+            p22_shrink,
+            p23_merge_rankings,
+            p24_in_prefix_merge,
+            p3_suffix_array,
             sum_duration_only_phases,
             whole_duration,
-            duration_extra,
-            prop_with_extra_p11,
-            prop_with_extra_p12,
-            prop_with_extra_p21,
-            prop_with_extra_p22,
-            prop_with_extra_p23,
-            prop_with_extra_p24,
-            prop_with_extra_p3,
-            prop_with_extra_extra,
-            prop_p11,
-            prop_p12,
-            prop_p21,
-            prop_p22,
-            prop_p23,
-            prop_p24,
-            prop_p3,
+            /*duration_extra,
+            prop_with_extra_p11: p11_icfl.as_micros() as f64 / sum_micros_incl_extra as f64,
+            prop_with_extra_p12: p12_cust_fact.as_micros() as f64 / sum_micros_incl_extra as f64,
+            prop_with_extra_p21: p21_trie_create.as_micros() as f64 / sum_micros_incl_extra as f64,
+            prop_with_extra_p22: p22_shrink.as_micros() as f64 / sum_micros_incl_extra as f64,
+            prop_with_extra_p23: p23_merge_rankings.as_micros() as f64
+                / sum_micros_incl_extra as f64,
+            prop_with_extra_p24: p24_in_prefix_merge.as_micros() as f64
+                / sum_micros_incl_extra as f64,
+            prop_with_extra_p3: p3_suffix_array.as_micros() as f64 / sum_micros_incl_extra as f64,
+            prop_with_extra_extra: duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64,*/
+            prop_p11_icfl,
+            prop_p12_cust_fact,
+            prop_p21_trie_create,
+            prop_p22_shrink,
+            prop_p23_merge_rankings,
+            prop_p24_in_prefix_merge,
+            prop_p3_suffix_array,
         }
     }
 }
