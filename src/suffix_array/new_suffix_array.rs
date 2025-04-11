@@ -138,7 +138,7 @@ pub fn compute_innovative_suffix_array(
 
     // In-prefix Merge
     monitor.p24_in_prefix_merge.start();
-    let mut tree_bank = TreeBank::new(nodes_count);
+    let mut tree_bank = TreeBank::new();
     let mut compare_cache = CompareCache::new();
     prefix_trie.in_prefix_merge(
         str,
@@ -176,7 +176,7 @@ pub fn compute_innovative_suffix_array(
         &mut sa,
         str,
         &prog_sa,
-        &tree_bank,
+        &mut tree_bank,
         debug_mode == DebugMode::Verbose,
     );
     monitor.p3_suffix_array.stop();
