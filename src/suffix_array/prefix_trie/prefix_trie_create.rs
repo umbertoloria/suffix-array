@@ -19,33 +19,54 @@ pub fn create_prefix_trie<'a>(
     let custom_indexes_len = custom_indexes.len();
     let last_factor_size = str_length - custom_indexes[custom_indexes_len - 1];
 
-    for curr_ls_size in 1..max_factor_size + 1 {
-        // Every iteration looks for all Custom Factors whose length is <= "curr_suffix_length" and,
-        // if there exist, takes their Local Suffixes of "curr_suffix_length" length.
+    let mut params_canonical = Vec::new();
+    let mut params_custom = Vec::new();
+
+    for ls_size in 1..max_factor_size + 1 {
+        // Every iteration looks for all Custom Factors whose length is <= "ls_size" and, if there
+        // exist, takes their Local Suffixes of "ls_size" length.
 
         // Last Factor
-        if curr_ls_size <= last_factor_size {
-            let ls_index = str_length - curr_ls_size;
+        if ls_size <= last_factor_size {
+            let ls_index = str_length - ls_size;
             let is_custom_ls = is_custom_vec[ls_index];
-            root.add_string(ls_index, curr_ls_size, is_custom_ls, s_bytes, verbose);
-            depths[ls_index] = curr_ls_size;
-            if verbose {
-                root.print_before_merged_rankings(0, "", str);
+            if is_custom_ls {
+                params_custom.push((ls_index, ls_size));
+            } else {
+                params_canonical.push((ls_index, ls_size));
             }
         }
 
         // All Factors from first to second-last
         for i_factor in 0..custom_indexes_len - 1 {
             let curr_factor_size = custom_indexes[i_factor + 1] - custom_indexes[i_factor];
-            if curr_ls_size <= curr_factor_size {
-                let ls_index = custom_indexes[i_factor + 1] - curr_ls_size;
+            if ls_size <= curr_factor_size {
+                let ls_index = custom_indexes[i_factor + 1] - ls_size;
                 let is_custom_ls = is_custom_vec[ls_index];
-                root.add_string(ls_index, curr_ls_size, is_custom_ls, s_bytes, verbose);
-                depths[ls_index] = curr_ls_size;
-                if verbose {
-                    root.print_before_merged_rankings(0, "", str);
+                if is_custom_ls {
+                    params_custom.push((ls_index, ls_size));
+                } else {
+                    params_canonical.push((ls_index, ls_size));
                 }
             }
+        }
+    }
+
+    // LSs that come from Canonical Factors (already sorted)
+    for (ls_index, ls_size) in params_canonical {
+        root.add_string(ls_index, ls_size, false, s_bytes, verbose);
+        depths[ls_index] = ls_size;
+        if verbose {
+            root.print_before_merged_rankings(0, "", str);
+        }
+    }
+
+    // LSs that come from Custom Factors (to sort)
+    for (ls_index, ls_size) in params_custom {
+        root.add_string(ls_index, ls_size, true, s_bytes, verbose);
+        depths[ls_index] = ls_size;
+        if verbose {
+            root.print_before_merged_rankings(0, "", str);
         }
     }
 
