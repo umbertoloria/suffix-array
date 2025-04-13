@@ -283,7 +283,11 @@ impl<'a> PrefixTrie<'a> {
             self.id = *next_id;
             *next_id += 1;
 
-            prog_sa.assign_rankings_to_node_index(self.id, &mut self.rankings);
+            // Instead of Set Rankings to Prog. S.A. right here, we wait for the right moment so we
+            // can both Copy these Rankings and Clear "Local" Node Rankings.
+            // So we *NEVER* do something like this:
+            // "prog_sa.set_rankings_to_node(self.id, &mut self.rankings)"
+            // ...otherwise the code won't work since it won't go deep in recursion anymore.
         }
 
         // Shrink Children's Children if they are Bridges
@@ -299,18 +303,25 @@ impl<'a> PrefixTrie<'a> {
                 }
                 // Shrink Children if they are Bridges
                 if become_vec {
+                    // Take Children List to then transfer into a Vec-typed Prefix Trie Node Data.
                     let mut children_list_char_key = Vec::new();
                     for (&char_key, _) in &mut *children {
                         children_list_char_key.push(char_key);
                     }
-                    let mut children_list_child_node = Vec::new();
+                    let mut self_children_owned = Vec::new();
                     for char_key in children_list_char_key {
                         let child_node = children.remove(&char_key).unwrap();
-                        children_list_child_node.push(child_node);
+                        self_children_owned.push(child_node);
                     }
+                    // Manage all Children. These Nodes are *ALREADY* Shrunk.
                     let mut vec = Vec::new();
-                    for child_node in children_list_child_node {
+                    for mut child_node in self_children_owned {
                         if child_node.is_bridge_node() {
+                            // Remember to Set Rankings here *after* checking "is_bridge_node",
+                            // otherwise it will always be *true* since Set Rankings clears the
+                            // Node Rankings List, making that *always* a Bridge Node.
+                            prog_sa.set_rankings_to_node(child_node.id, &mut child_node.rankings);
+
                             // This is a Bridge Node, so consider directly its Children.
                             match child_node.data {
                                 PrefixTrieData::Leaf => {
@@ -329,14 +340,20 @@ impl<'a> PrefixTrie<'a> {
                                 }
                             }
                         } else {
+                            prog_sa.set_rankings_to_node(child_node.id, &mut child_node.rankings);
                             vec.push(child_node);
                         }
                     }
                     self.data = PrefixTrieData::Vec(vec);
+                } else {
+                    for (_, child_node) in &mut *children {
+                        prog_sa.set_rankings_to_node(child_node.id, &mut child_node.rankings);
+                    }
                 }
             }
             PrefixTrieData::DirectChild((_, child_node)) => {
                 child_node.shrink_(next_id, prog_sa);
+                prog_sa.set_rankings_to_node(child_node.id, &mut child_node.rankings);
             }
             PrefixTrieData::Vec(_) => {
                 // Should never happen...

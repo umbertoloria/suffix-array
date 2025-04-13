@@ -15,14 +15,17 @@ impl ProgSuffixArray {
             next_index: 0,
         }
     }
-    pub fn assign_rankings_to_node_index(&mut self, node_index: usize, rankings: &Vec<usize>) {
+    pub fn set_rankings_to_node(&mut self, node_index: usize, rankings: &mut Vec<usize>) {
         let mut i = self.next_index;
-        for &ls_index in rankings {
+        for &mut ls_index in &mut *rankings {
             self.buffer[i] = ls_index;
             i += 1;
         }
         self.indexes_map.insert(node_index, (self.next_index, i));
         self.next_index = i;
+
+        // Freeing memory of "Local" Node Rankings.
+        rankings.clear();
     }
     pub fn get_rankings(&self, node_index: usize) -> &[usize] {
         if let Some(rankings_forced) = self.indexes_rankings_forced.get(&node_index) {
