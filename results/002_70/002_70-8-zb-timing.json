@@ -1,33 +1,30 @@
 {
   "micros": {
-    "duration_phases_______________": 45123,
-    "duration_phases_with_extra____": 282282,
-    "phase_1_1_factorization_icfl__": 3079,
-    "phase_1_2_factorization_custom": 277,
-    "phase_2_1_trie_create_________": 11375,
-    "phase_2_2_trie_shrink_________": 2905,
-    "phase_2_3_trie_merge_rankings_": 7236,
-    "phase_2_4_trie_in_prefix_merge": 13858,
-    "phase_3_0_suffix_array________": 6389
+    "duration_phases_______________": 45305,
+    "duration_phases_with_extra____": 301000,
+    "phase_1_1_factorization_icfl__": 3554,
+    "phase_1_2_factorization_custom": 279,
+    "phase_2_1_trie_create_________": 17428,
+    "phase_2_2_shrink______________": 4467,
+    "phase_2_3_in_prefix_merge_____": 14200,
+    "phase_3_0_suffix_array________": 5374
   },
   "seconds": {
     "duration_phases_______________": 0.045,
-    "duration_phases_with_extra____": 0.282,
-    "phase_1_1_factorization_icfl__": 0.003,
+    "duration_phases_with_extra____": 0.301,
+    "phase_1_1_factorization_icfl__": 0.004,
     "phase_1_2_factorization_custom": 0.0,
-    "phase_2_1_trie_create_________": 0.011,
-    "phase_2_2_trie_shrink_________": 0.003,
-    "phase_2_3_trie_merge_rankings_": 0.007,
-    "phase_2_4_trie_in_prefix_merge": 0.014,
-    "phase_3_0_suffix_array________": 0.006
+    "phase_2_1_trie_create_________": 0.017,
+    "phase_2_2_shrink______________": 0.004,
+    "phase_2_3_in_prefix_merge_____": 0.014,
+    "phase_3_0_suffix_array________": 0.005
   },
   "percentages": {
-    "phase_1_1_factorization_icfl__": 7,
+    "phase_1_1_factorization_icfl__": 8,
     "phase_1_2_factorization_custom": 1,
-    "phase_2_1_trie_create_________": 25,
-    "phase_2_2_trie_shrink_________": 6,
-    "phase_2_3_trie_merge_rankings_": 16,
-    "phase_2_4_trie_in_prefix_merge": 31,
-    "phase_3_0_suffix_array________": 14
+    "phase_2_1_trie_create_________": 38,
+    "phase_2_2_shrink______________": 10,
+    "phase_2_3_in_prefix_merge_____": 31,
+    "phase_3_0_suffix_array________": 12
   }
 }

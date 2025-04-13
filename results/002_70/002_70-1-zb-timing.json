@@ -1,33 +1,30 @@
 {
   "micros": {
-    "duration_phases_______________": 17110,
-    "duration_phases_with_extra____": 147397,
-    "phase_1_1_factorization_icfl__": 3478,
-    "phase_1_2_factorization_custom": 521,
-    "phase_2_1_trie_create_________": 1499,
-    "phase_2_2_trie_shrink_________": 3,
-    "phase_2_3_trie_merge_rankings_": 11373,
-    "phase_2_4_trie_in_prefix_merge": 6,
-    "phase_3_0_suffix_array________": 227
+    "duration_phases_______________": 64958,
+    "duration_phases_with_extra____": 208287,
+    "phase_1_1_factorization_icfl__": 3917,
+    "phase_1_2_factorization_custom": 547,
+    "phase_2_1_trie_create_________": 60039,
+    "phase_2_2_shrink______________": 154,
+    "phase_2_3_in_prefix_merge_____": 2,
+    "phase_3_0_suffix_array________": 295
   },
   "seconds": {
-    "duration_phases_______________": 0.017,
-    "duration_phases_with_extra____": 0.147,
-    "phase_1_1_factorization_icfl__": 0.003,
+    "duration_phases_______________": 0.065,
+    "duration_phases_with_extra____": 0.208,
+    "phase_1_1_factorization_icfl__": 0.004,
     "phase_1_2_factorization_custom": 0.001,
-    "phase_2_1_trie_create_________": 0.001,
-    "phase_2_2_trie_shrink_________": 0.0,
-    "phase_2_3_trie_merge_rankings_": 0.011,
-    "phase_2_4_trie_in_prefix_merge": 0.0,
+    "phase_2_1_trie_create_________": 0.06,
+    "phase_2_2_shrink______________": 0.0,
+    "phase_2_3_in_prefix_merge_____": 0.0,
     "phase_3_0_suffix_array________": 0.0
   },
   "percentages": {
-    "phase_1_1_factorization_icfl__": 20,
-    "phase_1_2_factorization_custom": 3,
-    "phase_2_1_trie_create_________": 9,
-    "phase_2_2_trie_shrink_________": 0,
-    "phase_2_3_trie_merge_rankings_": 66,
-    "phase_2_4_trie_in_prefix_merge": 0,
-    "phase_3_0_suffix_array________": 2
+    "phase_1_1_factorization_icfl__": 6,
+    "phase_1_2_factorization_custom": 1,
+    "phase_2_1_trie_create_________": 92,
+    "phase_2_2_shrink______________": 0,
+    "phase_2_3_in_prefix_merge_____": 0,
+    "phase_3_0_suffix_array________": 1
   }
 }

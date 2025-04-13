@@ -1,33 +1,30 @@
 {
   "micros": {
-    "duration_phases_______________": 71496,
-    "duration_phases_with_extra____": 376755,
-    "phase_1_1_factorization_icfl__": 2828,
-    "phase_1_2_factorization_custom": 242,
-    "phase_2_1_trie_create_________": 23002,
-    "phase_2_2_trie_shrink_________": 11068,
-    "phase_2_3_trie_merge_rankings_": 12767,
-    "phase_2_4_trie_in_prefix_merge": 13672,
-    "phase_3_0_suffix_array________": 7915
+    "duration_phases_______________": 68079,
+    "duration_phases_with_extra____": 400064,
+    "phase_1_1_factorization_icfl__": 3412,
+    "phase_1_2_factorization_custom": 274,
+    "phase_2_1_trie_create_________": 26655,
+    "phase_2_2_shrink______________": 15076,
+    "phase_2_3_in_prefix_merge_____": 14236,
+    "phase_3_0_suffix_array________": 8424
   },
   "seconds": {
-    "duration_phases_______________": 0.071,
-    "duration_phases_with_extra____": 0.377,
+    "duration_phases_______________": 0.068,
+    "duration_phases_with_extra____": 0.4,
     "phase_1_1_factorization_icfl__": 0.003,
     "phase_1_2_factorization_custom": 0.0,
-    "phase_2_1_trie_create_________": 0.023,
-    "phase_2_2_trie_shrink_________": 0.011,
-    "phase_2_3_trie_merge_rankings_": 0.013,
-    "phase_2_4_trie_in_prefix_merge": 0.014,
+    "phase_2_1_trie_create_________": 0.027,
+    "phase_2_2_shrink______________": 0.015,
+    "phase_2_3_in_prefix_merge_____": 0.014,
     "phase_3_0_suffix_array________": 0.008
   },
   "percentages": {
-    "phase_1_1_factorization_icfl__": 4,
+    "phase_1_1_factorization_icfl__": 5,
     "phase_1_2_factorization_custom": 0,
-    "phase_2_1_trie_create_________": 32,
-    "phase_2_2_trie_shrink_________": 15,
-    "phase_2_3_trie_merge_rankings_": 18,
-    "phase_2_4_trie_in_prefix_merge": 19,
-    "phase_3_0_suffix_array________": 12
+    "phase_2_1_trie_create_________": 39,
+    "phase_2_2_shrink______________": 22,
+    "phase_2_3_in_prefix_merge_____": 21,
+    "phase_3_0_suffix_array________": 13
   }
 }
