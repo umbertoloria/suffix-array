@@ -1,9 +1,7 @@
 use crate::files::paths::get_path_for_plot_file;
 use crate::plot::interface::{BarPlot, CompositeBar, CompositeBarRectangle, GroupOfBars};
 use crate::suffix_array::monitor::ExecutionInfo;
-use plotters::prelude::full_palette::{
-    GREEN_500, GREY_500, GREY_600, ORANGE_300, RED_600, YELLOW_600,
-};
+use plotters::prelude::full_palette::{GREEN_500, GREY_500, GREY_600, ORANGE_300, YELLOW_600};
 use plotters::style::full_palette::{ORANGE_600, PURPLE_500};
 use plotters::style::RGBColor;
 use std::time::Duration;
@@ -34,8 +32,7 @@ pub fn draw_plot_from_monitor(
                         (et.p12_cust_fact.dur.as_micros() as i32, GREY_600),
                         (et.p21_trie_create.dur.as_micros() as i32, ORANGE_300),
                         (et.p22_shrink.dur.as_micros() as i32, ORANGE_600),
-                        (et.p23_merge_rankings.dur.as_micros() as i32, RED_600),
-                        (et.p24_in_prefix_merge.dur.as_micros() as i32, GREEN_500),
+                        (et.p23_in_prefix_merge.dur.as_micros() as i32, GREEN_500),
                         (et.p3_suffix_array.dur.as_micros() as i32, YELLOW_600),
                     ],
                     abs_max_value,

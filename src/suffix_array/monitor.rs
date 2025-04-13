@@ -9,8 +9,7 @@ pub struct Monitor {
     pub p12_cust_fact: MonitorInterval,
     pub p21_trie_create: MonitorInterval,
     pub p22_shrink: MonitorInterval,
-    pub p23_merge_rankings: MonitorInterval,
-    pub p24_in_prefix_merge: MonitorInterval,
+    pub p23_in_prefix_merge: MonitorInterval,
     pub p3_suffix_array: MonitorInterval,
 
     // Values
@@ -24,8 +23,7 @@ impl Monitor {
             p12_cust_fact: MonitorInterval::new(),
             p21_trie_create: MonitorInterval::new(),
             p22_shrink: MonitorInterval::new(),
-            p23_merge_rankings: MonitorInterval::new(),
-            p24_in_prefix_merge: MonitorInterval::new(),
+            p23_in_prefix_merge: MonitorInterval::new(),
             p3_suffix_array: MonitorInterval::new(),
             execution_outcome: ExecutionOutcome::new(),
         }
@@ -102,8 +100,7 @@ pub struct ExecutionTiming {
     pub p12_cust_fact: ExecutionTimingPhase,
     pub p21_trie_create: ExecutionTimingPhase,
     pub p22_shrink: ExecutionTimingPhase,
-    pub p23_merge_rankings: ExecutionTimingPhase,
-    pub p24_in_prefix_merge: ExecutionTimingPhase,
+    pub p23_in_prefix_merge: ExecutionTimingPhase,
     pub p3_suffix_array: ExecutionTimingPhase,
 }
 impl ExecutionTiming {
@@ -112,8 +109,7 @@ impl ExecutionTiming {
         let p12_cust_fact = monitor.p12_cust_fact.get_duration().unwrap();
         let p21_trie_create = monitor.p21_trie_create.get_duration().unwrap();
         let p22_shrink = monitor.p22_shrink.get_duration().unwrap();
-        let p23_merge_rankings = monitor.p23_merge_rankings.get_duration().unwrap();
-        let p24_in_prefix_merge = monitor.p24_in_prefix_merge.get_duration().unwrap();
+        let p23_in_prefix_merge = monitor.p23_in_prefix_merge.get_duration().unwrap();
         let p3_suffix_array = monitor.p3_suffix_array.get_duration().unwrap();
         let whole_duration = monitor.whole_duration.get_duration().unwrap();
 
@@ -122,8 +118,7 @@ impl ExecutionTiming {
             + p12_cust_fact
             + p21_trie_create
             + p22_shrink
-            + p23_merge_rankings
-            + p24_in_prefix_merge
+            + p23_in_prefix_merge
             + p3_suffix_array;
 
         // Percentages with extra
@@ -138,17 +133,14 @@ impl ExecutionTiming {
         let p21_trie_create_perc =
             round_int_100(p21_trie_create.as_micros() as f32 / sum_micros_excl_extra);
         let p22_shrink_perc = round_int_100(p22_shrink.as_micros() as f32 / sum_micros_excl_extra);
-        let p23_merge_rankings_perc =
-            round_int_100(p23_merge_rankings.as_micros() as f32 / sum_micros_excl_extra);
-        let p24_in_prefix_merge_perc =
-            round_int_100(p24_in_prefix_merge.as_micros() as f32 / sum_micros_excl_extra);
+        let p23_in_prefix_merge_perc =
+            round_int_100(p23_in_prefix_merge.as_micros() as f32 / sum_micros_excl_extra);
         let p3_suffix_array_perc = 100
             - (p11_icfl_perc
                 + p12_cust_fact_perc
                 + p21_trie_create_perc
                 + p22_shrink_perc
-                + p23_merge_rankings_perc
-                + p24_in_prefix_merge_perc)
+                + p23_in_prefix_merge_perc)
                 .min(100);
         /*let perc_p3_suffix_array = round_int_5(p3_suffix_array.as_micros() as f32 / sum_micros_excl_extra);
         let check_sum = perc_p11_icfl
@@ -156,7 +148,7 @@ impl ExecutionTiming {
             + perc_p21_trie_create
             + perc_p22_shrink
             + perc_p23_merge_rankings
-            + perc_p24_in_prefix_merge
+            + perc_p23_in_prefix_merge
             + perc_p3_suffix_array;
         if check_sum != 100 {
             // PROBLEM
@@ -172,7 +164,7 @@ impl ExecutionTiming {
             perc_with_extra_p22: p22_shrink.as_micros() as f64 / sum_micros_incl_extra as f64,
             perc_with_extra_p23: p23_merge_rankings.as_micros() as f64
                 / sum_micros_incl_extra as f64,
-            perc_with_extra_p24: p24_in_prefix_merge.as_micros() as f64
+            perc_with_extra_p23: p23_in_prefix_merge.as_micros() as f64
                 / sum_micros_incl_extra as f64,
             perc_with_extra_p3: p3_suffix_array.as_micros() as f64 / sum_micros_incl_extra as f64,
             perc_with_extra_extra: duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64,*/
@@ -192,13 +184,9 @@ impl ExecutionTiming {
                 dur: p22_shrink,
                 perc: p22_shrink_perc,
             },
-            p23_merge_rankings: ExecutionTimingPhase {
-                dur: p23_merge_rankings,
-                perc: p23_merge_rankings_perc,
-            },
-            p24_in_prefix_merge: ExecutionTimingPhase {
-                dur: p24_in_prefix_merge,
-                perc: p24_in_prefix_merge_perc,
+            p23_in_prefix_merge: ExecutionTimingPhase {
+                dur: p23_in_prefix_merge,
+                perc: p23_in_prefix_merge_perc,
             },
             p3_suffix_array: ExecutionTimingPhase {
                 dur: p3_suffix_array,

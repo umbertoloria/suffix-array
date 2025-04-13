@@ -54,7 +54,7 @@ pub fn create_prefix_trie<'a>(
 
     // LSs that come from Canonical Factors (already sorted)
     for (ls_index, ls_size) in params_canonical {
-        root.add_string(ls_index, ls_size, false, s_bytes, verbose);
+        root.add_string(ls_index, ls_size, false, s_bytes, is_custom_vec, verbose);
         depths[ls_index] = ls_size;
         if verbose {
             root.print_before_merged_rankings(0, "", str);
@@ -63,7 +63,7 @@ pub fn create_prefix_trie<'a>(
 
     // LSs that come from Custom Factors (to sort)
     for (ls_index, ls_size) in params_custom {
-        root.add_string(ls_index, ls_size, true, s_bytes, verbose);
+        root.add_string(ls_index, ls_size, true, s_bytes, is_custom_vec, verbose);
         depths[ls_index] = ls_size;
         if verbose {
             root.print_before_merged_rankings(0, "", str);

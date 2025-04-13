@@ -1,5 +1,4 @@
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
-use crate::suffix_array::sorter::sort_pair_vector_of_indexed_strings;
 use std::collections::BTreeMap;
 
 const MIN_SIZE_DIRECT_CHILD_SUBSTRING: usize = 2;
@@ -7,8 +6,7 @@ pub struct PrefixTrie<'a> {
     pub id: usize,
     pub suffix_len: usize,
     pub data: PrefixTrieData<'a>,
-    pub rankings_canonical: Vec<usize>,
-    pub rankings_custom: Vec<usize>,
+    pub rankings: Vec<usize>, // Both Canonicals and Customs are maintained, always kept *sorted*.
 }
 pub enum PrefixTrieData<'a> {
     Leaf,
@@ -22,16 +20,8 @@ impl<'a> PrefixTrie<'a> {
             id: 0, // IDs not used before Merge Rankings Phase.
             suffix_len,
             data: PrefixTrieData::Leaf,
-            rankings_canonical: Vec::new(),
-            rankings_custom: Vec::new(),
+            rankings: Vec::new(),
         }
-    }
-
-    // Rankings
-    pub fn get_both_rankings(&self) -> (&[usize], &[usize]) {
-        let rankings_canonical = &self.rankings_canonical;
-        let rankings_custom = &self.rankings_custom;
-        (rankings_canonical, rankings_custom)
     }
 
     // Tree Population
@@ -41,6 +31,7 @@ impl<'a> PrefixTrie<'a> {
         ls_size: usize,
         is_custom_ls: bool,
         s_bytes: &'a [u8],
+        is_custom_vec: &Vec<bool>, // This is used to distinguish a Ranking as Canonical or Custom.
         verbose: bool,
     ) {
         if verbose {
@@ -66,7 +57,7 @@ impl<'a> PrefixTrie<'a> {
                     );
                 }
 
-                self.update_rankings(ls_index, is_custom_ls);
+                self.update_rankings(ls_index, is_custom_ls, s_bytes);
             }
             return;
         }
@@ -94,7 +85,7 @@ impl<'a> PrefixTrie<'a> {
 
                     // This is the first inserted Child Node.
                     let mut new_child_node = PrefixTrie::new(ls_size);
-                    new_child_node.update_rankings(ls_index, is_custom_ls);
+                    new_child_node.update_rankings(ls_index, is_custom_ls, s_bytes);
 
                     self.data = PrefixTrieData::DirectChild((
                         //
@@ -114,6 +105,7 @@ impl<'a> PrefixTrie<'a> {
                         ls_size,
                         is_custom_ls,
                         s_bytes,
+                        is_custom_vec,
                         verbose,
                     );
 
@@ -139,6 +131,7 @@ impl<'a> PrefixTrie<'a> {
                         ls_size,
                         is_custom_ls,
                         s_bytes,
+                        is_custom_vec,
                         verbose,
                     );
                 } else {
@@ -153,6 +146,7 @@ impl<'a> PrefixTrie<'a> {
                         ls_size,
                         is_custom_ls,
                         s_bytes,
+                        is_custom_vec,
                         verbose,
                     );
 
@@ -162,7 +156,7 @@ impl<'a> PrefixTrie<'a> {
             PrefixTrieData::DirectChild((prefix, child_node)) => {
                 let rest_of_ls = &s_bytes[ls_index + i_letter_ls..ls_index + ls_size];
                 if compare_strings(rest_of_ls, prefix) {
-                    child_node.update_rankings(ls_index, is_custom_ls);
+                    child_node.update_rankings(ls_index, is_custom_ls, s_bytes);
 
                     return;
                 }
@@ -174,33 +168,44 @@ impl<'a> PrefixTrie<'a> {
                     );
                 }
 
-                let (old_child_node_rankings_canonical, old_child_node_rankings_custom) =
-                    child_node.get_both_rankings();
-
                 // Node "child_node" will disappear, so its ID will be used by "new_child_node"
                 let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
-                for &ranking_canonical in old_child_node_rankings_canonical {
+
+                let mut old_child_node_rankings_canonical = Vec::new();
+                let mut old_child_node_rankings_custom = Vec::new();
+                for &child_node_ls_index in &child_node.rankings {
+                    let is_custom_ls = is_custom_vec[child_node_ls_index];
+                    if is_custom_ls {
+                        old_child_node_rankings_custom.push(child_node_ls_index);
+                    } else {
+                        old_child_node_rankings_canonical.push(child_node_ls_index);
+                    }
+                }
+
+                for ranking_canonical in old_child_node_rankings_canonical {
                     new_child_node.add_string(
                         //
                         ranking_canonical,
                         self.suffix_len + prefix.len(),
                         false,
                         s_bytes,
+                        is_custom_vec,
                         verbose,
                     );
                 }
-                for &ranking_custom in old_child_node_rankings_custom {
+                for ranking_custom in old_child_node_rankings_custom {
                     new_child_node.add_string(
                         //
                         ranking_custom,
                         self.suffix_len + prefix.len(),
                         true,
                         s_bytes,
+                        is_custom_vec,
                         verbose,
                     );
                 }
 
-                let prefix_first_letter: PrefixTrieChar = prefix[0];
+                let prefix_first_letter = prefix[0];
                 if verbose {
                     println!(
                         "{}     (setting on {})",
@@ -220,6 +225,7 @@ impl<'a> PrefixTrie<'a> {
                     ls_size,
                     is_custom_ls,
                     s_bytes,
+                    is_custom_vec,
                     verbose,
                 );
             }
@@ -230,53 +236,57 @@ impl<'a> PrefixTrie<'a> {
             }
         }
     }
-    fn update_rankings(&mut self, ls_index: usize, is_custom_ls: bool) {
+    fn update_rankings(&mut self, ls_index: usize, is_custom_ls: bool, s_bytes: &[u8]) {
         if is_custom_ls {
-            self.rankings_custom.push(ls_index);
+            // TODO: Improve Binary Search
+            let custom_gs = &s_bytes[ls_index..];
+            let mut p = 0;
+            let mut q = self.rankings.len();
+            while p < q {
+                let mid = (q + p) / 2;
+                let mid_gs_index = self.rankings[mid];
+                let mid_gs = &s_bytes[mid_gs_index..];
+                // TODO: Monitor string compare
+                if custom_gs < mid_gs {
+                    q = mid;
+                } else {
+                    p = mid + 1;
+                }
+            }
+            if p == q {
+                self.rankings.insert(p, ls_index);
+            } else {
+                // Should never happen...
+                // exit(0x0100);
+            }
         } else {
-            self.rankings_canonical.push(ls_index);
+            self.rankings.push(ls_index);
         }
     }
 
     // SHRINK PHASE
     fn is_bridge_node(&self) -> bool {
         // Make sure to perform "shrink" before the "Merge Rankings and Sort" phase
-        let (rankings_canonical, rankings_custom) = self.get_both_rankings();
-        rankings_canonical.is_empty() && rankings_custom.is_empty()
+        self.rankings.is_empty()
     }
-    pub fn shrink(&mut self) -> usize {
+    pub fn shrink(&mut self, prog_sa: &mut ProgSuffixArray) -> usize {
         // Note: After "shrink" the only Bridge Node will be the Root Node :)
         let mut next_id = 0;
-        self.shrink_(&mut next_id);
+        self.shrink_(&mut next_id, prog_sa);
 
         // Returning the Nodes Count
         next_id
     }
-    fn shrink_(&mut self, next_id: &mut usize) {
+    fn shrink_(&mut self, next_id: &mut usize, prog_sa: &mut ProgSuffixArray) {
         // Node "self" ID (following pre-order traversal, so like DFS visits)
         if self.suffix_len == 0 || !self.is_bridge_node() {
             self.id = *next_id;
             *next_id += 1;
+
+            prog_sa.assign_rankings_to_node_index(self.id, &mut self.rankings);
         }
 
         // Shrink Children's Children if they are Bridges
-        match &mut self.data {
-            PrefixTrieData::Leaf => {}
-            PrefixTrieData::Children(children) => {
-                for (_, child_node) in children {
-                    child_node.shrink_(next_id);
-                }
-            }
-            PrefixTrieData::DirectChild((_, child_node)) => {
-                child_node.shrink_(next_id);
-            }
-            PrefixTrieData::Vec(_) => {
-                // Should never happen...
-                // exit(0x0100);
-            }
-        }
-
-        // Shrink Children if they are Bridges
         match &mut self.data {
             PrefixTrieData::Leaf => {}
             PrefixTrieData::Children(children) => {
@@ -285,10 +295,12 @@ impl<'a> PrefixTrie<'a> {
                     if child_node.is_bridge_node() {
                         become_vec = true;
                     }
+                    child_node.shrink_(next_id, prog_sa);
                 }
+                // Shrink Children if they are Bridges
                 if become_vec {
                     let mut children_list_char_key = Vec::new();
-                    for (&char_key, _) in &*children {
+                    for (&char_key, _) in &mut *children {
                         children_list_char_key.push(char_key);
                     }
                     let mut children_list_child_node = Vec::new();
@@ -323,88 +335,12 @@ impl<'a> PrefixTrie<'a> {
                     self.data = PrefixTrieData::Vec(vec);
                 }
             }
-            PrefixTrieData::DirectChild((_, _)) => {
+            PrefixTrieData::DirectChild((_, child_node)) => {
+                child_node.shrink_(next_id, prog_sa);
+            }
+            PrefixTrieData::Vec(_) => {
                 // Should never happen...
                 // exit(0x0100);
-            }
-            PrefixTrieData::Vec(_) => {}
-        }
-    }
-
-    // MERGE RANKINGS
-    pub fn merge_rankings_and_sort_recursive(&mut self, str: &str, prog_sa: &mut ProgSuffixArray) {
-        // Here we sort the Rankings Custom (all real Global Suffixes) and then try to merge the
-        // two lists Rankings Canonical Rankings Custom (Sorted) by doing a pair-comparison.
-        // We don't sort Rankings Canonical because that list already contains Global Suffixes in
-        // the right order (unlike Ranking Custom, that we have to sort).
-        let mut sorted_rankings_custom = Vec::new();
-
-        let rankings_canonical = &mut self.rankings_canonical;
-        let rankings_custom = &mut self.rankings_custom;
-
-        if !rankings_custom.is_empty() {
-            let mut sorted_rankings_custom_pairs_list = Vec::new();
-            for &gs_index in &*rankings_custom {
-                let gs = &str[gs_index..];
-                sorted_rankings_custom_pairs_list.push((gs_index, gs));
-            }
-            rankings_custom.clear();
-            // TODO: Monitor string compare
-            sort_pair_vector_of_indexed_strings(&mut sorted_rankings_custom_pairs_list);
-            for (custom_gs_index, _) in sorted_rankings_custom_pairs_list {
-                sorted_rankings_custom.push(custom_gs_index);
-            }
-        }
-        // OK, now Rankings Customs is sorted as well. Rankings Canonical was already sorted. Now we
-        // perform the merge between these lists.
-        let mut unified_rankings =
-            Vec::with_capacity(rankings_canonical.len() + sorted_rankings_custom.len());
-        let mut i_canonical = 0;
-        let mut i_custom = 0;
-        while i_canonical < rankings_canonical.len() && i_custom < sorted_rankings_custom.len() {
-            let canonical_gs_index = rankings_canonical[i_canonical];
-            let canonical_gs = &str[canonical_gs_index..];
-
-            let custom_gs_index = sorted_rankings_custom[i_custom];
-            let custom_gs = &str[custom_gs_index..];
-
-            if canonical_gs < custom_gs {
-                unified_rankings.push(canonical_gs_index);
-                i_canonical += 1;
-            } else {
-                // Case "equals" should never happen.
-                unified_rankings.push(custom_gs_index);
-                i_custom += 1;
-            }
-        }
-        while i_canonical < rankings_canonical.len() {
-            let canonical_gs_index = rankings_canonical[i_canonical];
-            unified_rankings.push(canonical_gs_index);
-            i_canonical += 1;
-        }
-        rankings_canonical.clear();
-        while i_custom < sorted_rankings_custom.len() {
-            let custom_gs_index = sorted_rankings_custom[i_custom];
-            unified_rankings.push(custom_gs_index);
-            i_custom += 1;
-        }
-        prog_sa.assign_rankings_to_node_index(self.id, &unified_rankings);
-
-        // Recursive calls...
-        match &mut self.data {
-            PrefixTrieData::Leaf => {}
-            PrefixTrieData::Children(children) => {
-                for (_, child_node) in children {
-                    child_node.merge_rankings_and_sort_recursive(str, prog_sa);
-                }
-            }
-            PrefixTrieData::DirectChild((_, child_node)) => {
-                child_node.merge_rankings_and_sort_recursive(str, prog_sa);
-            }
-            PrefixTrieData::Vec(children) => {
-                for child_node in children {
-                    child_node.merge_rankings_and_sort_recursive(str, prog_sa);
-                }
             }
         }
     }

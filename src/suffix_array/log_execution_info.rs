@@ -18,8 +18,7 @@ impl ExecutionInfoFileFormat {
                 phase_1_2_factorization_custom: et.p12_cust_fact.dur.as_micros(),
                 phase_2_1_trie_create_________: et.p21_trie_create.dur.as_micros(),
                 phase_2_2_shrink______________: et.p22_shrink.dur.as_micros(),
-                phase_2_3_merge_rankings______: et.p23_merge_rankings.dur.as_micros(),
-                phase_2_4_in_prefix_merge_____: et.p24_in_prefix_merge.dur.as_micros(),
+                phase_2_3_in_prefix_merge_____: et.p23_in_prefix_merge.dur.as_micros(),
                 phase_3_0_suffix_array________: et.p3_suffix_array.dur.as_micros(),
             },
             seconds: ExecutionInfoFileFormatSeconds {
@@ -29,8 +28,7 @@ impl ExecutionInfoFileFormat {
                 phase_1_2_factorization_custom: round_secs_x_xxx(et.p12_cust_fact.dur),
                 phase_2_1_trie_create_________: round_secs_x_xxx(et.p21_trie_create.dur),
                 phase_2_2_shrink______________: round_secs_x_xxx(et.p22_shrink.dur),
-                phase_2_3_merge_rankings______: round_secs_x_xxx(et.p23_merge_rankings.dur),
-                phase_2_4_in_prefix_merge_____: round_secs_x_xxx(et.p24_in_prefix_merge.dur),
+                phase_2_3_in_prefix_merge_____: round_secs_x_xxx(et.p23_in_prefix_merge.dur),
                 phase_3_0_suffix_array________: round_secs_x_xxx(et.p3_suffix_array.dur),
             },
             percentages: ExecutionInfoFileFormatPercentages {
@@ -38,8 +36,7 @@ impl ExecutionInfoFileFormat {
                 phase_1_2_factorization_custom: et.p12_cust_fact.perc,
                 phase_2_1_trie_create_________: et.p21_trie_create.perc,
                 phase_2_2_shrink______________: et.p22_shrink.perc,
-                phase_2_3_merge_rankings______: et.p23_merge_rankings.perc,
-                phase_2_4_in_prefix_merge_____: et.p24_in_prefix_merge.perc,
+                phase_2_3_in_prefix_merge_____: et.p23_in_prefix_merge.perc,
                 phase_3_0_suffix_array________: et.p3_suffix_array.perc,
             },
         }
@@ -53,8 +50,7 @@ struct ExecutionInfoFileFormatMicros {
     phase_1_2_factorization_custom: u128,
     phase_2_1_trie_create_________: u128,
     phase_2_2_shrink______________: u128,
-    phase_2_3_merge_rankings______: u128,
-    phase_2_4_in_prefix_merge_____: u128,
+    phase_2_3_in_prefix_merge_____: u128,
     phase_3_0_suffix_array________: u128,
 }
 #[derive(Serialize, Deserialize)]
@@ -65,8 +61,7 @@ struct ExecutionInfoFileFormatSeconds {
     phase_1_2_factorization_custom: f32,
     phase_2_1_trie_create_________: f32,
     phase_2_2_shrink______________: f32,
-    phase_2_3_merge_rankings______: f32,
-    phase_2_4_in_prefix_merge_____: f32,
+    phase_2_3_in_prefix_merge_____: f32,
     phase_3_0_suffix_array________: f32,
 }
 #[derive(Serialize, Deserialize)]
@@ -75,8 +70,7 @@ struct ExecutionInfoFileFormatPercentages {
     phase_1_2_factorization_custom: u16,
     phase_2_1_trie_create_________: u16,
     phase_2_2_shrink______________: u16,
-    phase_2_3_merge_rankings______: u16,
-    phase_2_4_in_prefix_merge_____: u16,
+    phase_2_3_in_prefix_merge_____: u16,
     phase_3_0_suffix_array________: u16,
 }
 

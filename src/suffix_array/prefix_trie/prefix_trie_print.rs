@@ -5,13 +5,12 @@ use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
 impl<'a> PrefixTrie<'a> {
     pub fn print_before_merged_rankings(&self, tabs_offset: usize, self_label: &str, str: &str) {
-        let (self_rankings_canonical, self_rankings_custom) = self.get_both_rankings();
         println!(
             "{}|{:2}: \"{}\" {}",
             "\t".repeat(tabs_offset),
             tabs_offset,
             self_label,
-            format!("{:?} {:?}", self_rankings_canonical, self_rankings_custom,),
+            format!("{:?}", self.rankings),
         );
         match &self.data {
             PrefixTrieData::Leaf => {}
@@ -38,16 +37,11 @@ impl<'a> PrefixTrie<'a> {
             }
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
-                    let mut prefix_str = "";
-                    let (child_node_rankings_canonical, child_node_rankings_custom) =
-                        child_node.get_both_rankings();
-                    if !child_node_rankings_canonical.is_empty() {
-                        prefix_str = child_node
-                            .get_label_from_first_ranking(str, &child_node_rankings_canonical);
-                    } else if !child_node_rankings_custom.is_empty() {
-                        prefix_str = child_node
-                            .get_label_from_first_ranking(str, &child_node_rankings_custom);
-                    }
+                    let prefix_str = if !child_node.rankings.is_empty() {
+                        child_node.get_label_from_first_ranking(str, &child_node.rankings)
+                    } else {
+                        ""
+                    };
                     let child_node_label = format!("{}{}", self_label, prefix_str);
                     child_node.print_before_merged_rankings(
                         tabs_offset + 1,

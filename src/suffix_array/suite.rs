@@ -139,7 +139,7 @@ fn run_and_validate_test(
     );
     print_duration(
         " > Phase 2.3: In-prefix merge     ",
-        &execution_timing.p23_merge_rankings.dur,
+        &execution_timing.p23_in_prefix_merge.dur,
     );
     print_duration(
         " > Phase 3  : Suffix Array        ",
