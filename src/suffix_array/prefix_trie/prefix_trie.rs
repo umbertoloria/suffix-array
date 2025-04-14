@@ -238,15 +238,22 @@ impl<'a> PrefixTrie<'a> {
     }
     fn update_rankings(&mut self, ls_index: usize, is_custom_ls: bool, s_bytes: &[u8]) {
         if is_custom_ls {
-            // TODO: Improve Binary Search
             let custom_gs = &s_bytes[ls_index..];
+            let idx = self.rankings.partition_point(|&gs_index| {
+                let gs = &s_bytes[gs_index..];
+                // TODO: Monitor string compare
+                gs <= custom_gs
+            });
+            self.rankings.insert(idx, ls_index);
+            /*
+            // Original Binary Search for Insertion.
             let mut p = 0;
             let mut q = self.rankings.len();
             while p < q {
                 let mid = (q + p) / 2;
                 let mid_gs_index = self.rankings[mid];
                 let mid_gs = &s_bytes[mid_gs_index..];
-                // TODO: Monitor string compare
+                // TOD: Monitor string compare
                 if custom_gs < mid_gs {
                     q = mid;
                 } else {
@@ -259,6 +266,7 @@ impl<'a> PrefixTrie<'a> {
                 // Should never happen...
                 // exit(0x0100);
             }
+            */
         } else {
             self.rankings.push(ls_index);
         }
@@ -358,6 +366,33 @@ impl<'a> PrefixTrie<'a> {
             PrefixTrieData::Vec(_) => {
                 // Should never happen...
                 // exit(0x0100);
+            }
+        }
+    }
+
+    // DEBUG VISITS
+    pub fn debug_dfs(&self) {
+        // Logic on Node
+        /*if !self.rankings.is_empty() {
+            println!("NODE ID={} has rankings still", self.id);
+            exit(0x0100);
+        }*/
+
+        // DFS Visit
+        match &self.data {
+            PrefixTrieData::Leaf => {}
+            PrefixTrieData::DirectChild((_, child_node)) => {
+                child_node.debug_dfs();
+            }
+            PrefixTrieData::Children(children) => {
+                for (_, child_node) in children {
+                    child_node.debug_dfs();
+                }
+            }
+            PrefixTrieData::Vec(children) => {
+                for child_node in children {
+                    child_node.debug_dfs();
+                }
             }
         }
     }

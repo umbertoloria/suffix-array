@@ -129,6 +129,9 @@ pub fn compute_innovative_suffix_array(
     }
     // -
 
+    // FOR DEBUG PURPOSES
+    // prefix_trie.debug_dfs();
+
     // In-prefix Merge
     monitor.p23_in_prefix_merge.start();
     let mut tree_bank = TreeBank::new();
