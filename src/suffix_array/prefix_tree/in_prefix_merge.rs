@@ -2,7 +2,7 @@ use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::prefix_trie::prefix_trie::{PrefixTrie, PrefixTrieData};
 use crate::suffix_array::prefix_trie::rules::rules_safe;
-use crate::suffix_array::prefix_trie::tree_bank::TreeBank;
+use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
 impl<'a> PrefixTrie<'a> {
@@ -14,7 +14,7 @@ impl<'a> PrefixTrie<'a> {
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
-        tree_bank: &mut TreeBank,
+        tree_bank_min_max: &mut TreeBankMinMax,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
@@ -29,7 +29,7 @@ impl<'a> PrefixTrie<'a> {
                     icfl_indexes,
                     is_custom_vec,
                     icfl_factor_list,
-                    tree_bank,
+                    tree_bank_min_max,
                     compare_cache,
                     monitor,
                     verbose,
@@ -44,7 +44,7 @@ impl<'a> PrefixTrie<'a> {
                         icfl_indexes,
                         is_custom_vec,
                         icfl_factor_list,
-                        tree_bank,
+                        tree_bank_min_max,
                         compare_cache,
                         monitor,
                         verbose,
@@ -60,7 +60,7 @@ impl<'a> PrefixTrie<'a> {
                         icfl_indexes,
                         is_custom_vec,
                         icfl_factor_list,
-                        tree_bank,
+                        tree_bank_min_max,
                         compare_cache,
                         monitor,
                         verbose,
@@ -77,7 +77,7 @@ impl<'a> PrefixTrie<'a> {
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
-        tree_bank: &mut TreeBank,
+        tree_bank_min_max: &mut TreeBankMinMax,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
@@ -94,7 +94,7 @@ impl<'a> PrefixTrie<'a> {
                     is_custom_vec,
                     icfl_factor_list,
                     self_id,
-                    tree_bank,
+                    tree_bank_min_max,
                     compare_cache,
                     monitor,
                     verbose,
@@ -110,7 +110,7 @@ impl<'a> PrefixTrie<'a> {
                         is_custom_vec,
                         icfl_factor_list,
                         self_id,
-                        tree_bank,
+                        tree_bank_min_max,
                         compare_cache,
                         monitor,
                         verbose,
@@ -127,7 +127,7 @@ impl<'a> PrefixTrie<'a> {
                         is_custom_vec,
                         icfl_factor_list,
                         self_id,
-                        tree_bank,
+                        tree_bank_min_max,
                         compare_cache,
                         monitor,
                         verbose,
@@ -145,7 +145,7 @@ impl<'a> PrefixTrie<'a> {
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
         parent_index: usize,
-        tree_bank: &mut TreeBank,
+        tree_bank_min_max: &mut TreeBankMinMax,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
@@ -180,7 +180,7 @@ impl<'a> PrefixTrie<'a> {
                 i_parent += 1;
             } else {
                 // Found a Parent LS that is >= Curr LS.
-                tree_bank.set_min_father(self.id, i_parent);
+                tree_bank_min_max.set_min_father(self.id, i_parent);
                 break;
             }
         }
@@ -205,7 +205,7 @@ impl<'a> PrefixTrie<'a> {
                     // TODO: Monitor string compare
                     if curr_parent_ls == this_ls {
                         // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
-                        tree_bank.set_max_father(self.id, i_parent + 1);
+                        tree_bank_min_max.set_max_father(self.id, i_parent + 1);
                         i_parent += 1;
                     } else {
                         // Found a Parent LS that is > Curr LS.
@@ -213,7 +213,7 @@ impl<'a> PrefixTrie<'a> {
                     }
                 }
 
-                let self_node_data = tree_bank.get_node_data(self.id);
+                let self_node_data = tree_bank_min_max.get_min_max(self.id);
                 i_parent = self_node_data.min_father.unwrap();
                 let mut j_this = 0;
 
@@ -316,7 +316,7 @@ impl<'a> PrefixTrie<'a> {
             icfl_indexes,
             is_custom_vec,
             icfl_factor_list,
-            tree_bank,
+            tree_bank_min_max,
             compare_cache,
             monitor,
             verbose,

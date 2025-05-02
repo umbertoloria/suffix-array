@@ -11,7 +11,7 @@ use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
 use crate::suffix_array::prefix_trie::prefix_trie_create::create_prefix_trie;
 use crate::suffix_array::prefix_trie::prefix_trie_logger::log_prefix_trie;
-use crate::suffix_array::prefix_trie::tree_bank::TreeBank;
+use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use crate::suffix_array::suffix_array::suffix_array_logger::{
     log_suffix_array, make_sure_directory_exist,
@@ -134,7 +134,7 @@ pub fn compute_innovative_suffix_array(
 
     // In-prefix Merge
     monitor.p23_in_prefix_merge.start();
-    let mut tree_bank = TreeBank::new();
+    let mut tree_bank_min_max = TreeBankMinMax::new();
     let mut compare_cache = CompareCache::new();
     prefix_trie.in_prefix_merge(
         str,
@@ -143,7 +143,7 @@ pub fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &icfl_factor_list,
-        &mut tree_bank,
+        &mut tree_bank_min_max,
         &mut compare_cache,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
@@ -172,7 +172,7 @@ pub fn compute_innovative_suffix_array(
         &mut sa,
         str,
         &prog_sa,
-        &mut tree_bank,
+        &mut tree_bank_min_max,
         debug_mode == DebugMode::Verbose,
     );
     monitor.p3_suffix_array.stop();
