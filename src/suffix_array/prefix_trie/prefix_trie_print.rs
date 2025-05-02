@@ -14,6 +14,16 @@ impl<'a> PrefixTrie<'a> {
         );
         match &self.data {
             PrefixTrieData::Leaf => {}
+            PrefixTrieData::DirectChild((prefix, child_node)) => {
+                let prefix_str = get_string_clone(prefix);
+                let child_node_label = format!("{}{}", self_label, prefix_str);
+                child_node.print_before_merged_rankings(
+                    //
+                    tabs_offset + 1,
+                    &child_node_label,
+                    str,
+                );
+            }
             PrefixTrieData::Children(children) => {
                 for (char_key, child_node) in children {
                     let prefix_str = get_string_char_clone(*char_key);
@@ -24,16 +34,6 @@ impl<'a> PrefixTrie<'a> {
                         str,
                     );
                 }
-            }
-            PrefixTrieData::DirectChild((prefix, child_node)) => {
-                let prefix_str = get_string_clone(prefix);
-                let child_node_label = format!("{}{}", self_label, prefix_str);
-                child_node.print_before_merged_rankings(
-                    //
-                    tabs_offset + 1,
-                    &child_node_label,
-                    str,
-                );
             }
             PrefixTrieData::Vec(children) => {
                 for child_node in children {
@@ -68,6 +68,17 @@ impl<'a> PrefixTrie<'a> {
         );
         match &self.data {
             PrefixTrieData::Leaf => {}
+            PrefixTrieData::DirectChild((prefix, child_node)) => {
+                let prefix_str = get_string_clone(prefix);
+                let child_node_label = format!("{}{}", self_label, prefix_str);
+                child_node.print_with_rankings(
+                    //
+                    tabs_offset + 1,
+                    &child_node_label,
+                    str,
+                    prog_sa,
+                );
+            }
             PrefixTrieData::Children(children) => {
                 for (char_key, child_node) in children {
                     let prefix_str = get_string_char_clone(*char_key);
@@ -79,17 +90,6 @@ impl<'a> PrefixTrie<'a> {
                         prog_sa,
                     );
                 }
-            }
-            PrefixTrieData::DirectChild((prefix, child_node)) => {
-                let prefix_str = get_string_clone(prefix);
-                let child_node_label = format!("{}{}", self_label, prefix_str);
-                child_node.print_with_rankings(
-                    //
-                    tabs_offset + 1,
-                    &child_node_label,
-                    str,
-                    prog_sa,
-                );
             }
             PrefixTrieData::Vec(children) => {
                 for child_node in children {

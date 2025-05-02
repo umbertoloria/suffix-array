@@ -11,15 +11,15 @@ pub fn log_prefix_trie(root: &PrefixTrie, filepath: String, str: &str, prog_sa: 
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
     match &root.data {
         PrefixTrieData::Leaf => {}
+        PrefixTrieData::DirectChild((prefix, child_node)) => {
+            let child_label = get_string_clone(prefix);
+            log_prefix_trie_recursive(child_node, &child_label, &mut file, 0, str, prog_sa);
+        }
         PrefixTrieData::Children(children) => {
             for (char_key, child_node) in children {
                 let child_label = get_string_char_clone(*char_key);
                 log_prefix_trie_recursive(child_node, &child_label, &mut file, 0, str, prog_sa);
             }
-        }
-        PrefixTrieData::DirectChild((prefix, child_node)) => {
-            let child_label = get_string_clone(prefix);
-            log_prefix_trie_recursive(child_node, &child_label, &mut file, 0, str, prog_sa);
         }
         PrefixTrieData::Vec(children) => {
             for child_node in children {
@@ -58,16 +58,16 @@ fn log_prefix_trie_recursive(
 
     match &node.data {
         PrefixTrieData::Leaf => {}
+        PrefixTrieData::DirectChild((prefix, child_node)) => {
+            let child_label = format!("{}{}", node_label, get_string_clone(prefix));
+            // Before it was "level + prefix.len()".
+            log_prefix_trie_recursive(child_node, &child_label, file, level + 1, str, prog_sa);
+        }
         PrefixTrieData::Children(children) => {
             for (char_key, child_node) in children {
                 let child_label = format!("{}{}", node_label, get_string_char_clone(*char_key));
                 log_prefix_trie_recursive(child_node, &child_label, file, level + 1, str, prog_sa);
             }
-        }
-        PrefixTrieData::DirectChild((prefix, child_node)) => {
-            let child_label = format!("{}{}", node_label, get_string_clone(prefix));
-            // Before it was "level + prefix.len()".
-            log_prefix_trie_recursive(child_node, &child_label, file, level + 1, str, prog_sa);
         }
         PrefixTrieData::Vec(children) => {
             for child_node in children {

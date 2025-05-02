@@ -114,45 +114,6 @@ impl<'a> PrefixTrie<'a> {
                     self.data = PrefixTrieData::Children(children);
                 }
             }
-            PrefixTrieData::Children(children) => {
-                if children.contains_key(&curr_letter) {
-                    if verbose {
-                        println!(
-                            "{}  > contained {}",
-                            "  ".repeat(self.suffix_len),
-                            get_string_char_clone(curr_letter),
-                        );
-                    }
-
-                    let child_node = children.get_mut(&curr_letter).unwrap();
-                    child_node.add_string(
-                        //
-                        ls_index,
-                        ls_size,
-                        is_custom_ls,
-                        s_bytes,
-                        is_custom_vec,
-                        verbose,
-                    );
-                } else {
-                    if verbose {
-                        println!("{}  > create regular child", "  ".repeat(self.suffix_len));
-                    }
-
-                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
-                    new_child_node.add_string(
-                        //
-                        ls_index,
-                        ls_size,
-                        is_custom_ls,
-                        s_bytes,
-                        is_custom_vec,
-                        verbose,
-                    );
-
-                    children.insert(curr_letter, new_child_node);
-                }
-            }
             PrefixTrieData::DirectChild((prefix, child_node)) => {
                 let rest_of_ls = &s_bytes[ls_index + i_letter_ls..ls_index + ls_size];
                 if compare_strings(rest_of_ls, prefix) {
@@ -229,6 +190,45 @@ impl<'a> PrefixTrie<'a> {
                     verbose,
                 );
             }
+            PrefixTrieData::Children(children) => {
+                if children.contains_key(&curr_letter) {
+                    if verbose {
+                        println!(
+                            "{}  > contained {}",
+                            "  ".repeat(self.suffix_len),
+                            get_string_char_clone(curr_letter),
+                        );
+                    }
+
+                    let child_node = children.get_mut(&curr_letter).unwrap();
+                    child_node.add_string(
+                        //
+                        ls_index,
+                        ls_size,
+                        is_custom_ls,
+                        s_bytes,
+                        is_custom_vec,
+                        verbose,
+                    );
+                } else {
+                    if verbose {
+                        println!("{}  > create regular child", "  ".repeat(self.suffix_len));
+                    }
+
+                    let mut new_child_node = PrefixTrie::new(self.suffix_len + 1);
+                    new_child_node.add_string(
+                        //
+                        ls_index,
+                        ls_size,
+                        is_custom_ls,
+                        s_bytes,
+                        is_custom_vec,
+                        verbose,
+                    );
+
+                    children.insert(curr_letter, new_child_node);
+                }
+            }
             PrefixTrieData::Vec(_) => {
                 // This type "PrefixTrieData::Vec" is only used from the Shrink Phase and after.
                 // Should never happen...
@@ -301,6 +301,10 @@ impl<'a> PrefixTrie<'a> {
         // Shrink Children's Children if they are Bridges
         match &mut self.data {
             PrefixTrieData::Leaf => {}
+            PrefixTrieData::DirectChild((_, child_node)) => {
+                child_node.shrink_(next_id, prog_sa);
+                prog_sa.set_rankings_to_node(child_node.id, &mut child_node.rankings);
+            }
             PrefixTrieData::Children(children) => {
                 let mut become_vec = false;
                 for (_, child_node) in &mut *children {
@@ -336,12 +340,12 @@ impl<'a> PrefixTrie<'a> {
                                     // Should never happen...
                                     // exit(0x0100);
                                 }
+                                PrefixTrieData::DirectChild((_, child_node)) => {
+                                    vec.push(*child_node);
+                                }
                                 PrefixTrieData::Children(children) => {
                                     let children_list = children.into_values();
                                     vec.extend(children_list);
-                                }
-                                PrefixTrieData::DirectChild((_, child_node)) => {
-                                    vec.push(*child_node);
                                 }
                                 PrefixTrieData::Vec(children) => {
                                     vec.extend(children);
@@ -358,10 +362,6 @@ impl<'a> PrefixTrie<'a> {
                         prog_sa.set_rankings_to_node(child_node.id, &mut child_node.rankings);
                     }
                 }
-            }
-            PrefixTrieData::DirectChild((_, child_node)) => {
-                child_node.shrink_(next_id, prog_sa);
-                prog_sa.set_rankings_to_node(child_node.id, &mut child_node.rankings);
             }
             PrefixTrieData::Vec(_) => {
                 // Should never happen...
