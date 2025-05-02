@@ -180,7 +180,7 @@ impl<'a> PrefixTrie<'a> {
                 i_parent += 1;
             } else {
                 // Found a Parent LS that is >= Curr LS.
-                tree_bank_min_max.set_min_father(self.id, i_parent);
+                tree_bank_min_max.get_mut(self.id).min_father = Some(i_parent);
                 break;
             }
         }
@@ -205,7 +205,7 @@ impl<'a> PrefixTrie<'a> {
                     // TODO: Monitor string compare
                     if curr_parent_ls == this_ls {
                         // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
-                        tree_bank_min_max.set_max_father(self.id, i_parent + 1);
+                        tree_bank_min_max.get_mut(self.id).max_father = Some(i_parent + 1);
                         i_parent += 1;
                     } else {
                         // Found a Parent LS that is > Curr LS.
@@ -213,12 +213,12 @@ impl<'a> PrefixTrie<'a> {
                     }
                 }
 
-                let self_node_data = tree_bank_min_max.get_min_max(self.id);
-                i_parent = self_node_data.min_father.unwrap();
+                let self_node_min_max = tree_bank_min_max.get(self.id);
+                i_parent = self_node_min_max.min_father.unwrap();
                 let mut j_this = 0;
 
                 let mut new_rankings = Vec::new();
-                if let Some(max_father) = self_node_data.max_father {
+                if let Some(max_father) = self_node_min_max.max_father {
                     if verbose {
                         println!("   > start comparing, window=[{},{})", i_parent, max_father);
                     }
@@ -284,7 +284,7 @@ impl<'a> PrefixTrie<'a> {
                     new_rankings.push(curr_this_ls_index);
                     j_this += 1;
                 }
-                if let Some(max_father) = self_node_data.max_father {
+                if let Some(max_father) = self_node_min_max.max_father {
                     while i_parent < max_father {
                         let curr_parent_ls_index = parent_rankings[i_parent];
                         let child_offset = self.suffix_len; // Could be inline.

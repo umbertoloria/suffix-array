@@ -68,8 +68,8 @@ impl<'a> PrefixTrie<'a> {
                     tree_bank_min_max,
                     verbose,
                 );
-                let child_node_data = tree_bank_min_max.get_min_max(child_node.id);
-                if let Some(min_father) = child_node_data.min_father {
+                let child_node_min_max = tree_bank_min_max.get(child_node.id);
+                if let Some(min_father) = child_node_min_max.min_father {
                     if verbose {
                         println!("Here self=?? and child=??");
                     }
@@ -77,7 +77,7 @@ impl<'a> PrefixTrie<'a> {
                         result.extend(&this_rankings[position..min_father]);
                     }
                     result.extend(child_cpp);
-                    if let Some(max_father) = child_node_data.max_father {
+                    if let Some(max_father) = child_node_min_max.max_father {
                         position = max_father;
                     } else {
                         position = min_father;
@@ -97,8 +97,8 @@ impl<'a> PrefixTrie<'a> {
                         tree_bank_min_max,
                         verbose,
                     );
-                    let child_node_data = tree_bank_min_max.get_min_max(child_node.id);
-                    if let Some(min_father) = child_node_data.min_father {
+                    let child_node_min_max = tree_bank_min_max.get(child_node.id);
+                    if let Some(min_father) = child_node_min_max.min_father {
                         if verbose {
                             println!("Here self=?? and child=??");
                         }
@@ -106,7 +106,7 @@ impl<'a> PrefixTrie<'a> {
                             result.extend(&this_rankings[position..min_father]);
                         }
                         result.extend(child_cpp);
-                        if let Some(max_father) = child_node_data.max_father {
+                        if let Some(max_father) = child_node_min_max.max_father {
                             position = max_father;
                         } else {
                             position = min_father;
@@ -127,8 +127,8 @@ impl<'a> PrefixTrie<'a> {
                         tree_bank_min_max,
                         verbose,
                     );
-                    let child_node_data = tree_bank_min_max.get_min_max(child_node.id);
-                    if let Some(min_father) = child_node_data.min_father {
+                    let child_node_min_max = tree_bank_min_max.get(child_node.id);
+                    if let Some(min_father) = child_node_min_max.min_father {
                         if verbose {
                             println!("Here self=?? and child=??");
                         }
@@ -136,7 +136,7 @@ impl<'a> PrefixTrie<'a> {
                             result.extend(&this_rankings[position..min_father]);
                         }
                         result.extend(child_cpp);
-                        if let Some(max_father) = child_node_data.max_father {
+                        if let Some(max_father) = child_node_min_max.max_father {
                             position = max_father;
                         } else {
                             position = min_father;
@@ -153,12 +153,12 @@ impl<'a> PrefixTrie<'a> {
         result.extend(&this_rankings[position..]);
 
         if verbose {
-            let self_node_data = tree_bank_min_max.get_min_max(self.id);
+            let self_node_min_max = tree_bank_min_max.get(self.id);
             println!(
                 "Node {} (m={:?}, M={:?}) {:?} => {:?}",
                 self.get_label_from_first_ranking(str, this_rankings),
-                self_node_data.min_father,
-                self_node_data.max_father,
+                self_node_min_max.min_father,
+                self_node_min_max.max_father,
                 this_rankings,
                 result
             );

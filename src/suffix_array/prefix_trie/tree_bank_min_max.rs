@@ -1,33 +1,26 @@
 pub struct TreeBankMinMax {
-    vec: Vec<NodeFatherData>,
+    vec: Vec<TreeBankNodeMinMax>,
 }
 impl TreeBankMinMax {
     pub fn new(nodes_count: usize) -> Self {
         Self {
-            vec: vec![NodeFatherData::new(); nodes_count],
+            vec: vec![TreeBankNodeMinMax::new(); nodes_count],
         }
     }
-
-    // Getters
-    pub fn get_min_max(&self, node_index: usize) -> &NodeFatherData {
+    pub fn get(&self, node_index: usize) -> &TreeBankNodeMinMax {
         &self.vec[node_index]
     }
-
-    // Setters
-    pub fn set_min_father(&mut self, node_index: usize, min_father: usize) {
-        self.vec[node_index].min_father = Some(min_father);
-    }
-    pub fn set_max_father(&mut self, node_index: usize, max_father: usize) {
-        self.vec[node_index].max_father = Some(max_father);
+    pub fn get_mut(&mut self, node_index: usize) -> &mut TreeBankNodeMinMax {
+        &mut self.vec[node_index]
     }
 }
 
 #[derive(Clone)]
-pub struct NodeFatherData {
+pub struct TreeBankNodeMinMax {
     pub min_father: Option<usize>,
     pub max_father: Option<usize>,
 }
-impl NodeFatherData {
+impl TreeBankNodeMinMax {
     pub fn new() -> Self {
         Self {
             min_father: None,
