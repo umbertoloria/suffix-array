@@ -8,7 +8,7 @@ impl<'a> PrefixTrie<'a> {
         sa: &mut Vec<usize>,
         str: &str,
         prog_sa: &ProgSuffixArray,
-        tree_bank_min_max: &mut TreeBankMinMax,
+        tree_bank_min_max: &TreeBankMinMax,
         verbose: bool,
     ) {
         match &self.data {
@@ -52,7 +52,7 @@ impl<'a> PrefixTrie<'a> {
         &self,
         str: &str,
         prog_sa: &ProgSuffixArray,
-        tree_bank_min_max: &mut TreeBankMinMax,
+        tree_bank_min_max: &TreeBankMinMax,
         verbose: bool,
     ) -> Vec<usize> {
         let mut result = Vec::new();
