@@ -57,7 +57,7 @@ pub fn create_prefix_trie<'a>(
         root.add_string(ls_index, ls_size, false, s_bytes, is_custom_vec, verbose);
         depths[ls_index] = ls_size;
         if verbose {
-            root.print_before_merged_rankings(0, "", str);
+            root.print_before_shrink(0, "", str);
         }
     }
 
@@ -66,7 +66,7 @@ pub fn create_prefix_trie<'a>(
         root.add_string(ls_index, ls_size, true, s_bytes, is_custom_vec, verbose);
         depths[ls_index] = ls_size;
         if verbose {
-            root.print_before_merged_rankings(0, "", str);
+            root.print_before_shrink(0, "", str);
         }
     }
 

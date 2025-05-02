@@ -89,7 +89,7 @@ pub fn compute_innovative_suffix_array(
     // +
     if debug_mode == DebugMode::Verbose {
         println!("Before merge");
-        prefix_trie.print_before_merged_rankings(0, "", str);
+        prefix_trie.print_before_shrink(0, "", str);
     }
     // -
 
@@ -125,7 +125,7 @@ pub fn compute_innovative_suffix_array(
 
     if debug_mode == DebugMode::Verbose {
         println!("Before PREFIX TREE CREATE");
-        prefix_trie.print_with_rankings(0, "", str, &prog_sa);
+        prefix_trie.print_from_prog_sa(0, "", str, &prog_sa);
     }
     // -
 
@@ -153,7 +153,7 @@ pub fn compute_innovative_suffix_array(
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         println!("After IN_PREFIX_MERGE");
-        prefix_trie.print_with_rankings(0, "", str, &prog_sa);
+        prefix_trie.print_from_prog_sa(0, "", str, &prog_sa);
     }
     if perform_logging {
         log_prefix_trie(
