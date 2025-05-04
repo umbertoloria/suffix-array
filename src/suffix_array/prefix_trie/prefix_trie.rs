@@ -260,6 +260,7 @@ impl<'a> PrefixTrie<'a> {
                 gs <= custom_gs
             });
             self.rankings.insert(idx, ls_index);
+            // Duplicated code: look for (*njk).
             /*
             // Original Binary Search for Insertion.
             let mut p = 0;

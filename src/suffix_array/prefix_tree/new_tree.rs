@@ -1,3 +1,4 @@
+use crate::suffix_array::prefix_trie::prefix_trie::{get_string_char_clone, PrefixTrieChar};
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::Write;
@@ -11,21 +12,19 @@ impl Tree {
         let root = Rc::new(RefCell::new(TreeNode::new()));
         Self { nodes: vec![root] }
     }
-    pub fn add(&mut self, word: &str, ranking: usize) {
-        let chars_len = word.len();
-        if chars_len < 1 {
-            return;
-        }
-
-        let chars = word.chars().collect::<Vec<_>>();
+    pub fn get_root(&self) -> &Rc<RefCell<TreeNode>> {
+        &self.nodes[0]
+    }
+    pub fn add(&mut self, ls_index: usize, ls_size: usize, is_custom_ls: bool, s_bytes: &[u8]) {
+        let ls = &s_bytes[ls_index..ls_index + ls_size];
 
         let mut i_node = 0;
         let mut i_char = 0;
-        while i_char < chars_len {
+        while i_char < ls_size {
             let curr_node_rc = self.nodes[i_node].clone();
             let mut curr_node = curr_node_rc.borrow_mut();
 
-            let curr_char = chars[i_char];
+            let curr_char = ls[i_char];
 
             i_char += 1;
 
@@ -54,7 +53,7 @@ impl Tree {
             }
         }
         let mut curr_node = self.nodes[i_node].borrow_mut();
-        curr_node.update_rankings(ranking);
+        curr_node.update_rankings(ls_index, is_custom_ls, s_bytes);
     }
 
     pub fn create_node(&mut self) -> usize {
@@ -65,10 +64,13 @@ impl Tree {
     }
 }
 
-pub fn log_new_tree(tree: &Tree, filepath: &str) {
+pub fn log_new_tree(tree: &Tree, filepath: String) {
     let mut file = File::create(filepath).expect("Unable to create file");
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
-    log_new_tree_recursive(tree, 0, "", &mut file, 0);
+    for &(char_key, child_node_id) in &tree.get_root().borrow().children {
+        let child_label = format!("{}", get_string_char_clone(char_key));
+        log_new_tree_recursive(tree, child_node_id, &child_label, &mut file, 0);
+    }
     file.flush().expect("Unable to flush file");
 }
 fn log_new_tree_recursive(
@@ -100,14 +102,14 @@ fn log_new_tree_recursive(
     file.write(line.as_bytes()).expect("Unable to write line");
 
     for &(char_key, child_node_id) in &node.children {
-        let child_label = format!("{node_label}{char_key}");
+        let child_label = format!("{}{}", node_label, get_string_char_clone(char_key));
         log_new_tree_recursive(tree, child_node_id, &child_label, file, level + 1);
     }
 }
 
 pub struct TreeNode {
     pub rankings: Vec<usize>,
-    pub children: Vec<(char, usize)>,
+    pub children: Vec<(PrefixTrieChar, usize)>,
 }
 impl TreeNode {
     pub fn new() -> Self {
@@ -116,7 +118,18 @@ impl TreeNode {
             children: Vec::new(),
         }
     }
-    fn update_rankings(&mut self, ranking: usize) {
-        self.rankings.push(ranking);
+    fn update_rankings(&mut self, ls_index: usize, is_custom_ls: bool, s_bytes: &[u8]) {
+        if is_custom_ls {
+            let custom_gs = &s_bytes[ls_index..];
+            let idx = self.rankings.partition_point(|&gs_index| {
+                let gs = &s_bytes[gs_index..];
+                // TODO: Monitor string compare
+                gs <= custom_gs
+            });
+            self.rankings.insert(idx, ls_index);
+            // Duplicated code: look for (*njk).
+        } else {
+            self.rankings.push(ls_index);
+        }
     }
 }
