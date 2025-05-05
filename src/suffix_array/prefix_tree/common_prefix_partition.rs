@@ -1,28 +1,20 @@
 use crate::suffix_array::prefix_tree::new_tree::Tree;
-use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
 
 impl<'a> Tree<'a> {
     pub fn prepare_get_common_prefix_partition(
         &self,
         sa: &mut Vec<usize>,
         str: &str,
-        tree_bank_min_max: &TreeBankMinMax,
         verbose: bool,
     ) {
         for &(_, child_node_id) in &self.get_root().borrow().children {
-            sa.extend(self.get_common_prefix_partition(
-                child_node_id,
-                str,
-                tree_bank_min_max,
-                verbose,
-            ));
+            sa.extend(self.get_common_prefix_partition(child_node_id, str, verbose));
         }
     }
     fn get_common_prefix_partition(
         &self,
         self_node_id: usize,
         str: &str,
-        tree_bank_min_max: &TreeBankMinMax,
         verbose: bool,
     ) -> Vec<usize> {
         let mut result = Vec::new();
@@ -31,14 +23,9 @@ impl<'a> Tree<'a> {
         let this_rankings = &self_node.rankings;
         let mut position = 0;
         for &(_, child_node_id) in &self_node.children {
-            let child_cpp = self.get_common_prefix_partition(
-                child_node_id,
-                str,
-                tree_bank_min_max,
-                verbose,
-            );
-            let child_node_min_max = tree_bank_min_max.get(child_node_id);
-            if let Some(min_father) = child_node_min_max.min_father {
+            let child_cpp = self.get_common_prefix_partition(child_node_id, str, verbose);
+            let child_node = self.get_node(child_node_id).borrow();
+            if let Some(min_father) = child_node.min {
                 if verbose {
                     println!("Here self=?? and child=??");
                 }
@@ -46,7 +33,7 @@ impl<'a> Tree<'a> {
                     result.extend(&this_rankings[position..min_father]);
                 }
                 result.extend(child_cpp);
-                if let Some(max_father) = child_node_min_max.max_father {
+                if let Some(max_father) = child_node.max {
                     position = max_father;
                 } else {
                     position = min_father;
@@ -61,14 +48,9 @@ impl<'a> Tree<'a> {
         result.extend(&this_rankings[position..]);
 
         if verbose {
-            let self_node_min_max = tree_bank_min_max.get(self_node_id);
             println!(
                 "Node ID={} (m={:?}, M={:?}) {:?} => {:?}",
-                self_node_id,
-                self_node_min_max.min_father,
-                self_node_min_max.max_father,
-                this_rankings,
-                result
+                self_node_id, self_node.min, self_node.max, this_rankings, result
             );
         }
         result

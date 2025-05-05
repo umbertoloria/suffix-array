@@ -11,7 +11,6 @@ use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
 use crate::suffix_array::prefix_tree::new_tree::log_new_tree;
 use crate::suffix_array::prefix_tree::new_tree_create::create_new_tree;
-use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
 use crate::suffix_array::suffix_array::suffix_array_logger::{
     log_suffix_array, make_sure_directory_exist,
 };
@@ -129,8 +128,6 @@ pub fn compute_innovative_suffix_array(
 
     // In-prefix Merge
     monitor.p23_in_prefix_merge.start();
-    let nodes_count = tree.get_nodes_count();
-    let mut tree_bank_min_max = TreeBankMinMax::new(nodes_count);
     let mut compare_cache = CompareCache::new();
     tree.in_prefix_merge(
         str,
@@ -138,7 +135,6 @@ pub fn compute_innovative_suffix_array(
         &icfl_indexes,
         &is_custom_vec,
         &icfl_factor_list,
-        &mut tree_bank_min_max,
         &mut compare_cache,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
@@ -166,12 +162,7 @@ pub fn compute_innovative_suffix_array(
     // Suffix Array
     monitor.p3_suffix_array.start();
     let mut sa = Vec::new();
-    tree.prepare_get_common_prefix_partition(
-        &mut sa,
-        str,
-        &tree_bank_min_max,
-        debug_mode == DebugMode::Verbose,
-    );
+    tree.prepare_get_common_prefix_partition(&mut sa, str, debug_mode == DebugMode::Verbose);
     monitor.p3_suffix_array.stop();
 
     // +

@@ -2,7 +2,6 @@ use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::prefix_tree::new_tree::{Tree, TreeNode};
 use crate::suffix_array::prefix_trie::rules::rules_safe;
-use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
 use std::cell::RefMut;
 
 impl<'a> Tree<'a> {
@@ -13,7 +12,6 @@ impl<'a> Tree<'a> {
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
-        tree_bank_min_max: &mut TreeBankMinMax,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
@@ -29,7 +27,6 @@ impl<'a> Tree<'a> {
                     is_custom_vec,
                     icfl_factor_list,
                     &child_node,
-                    tree_bank_min_max,
                     compare_cache,
                     monitor,
                     verbose,
@@ -46,7 +43,6 @@ impl<'a> Tree<'a> {
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
         parent_node: &RefMut<TreeNode<'a>>,
-        tree_bank_min_max: &mut TreeBankMinMax,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
@@ -55,9 +51,8 @@ impl<'a> Tree<'a> {
         let parent_rankings = &parent_node.rankings;
 
         let mut self_node = self.get_node(self_node_id).borrow_mut();
-        let self_node_suffix_len = self_node.suffix_len;
-        let this_rankings = &mut self_node.rankings;
-        let this_first_ls_index = this_rankings[0];
+        let this_first_ls_index = self_node.rankings[0];
+        // TODO: It seems that "depths[*]" is always achievable using "*_node.suffix_len"
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
         if verbose {
@@ -66,7 +61,7 @@ impl<'a> Tree<'a> {
             let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
             println!(
                 "Compare parent ({}) {:?} with curr ({}) {:?}",
-                parent_ls, parent_rankings, this_ls, this_rankings
+                parent_ls, parent_rankings, this_ls, self_node.rankings
             );
         }
 
@@ -83,7 +78,7 @@ impl<'a> Tree<'a> {
                 i_parent += 1;
             } else {
                 // Found a Parent LS that is >= Curr LS.
-                tree_bank_min_max.get_mut(self_node_id).min_father = Some(i_parent);
+                self_node.min = Some(i_parent);
                 break;
             }
         }
@@ -108,7 +103,7 @@ impl<'a> Tree<'a> {
                     // TODO: Monitor string compare
                     if curr_parent_ls == this_ls {
                         // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
-                        tree_bank_min_max.get_mut(self_node_id).max_father = Some(i_parent + 1);
+                        self_node.max = Some(i_parent + 1);
                         i_parent += 1;
                     } else {
                         // Found a Parent LS that is > Curr LS.
@@ -116,19 +111,18 @@ impl<'a> Tree<'a> {
                     }
                 }
 
-                let self_node_min_max = tree_bank_min_max.get(self_node_id);
-                i_parent = self_node_min_max.min_father.unwrap();
+                i_parent = self_node.min.unwrap();
                 let mut j_this = 0;
 
                 let mut new_rankings = Vec::new();
-                if let Some(max_father) = self_node_min_max.max_father {
+                if let Some(max_father) = self_node.max {
                     if verbose {
                         println!("   > start comparing, window=[{},{})", i_parent, max_father);
                     }
-                    while i_parent < max_father && j_this < this_rankings.len() {
+                    while i_parent < max_father && j_this < self_node.rankings.len() {
                         let curr_parent_ls_index = parent_rankings[i_parent];
-                        let curr_this_ls_index = this_rankings[j_this];
-                        let child_offset = self_node_suffix_len;
+                        let curr_this_ls_index = self_node.rankings[j_this];
+                        let child_offset = self_node.suffix_len;
                         let result_rules = rules_safe(
                             curr_parent_ls_index,
                             curr_this_ls_index,
@@ -166,17 +160,17 @@ impl<'a> Tree<'a> {
                         }
                     }
                 }
-                if j_this < this_rankings.len() {
+                if j_this < self_node.rankings.len() {
                     // Enters in following while.
                 } else {
                     if verbose {
                         println!("     > no child rankings left to add");
                     }
                 }
-                while j_this < this_rankings.len() {
-                    let curr_this_ls_index = this_rankings[j_this];
+                while j_this < self_node.rankings.len() {
+                    let curr_this_ls_index = self_node.rankings[j_this];
                     if verbose {
-                        let child_offset = self_node_suffix_len;
+                        let child_offset = self_node.suffix_len;
                         println!(
                             "     > adding child=\"{}\" [{}], child.suff.len={}",
                             &str[curr_this_ls_index..curr_this_ls_index + child_offset],
@@ -187,11 +181,11 @@ impl<'a> Tree<'a> {
                     new_rankings.push(curr_this_ls_index);
                     j_this += 1;
                 }
-                if let Some(max_father) = self_node_min_max.max_father {
+                if let Some(max_father) = self_node.max {
                     while i_parent < max_father {
                         let curr_parent_ls_index = parent_rankings[i_parent];
                         if verbose {
-                            let child_offset = self_node_suffix_len;
+                            let child_offset = self_node.suffix_len;
                             println!(
                                 "     > adding father=\"{}\" [{}], father.suff.len={}",
                                 &str[curr_parent_ls_index..curr_parent_ls_index + child_offset],
@@ -207,8 +201,8 @@ impl<'a> Tree<'a> {
                         println!("     > no parent rankings left to add");
                     }
                 }
-                this_rankings.clear();
-                this_rankings.append(&mut new_rankings);
+                self_node.rankings.clear();
+                self_node.rankings.append(&mut new_rankings);
             }
         }
 
@@ -222,7 +216,6 @@ impl<'a> Tree<'a> {
                 is_custom_vec,
                 icfl_factor_list,
                 &self_node,
-                tree_bank_min_max,
                 compare_cache,
                 monitor,
                 verbose,
