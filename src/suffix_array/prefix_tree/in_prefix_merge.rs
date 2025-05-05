@@ -7,10 +7,10 @@ use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
 impl<'a> PrefixTrie<'a> {
     pub fn in_prefix_merge(
-        &mut self,
+        &self,
         str: &str,
         prog_sa: &mut ProgSuffixArray,
-        depths: &mut Vec<usize>,
+        depths: &Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
@@ -19,7 +19,7 @@ impl<'a> PrefixTrie<'a> {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        match &mut self.data {
+        match &self.data {
             PrefixTrieData::Leaf => {}
             PrefixTrieData::DirectChild((_, child_node)) => {
                 child_node.in_prefix_merge_on_children(
@@ -70,10 +70,10 @@ impl<'a> PrefixTrie<'a> {
         }
     }
     fn in_prefix_merge_on_children(
-        &mut self,
+        &self,
         str: &str,
         prog_sa: &mut ProgSuffixArray,
-        depths: &mut Vec<usize>,
+        depths: &Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
@@ -83,7 +83,7 @@ impl<'a> PrefixTrie<'a> {
         verbose: bool,
     ) {
         let self_id = self.id;
-        match &mut self.data {
+        match &self.data {
             PrefixTrieData::Leaf => {}
             PrefixTrieData::DirectChild((_, child_node)) => {
                 child_node.in_prefix_merge_deep(
@@ -137,10 +137,10 @@ impl<'a> PrefixTrie<'a> {
         }
     }
     fn in_prefix_merge_deep(
-        &mut self,
+        &self,
         str: &str,
         prog_sa: &mut ProgSuffixArray,
-        depths: &mut Vec<usize>,
+        depths: &Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
@@ -232,8 +232,8 @@ impl<'a> PrefixTrie<'a> {
                             child_offset,
                             str,
                             icfl_indexes,
-                            &is_custom_vec,
-                            &icfl_factor_list,
+                            is_custom_vec,
+                            icfl_factor_list,
                             compare_cache,
                             monitor,
                             false,
