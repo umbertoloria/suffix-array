@@ -11,7 +11,7 @@ pub fn create_prefix_trie<'a>(
     monitor: &mut Monitor,
     verbose: bool,
     str: &str,
-) -> (PrefixTrie<'a>, Tree) {
+) -> (PrefixTrie<'a>, Tree<'a>) {
     let str_length = s_bytes.len();
     let max_factor_size =
         get_max_factor_size(&custom_indexes, str_length).expect("max_factor_size is not valid");
@@ -59,7 +59,7 @@ pub fn create_prefix_trie<'a>(
 
     // LSs that come from Canonical Factors (already sorted)
     for (ls_index, ls_size) in params_canonical {
-        tree.add(ls_index, ls_size, false, s_bytes);
+        tree.add(ls_index, ls_size, false, s_bytes, verbose);
 
         root.add_string(
             ls_index,
@@ -78,7 +78,7 @@ pub fn create_prefix_trie<'a>(
 
     // LSs that come from Custom Factors (to sort)
     for (ls_index, ls_size) in params_custom {
-        tree.add(ls_index, ls_size, true, s_bytes);
+        tree.add(ls_index, ls_size, true, s_bytes, verbose);
 
         root.add_string(
             ls_index,
