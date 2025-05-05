@@ -9,10 +9,9 @@ use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
-use crate::suffix_array::prefix_tree::new_tree::{log_new_tree, log_new_tree_using_prog_sa};
+use crate::suffix_array::prefix_tree::new_tree::log_new_tree;
 use crate::suffix_array::prefix_tree::new_tree_create::create_new_tree;
 use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
-use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use crate::suffix_array::suffix_array::suffix_array_logger::{
     log_suffix_array, make_sure_directory_exist,
 };
@@ -104,8 +103,7 @@ pub fn compute_innovative_suffix_array(
 
     // Shrink Trie
     monitor.p22_shrink.start();
-    let mut prog_sa = ProgSuffixArray::new(str_length);
-    tree.save_rankings_on_prog_sa(&mut prog_sa);
+    // TODO: Remove this phase or just Order IDs in a DFS-fashion.
     monitor.p22_shrink.stop();
 
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
@@ -136,7 +134,6 @@ pub fn compute_innovative_suffix_array(
     let mut compare_cache = CompareCache::new();
     tree.in_prefix_merge(
         str,
-        &mut prog_sa,
         &mut depths,
         &icfl_indexes,
         &is_custom_vec,
@@ -154,10 +151,14 @@ pub fn compute_innovative_suffix_array(
         prefix_trie.print_from_prog_sa(0, "", str, &prog_sa);
     }*/
     if perform_logging {
-        log_new_tree_using_prog_sa(
+        /*log_new_tree_using_prog_sa(
             &tree,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
             &prog_sa,
+        );*/
+        log_new_tree(
+            &tree,
+            get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
         );
     }
     // -
@@ -168,7 +169,6 @@ pub fn compute_innovative_suffix_array(
     tree.prepare_get_common_prefix_partition(
         &mut sa,
         str,
-        &prog_sa,
         &tree_bank_min_max,
         debug_mode == DebugMode::Verbose,
     );

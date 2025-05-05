@@ -178,6 +178,8 @@ impl<'a> Tree<'a> {
     pub fn get_nodes_count(&self) -> usize {
         self.nodes.len()
     }
+
+    // PROG. S.A.
     pub fn save_rankings_on_prog_sa(&mut self, prog_sa: &mut ProgSuffixArray) {
         self.save_node_rankings_into_prog_sa(ROOT_ID, prog_sa);
     }
@@ -250,6 +252,8 @@ fn log_new_tree_recursive(
         log_new_tree_recursive(tree, child_node_id, &child_label, file, level + 1);
     }
 }
+
+/*
 pub fn log_new_tree_using_prog_sa(tree: &Tree, filepath: String, prog_sa: &ProgSuffixArray) {
     let mut file = File::create(filepath).expect("Unable to create file");
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
@@ -304,6 +308,7 @@ fn log_new_tree_using_prog_sa_recursive(
         );
     }
 }
+*/
 
 pub struct TreeNode<'a> {
     pub suffix_len: usize,

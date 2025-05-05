@@ -1,13 +1,11 @@
 use crate::suffix_array::prefix_tree::new_tree::Tree;
 use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
-use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
 impl<'a> Tree<'a> {
     pub fn prepare_get_common_prefix_partition(
         &self,
         sa: &mut Vec<usize>,
         str: &str,
-        prog_sa: &ProgSuffixArray,
         tree_bank_min_max: &TreeBankMinMax,
         verbose: bool,
     ) {
@@ -15,7 +13,6 @@ impl<'a> Tree<'a> {
             sa.extend(self.get_common_prefix_partition(
                 child_node_id,
                 str,
-                prog_sa,
                 tree_bank_min_max,
                 verbose,
             ));
@@ -25,19 +22,18 @@ impl<'a> Tree<'a> {
         &self,
         self_node_id: usize,
         str: &str,
-        prog_sa: &ProgSuffixArray,
         tree_bank_min_max: &TreeBankMinMax,
         verbose: bool,
     ) -> Vec<usize> {
         let mut result = Vec::new();
 
-        let this_rankings = prog_sa.get_rankings(self_node_id);
+        let self_node = self.get_node(self_node_id).borrow();
+        let this_rankings = &self_node.rankings;
         let mut position = 0;
-        for &(_, child_node_id) in &self.get_node(self_node_id).borrow().children {
+        for &(_, child_node_id) in &self_node.children {
             let child_cpp = self.get_common_prefix_partition(
                 child_node_id,
                 str,
-                prog_sa,
                 tree_bank_min_max,
                 verbose,
             );

@@ -1,15 +1,14 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_tree::new_tree::Tree;
+use crate::suffix_array::prefix_tree::new_tree::{Tree, TreeNode};
 use crate::suffix_array::prefix_trie::rules::rules_safe;
 use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
-use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
+use std::cell::RefMut;
 
 impl<'a> Tree<'a> {
     pub fn in_prefix_merge(
         &self,
         str: &str,
-        prog_sa: &mut ProgSuffixArray,
         depths: &Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
@@ -20,71 +19,44 @@ impl<'a> Tree<'a> {
         verbose: bool,
     ) {
         for &(_, child_node_id) in &self.get_root().borrow().children {
-            self.in_prefix_merge_on_children(
-                child_node_id,
-                str,
-                prog_sa,
-                depths,
-                icfl_indexes,
-                is_custom_vec,
-                icfl_factor_list,
-                tree_bank_min_max,
-                compare_cache,
-                monitor,
-                verbose,
-            );
-        }
-    }
-    fn in_prefix_merge_on_children(
-        &self,
-        self_node_id: usize,
-        str: &str,
-        prog_sa: &mut ProgSuffixArray,
-        depths: &Vec<usize>,
-        icfl_indexes: &Vec<usize>,
-        is_custom_vec: &Vec<bool>,
-        icfl_factor_list: &Vec<usize>,
-        tree_bank_min_max: &mut TreeBankMinMax,
-        compare_cache: &mut CompareCache,
-        monitor: &mut Monitor,
-        verbose: bool,
-    ) {
-        for &(_, child_node_id) in &self.get_node(self_node_id).borrow().children {
-            self.in_prefix_merge_deep(
-                child_node_id,
-                str,
-                prog_sa,
-                depths,
-                icfl_indexes,
-                is_custom_vec,
-                icfl_factor_list,
-                self_node_id,
-                tree_bank_min_max,
-                compare_cache,
-                monitor,
-                verbose,
-            );
+            let child_node = self.get_node(child_node_id).borrow_mut();
+            for &(_, child_child_node_id) in &child_node.children {
+                self.in_prefix_merge_deep(
+                    child_child_node_id,
+                    str,
+                    depths,
+                    icfl_indexes,
+                    is_custom_vec,
+                    icfl_factor_list,
+                    &child_node,
+                    tree_bank_min_max,
+                    compare_cache,
+                    monitor,
+                    verbose,
+                );
+            }
         }
     }
     fn in_prefix_merge_deep(
         &self,
         self_node_id: usize,
         str: &str,
-        prog_sa: &mut ProgSuffixArray,
         depths: &Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
-        parent_node_id: usize,
+        parent_node: &RefMut<TreeNode<'a>>,
         tree_bank_min_max: &mut TreeBankMinMax,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
     ) {
         // Compare This Node's Rankings with Parent Node's Rankings.
-        let parent_rankings = prog_sa.get_rankings(parent_node_id);
+        let parent_rankings = &parent_node.rankings;
 
-        let this_rankings = prog_sa.get_rankings(self_node_id);
+        let mut self_node = self.get_node(self_node_id).borrow_mut();
+        let self_node_suffix_len = self_node.suffix_len;
+        let this_rankings = &mut self_node.rankings;
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
@@ -145,7 +117,6 @@ impl<'a> Tree<'a> {
                 }
 
                 let self_node_min_max = tree_bank_min_max.get(self_node_id);
-                let self_node = self.get_node(self_node_id).borrow();
                 i_parent = self_node_min_max.min_father.unwrap();
                 let mut j_this = 0;
 
@@ -157,7 +128,7 @@ impl<'a> Tree<'a> {
                     while i_parent < max_father && j_this < this_rankings.len() {
                         let curr_parent_ls_index = parent_rankings[i_parent];
                         let curr_this_ls_index = this_rankings[j_this];
-                        let child_offset = self_node.suffix_len; // Could be inline.
+                        let child_offset = self_node_suffix_len;
                         let result_rules = rules_safe(
                             curr_parent_ls_index,
                             curr_this_ls_index,
@@ -205,7 +176,7 @@ impl<'a> Tree<'a> {
                 while j_this < this_rankings.len() {
                     let curr_this_ls_index = this_rankings[j_this];
                     if verbose {
-                        let child_offset = self_node.suffix_len;
+                        let child_offset = self_node_suffix_len;
                         println!(
                             "     > adding child=\"{}\" [{}], child.suff.len={}",
                             &str[curr_this_ls_index..curr_this_ls_index + child_offset],
@@ -220,7 +191,7 @@ impl<'a> Tree<'a> {
                     while i_parent < max_father {
                         let curr_parent_ls_index = parent_rankings[i_parent];
                         if verbose {
-                            let child_offset = self_node.suffix_len;
+                            let child_offset = self_node_suffix_len;
                             println!(
                                 "     > adding father=\"{}\" [{}], father.suff.len={}",
                                 &str[curr_parent_ls_index..curr_parent_ls_index + child_offset],
@@ -236,23 +207,26 @@ impl<'a> Tree<'a> {
                         println!("     > no parent rankings left to add");
                     }
                 }
-                prog_sa.save_rankings_forced(self_node_id, new_rankings);
+                this_rankings.clear();
+                this_rankings.append(&mut new_rankings);
             }
         }
 
         // Now it's your turn to be the parent.
-        self.in_prefix_merge_on_children(
-            self_node_id,
-            str,
-            prog_sa,
-            depths,
-            icfl_indexes,
-            is_custom_vec,
-            icfl_factor_list,
-            tree_bank_min_max,
-            compare_cache,
-            monitor,
-            verbose,
-        );
+        for &(_, child_node_id) in &self_node.children {
+            self.in_prefix_merge_deep(
+                child_node_id,
+                str,
+                depths,
+                icfl_indexes,
+                is_custom_vec,
+                icfl_factor_list,
+                &self_node,
+                tree_bank_min_max,
+                compare_cache,
+                monitor,
+                verbose,
+            );
+        }
     }
 }
