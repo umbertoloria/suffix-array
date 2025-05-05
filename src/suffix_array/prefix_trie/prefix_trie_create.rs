@@ -55,44 +55,46 @@ pub fn create_prefix_trie<'a>(
                 }
             }
         }
-    }
 
-    // LSs that come from Canonical Factors (already sorted)
-    for (ls_index, ls_size) in params_canonical {
-        tree.add(ls_index, ls_size, false, s_bytes, verbose);
+        // LSs that come from Canonical Factors (already sorted)
+        for &(ls_index, ls_size) in &params_canonical {
+            tree.add(ls_index, ls_size, false, s_bytes, verbose);
 
-        root.add_string(
-            ls_index,
-            ls_size,
-            false,
-            next_index,
-            s_bytes,
-            is_custom_vec,
-            verbose,
-        );
-        depths[ls_index] = ls_size;
-        if verbose {
-            root.print_before_shrink(0, "", str);
+            root.add_string(
+                ls_index,
+                ls_size,
+                false,
+                next_index,
+                s_bytes,
+                is_custom_vec,
+                verbose,
+            );
+            depths[ls_index] = ls_size;
+            if verbose {
+                root.print_before_shrink(0, "", str);
+            }
         }
-    }
+        params_canonical.clear();
 
-    // LSs that come from Custom Factors (to sort)
-    for (ls_index, ls_size) in params_custom {
-        tree.add(ls_index, ls_size, true, s_bytes, verbose);
+        // LSs that come from Custom Factors (to sort)
+        for &(ls_index, ls_size) in &params_custom {
+            tree.add(ls_index, ls_size, true, s_bytes, verbose);
 
-        root.add_string(
-            ls_index,
-            ls_size,
-            true,
-            next_index,
-            s_bytes,
-            is_custom_vec,
-            verbose,
-        );
-        depths[ls_index] = ls_size;
-        if verbose {
-            root.print_before_shrink(0, "", str);
+            root.add_string(
+                ls_index,
+                ls_size,
+                true,
+                next_index,
+                s_bytes,
+                is_custom_vec,
+                verbose,
+            );
+            depths[ls_index] = ls_size;
+            if verbose {
+                root.print_before_shrink(0, "", str);
+            }
         }
+        params_custom.clear();
     }
 
     (root, tree)

@@ -1,16 +1,14 @@
 use crate::factorization::icfl::get_icfl_indexes;
 use crate::files::paths::{
-    get_path_for_project_folder, get_path_for_project_new_tree_file,
-    get_path_for_project_outcome_file_json, get_path_for_project_prefix_tree_file,
-    get_path_for_project_prefix_trie_file, get_path_for_project_suffix_array_file,
-    get_path_for_project_timing_file_json,
+    get_path_for_project_folder, get_path_for_project_outcome_file_json,
+    get_path_for_project_prefix_tree_file, get_path_for_project_prefix_trie_file,
+    get_path_for_project_suffix_array_file, get_path_for_project_timing_file_json,
 };
 use crate::suffix_array::chunking::get_custom_factors_and_more;
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
-use crate::suffix_array::prefix_tree::new_tree::log_new_tree;
 use crate::suffix_array::prefix_trie::prefix_trie_create::create_prefix_trie;
 use crate::suffix_array::prefix_trie::prefix_trie_logger::log_prefix_trie;
 use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
@@ -111,10 +109,11 @@ pub fn compute_innovative_suffix_array(
             str,
             &prog_sa,
         );
-        log_new_tree(
+        /*log_new_tree(
             &tree,
-            get_path_for_project_new_tree_file(fasta_file_name, chunk_size_num_for_log),
-        );
+            get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
+            // get_path_for_project_new_tree_file(fasta_file_name, chunk_size_num_for_log),
+        );*/
     }
 
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {

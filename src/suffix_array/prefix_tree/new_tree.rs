@@ -35,7 +35,7 @@ impl<'a> Tree<'a> {
 
             if verbose {
                 println!(
-                    " -> i_char={i_char} on REST={}, i_node={i_node}",
+                    " -> i_char={i_char} on REST={}, i_node={i_node}, ls_index={ls_index}",
                     get_string_clone(rest_of_ls)
                 );
             }
@@ -90,7 +90,7 @@ impl<'a> Tree<'a> {
                     if i == rest_of_ls.len() && i == mid_str.len() {
                         // Case 1. Strings are the same.
                         if verbose {
-                            println!("     -> Case 1: next node={mid_node_id}");
+                            println!("     -> Case 1: found final Node={mid_node_id}");
                         }
                         i_node = mid_node_id;
                         i_char += i;
@@ -103,6 +103,13 @@ impl<'a> Tree<'a> {
                         // 2A. "mid_str" is prefix of "rest_of_ls", or
                         // 2B. "rest_of_ls" is prefix of "mid_str".
                         if i < rest_of_ls.len() {
+                            if verbose {
+                                println!(
+                                    "       -> Case 2A: mid_str={} prefix of rest_of_ls={}",
+                                    get_string_clone(mid_str),
+                                    get_string_clone(rest_of_ls),
+                                );
+                            }
                             // Case 2A. We have that "mid_str" is prefix of "rest_of_ls".
                             i_node = mid_node_id;
                             i_char += i;
@@ -110,6 +117,26 @@ impl<'a> Tree<'a> {
                         } else {
                             // Then it's "i < mid_str.len()".
                             // Case 2B. We have that "rest_of_ls" is prefix of "mid_str".
+                            if verbose {
+                                println!(
+                                    "       -> Case 2B: rest_of_ls={} prefix of mid_str={}",
+                                    get_string_clone(rest_of_ls),
+                                    get_string_clone(mid_str),
+                                );
+                            }
+                            // TODO: Here, we should update this Edge (that has string "mid_str")
+                            //  to use the string "rest_of_ls", since "rest_of_ls" is prefix of
+                            //  "mid_str". Here we avoid coding this since the callee of this
+                            //  function already knows that has to add first all LSs with length "i"
+                            //  and then all LSs with length "i+1", so this case should never happen
+                            //  (if this ordering is followed).
+                            // Example: In the Tree there was "\0" [] -> "CA" [10, 4], and now we
+                            // want to insert a node "C" for ranking 6.
+                            // The result should be "\0" [] -> "C" [6] -> "CA" [10, 4].
+                            // What we have here instead is: "\0" [] -> "CA" [10, 4]
+                            //  and "\0" [] -> "C" [6], so "CA" and "C" are siblings. But actually
+                            // "C" should be inserted as the *new father* of "CA" (even if "CA" was
+                            // already there).
                             let new_node_id = self.create_node();
                             curr_node.children.insert(mid, (rest_of_ls, new_node_id));
                             i_node = new_node_id;
@@ -130,7 +157,7 @@ impl<'a> Tree<'a> {
             }
         }
         if verbose {
-            println!("   -> Populating node id={i_node} with new ranking");
+            println!("   -> Populating node id={i_node} with new ranking {ls_index}");
         }
         let mut curr_node = self.nodes[i_node].borrow_mut();
         curr_node.update_rankings(ls_index, is_custom_ls, s_bytes);
