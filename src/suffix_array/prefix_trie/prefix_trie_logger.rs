@@ -44,7 +44,8 @@ fn log_prefix_trie_recursive(
         "{}{} <{}>",
         " ".repeat(level),
         node_label,
-        node.id,
+        // node.id, // Avoid showing Node ID.
+        "",
     );
     let rankings = prog_sa.get_rankings(node.id);
     line.push_str(" [");
