@@ -28,15 +28,6 @@ pub fn get_path_for_project_prefix_trie_file(filename: &str, chunk_size: usize) 
     )
 }
 
-/*pub fn get_path_for_project_new_tree_file(filename: &str, chunk_size: usize) -> String {
-    format!(
-        "{}/{}-{}-a-new-tree.txt",
-        get_path_for_project_folder(filename),
-        filename,
-        chunk_size
-    )
-}*/
-
 pub fn get_path_for_project_prefix_tree_file(filename: &str, chunk_size: usize) -> String {
     format!(
         "{}/{}-{}-b-prefix-tree.txt",

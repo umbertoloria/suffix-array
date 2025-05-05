@@ -1,23 +1,18 @@
 use crate::suffix_array::chunking::get_max_factor_size;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::prefix_tree::new_tree::Tree;
-use crate::suffix_array::prefix_trie::prefix_trie::PrefixTrie;
 
-pub fn create_prefix_trie<'a>(
+pub fn create_new_tree<'a>(
     s_bytes: &'a [u8],
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
     depths: &mut Vec<usize>,
     monitor: &mut Monitor,
     verbose: bool,
-    str: &str,
-) -> (PrefixTrie<'a>, Tree<'a>) {
+) -> Tree<'a> {
     let str_length = s_bytes.len();
     let max_factor_size =
         get_max_factor_size(&custom_indexes, str_length).expect("max_factor_size is not valid");
-    let mut next_index_src = 0;
-    let next_index = &mut next_index_src;
-    let mut root = PrefixTrie::new(next_index, 0);
 
     let mut tree = Tree::new();
 
@@ -59,19 +54,9 @@ pub fn create_prefix_trie<'a>(
         // LSs that come from Canonical Factors (already sorted)
         for &(ls_index, ls_size) in &params_canonical {
             tree.add(ls_index, ls_size, false, s_bytes, verbose);
-
-            root.add_string(
-                ls_index,
-                ls_size,
-                false,
-                next_index,
-                s_bytes,
-                is_custom_vec,
-                verbose,
-            );
             depths[ls_index] = ls_size;
             if verbose {
-                root.print_before_shrink(0, "", str);
+                tree.print();
             }
         }
         params_canonical.clear();
@@ -79,23 +64,13 @@ pub fn create_prefix_trie<'a>(
         // LSs that come from Custom Factors (to sort)
         for &(ls_index, ls_size) in &params_custom {
             tree.add(ls_index, ls_size, true, s_bytes, verbose);
-
-            root.add_string(
-                ls_index,
-                ls_size,
-                true,
-                next_index,
-                s_bytes,
-                is_custom_vec,
-                verbose,
-            );
             depths[ls_index] = ls_size;
             if verbose {
-                root.print_before_shrink(0, "", str);
+                tree.print();
             }
         }
         params_custom.clear();
     }
 
-    (root, tree)
+    tree
 }

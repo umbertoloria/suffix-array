@@ -9,8 +9,8 @@ use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
-use crate::suffix_array::prefix_trie::prefix_trie_create::create_prefix_trie;
-use crate::suffix_array::prefix_trie::prefix_trie_logger::log_prefix_trie;
+use crate::suffix_array::prefix_tree::new_tree::{log_new_tree, log_new_tree_using_prog_sa};
+use crate::suffix_array::prefix_tree::new_tree_create::create_new_tree;
 use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use crate::suffix_array::suffix_array::suffix_array_logger::{
@@ -75,46 +75,38 @@ pub fn compute_innovative_suffix_array(
     // Prefix Trie Create
     monitor.p21_trie_create.start();
     let mut depths = vec![0usize; str_length];
-    let (mut prefix_trie, tree) = create_prefix_trie(
+    let mut tree = create_new_tree(
         s_bytes,
         &custom_indexes,
         &is_custom_vec,
         &mut depths,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
-        str,
     );
     monitor.p21_trie_create.stop();
 
     // +
     if debug_mode == DebugMode::Verbose {
         println!("Before merge");
-        prefix_trie.print_before_shrink(0, "", str);
+        tree.print();
     }
     // -
-
-    // Shrink Trie
-    monitor.p22_shrink.start();
-    let mut prog_sa = ProgSuffixArray::new(str_length);
-    let nodes_count = prefix_trie.shrink(&mut prog_sa);
-    monitor.p22_shrink.stop();
 
     // +
     let chunk_size_num_for_log = chunk_size.unwrap_or(0);
     if perform_logging {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
-        log_prefix_trie(
-            &prefix_trie,
-            get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
-            str,
-            &prog_sa,
-        );
-        /*log_new_tree(
+        log_new_tree(
             &tree,
             get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
-            // get_path_for_project_new_tree_file(fasta_file_name, chunk_size_num_for_log),
-        );*/
+        );
     }
+
+    // Shrink Trie
+    monitor.p22_shrink.start();
+    let mut prog_sa = ProgSuffixArray::new(str_length);
+    tree.save_rankings_on_prog_sa(&mut prog_sa);
+    monitor.p22_shrink.stop();
 
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         print_for_human_like_debug(
@@ -128,10 +120,10 @@ pub fn compute_innovative_suffix_array(
         );
     }
 
-    if debug_mode == DebugMode::Verbose {
+    /*if debug_mode == DebugMode::Verbose {
         println!("Before PREFIX TREE CREATE");
         prefix_trie.print_from_prog_sa(0, "", str, &prog_sa);
-    }
+    }*/
     // -
 
     // FOR DEBUG PURPOSES
@@ -139,9 +131,10 @@ pub fn compute_innovative_suffix_array(
 
     // In-prefix Merge
     monitor.p23_in_prefix_merge.start();
+    let nodes_count = tree.get_nodes_count();
     let mut tree_bank_min_max = TreeBankMinMax::new(nodes_count);
     let mut compare_cache = CompareCache::new();
-    prefix_trie.in_prefix_merge(
+    tree.in_prefix_merge(
         str,
         &mut prog_sa,
         &mut depths,
@@ -156,15 +149,14 @@ pub fn compute_innovative_suffix_array(
     monitor.p23_in_prefix_merge.stop();
 
     // +
-    if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
+    /*if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         println!("After IN_PREFIX_MERGE");
         prefix_trie.print_from_prog_sa(0, "", str, &prog_sa);
-    }
+    }*/
     if perform_logging {
-        log_prefix_trie(
-            &prefix_trie,
+        log_new_tree_using_prog_sa(
+            &tree,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
-            str,
             &prog_sa,
         );
     }
@@ -173,7 +165,7 @@ pub fn compute_innovative_suffix_array(
     // Suffix Array
     monitor.p3_suffix_array.start();
     let mut sa = Vec::new();
-    prefix_trie.prepare_get_common_prefix_partition(
+    tree.prepare_get_common_prefix_partition(
         &mut sa,
         str,
         &prog_sa,

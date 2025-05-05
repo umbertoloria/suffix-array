@@ -386,7 +386,6 @@ impl<'a> PrefixTrie<'a> {
         }
     }
 
-    // LOGGING
     pub fn get_label_from_first_ranking<'b>(&self, str: &'b str, rankings: &[usize]) -> &'b str {
         // Make sure this node is not the Root Node, because it's the only one that has no Rankings.
         let first_ranking = rankings[0];

@@ -1,11 +1,11 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_trie::prefix_trie::{PrefixTrie, PrefixTrieData};
+use crate::suffix_array::prefix_tree::new_tree::Tree;
 use crate::suffix_array::prefix_trie::rules::rules_safe;
 use crate::suffix_array::prefix_trie::tree_bank_min_max::TreeBankMinMax;
 use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 
-impl<'a> PrefixTrie<'a> {
+impl<'a> Tree<'a> {
     pub fn in_prefix_merge(
         &self,
         str: &str,
@@ -19,58 +19,25 @@ impl<'a> PrefixTrie<'a> {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        match &self.data {
-            PrefixTrieData::Leaf => {}
-            PrefixTrieData::DirectChild((_, child_node)) => {
-                child_node.in_prefix_merge_on_children(
-                    str,
-                    prog_sa,
-                    depths,
-                    icfl_indexes,
-                    is_custom_vec,
-                    icfl_factor_list,
-                    tree_bank_min_max,
-                    compare_cache,
-                    monitor,
-                    verbose,
-                );
-            }
-            PrefixTrieData::Children(children) => {
-                for (_, child_node) in children {
-                    child_node.in_prefix_merge_on_children(
-                        str,
-                        prog_sa,
-                        depths,
-                        icfl_indexes,
-                        is_custom_vec,
-                        icfl_factor_list,
-                        tree_bank_min_max,
-                        compare_cache,
-                        monitor,
-                        verbose,
-                    );
-                }
-            }
-            PrefixTrieData::Vec(children) => {
-                for child_node in children {
-                    child_node.in_prefix_merge_on_children(
-                        str,
-                        prog_sa,
-                        depths,
-                        icfl_indexes,
-                        is_custom_vec,
-                        icfl_factor_list,
-                        tree_bank_min_max,
-                        compare_cache,
-                        monitor,
-                        verbose,
-                    );
-                }
-            }
+        for &(_, child_node_id) in &self.get_root().borrow().children {
+            self.in_prefix_merge_on_children(
+                child_node_id,
+                str,
+                prog_sa,
+                depths,
+                icfl_indexes,
+                is_custom_vec,
+                icfl_factor_list,
+                tree_bank_min_max,
+                compare_cache,
+                monitor,
+                verbose,
+            );
         }
     }
     fn in_prefix_merge_on_children(
         &self,
+        self_node_id: usize,
         str: &str,
         prog_sa: &mut ProgSuffixArray,
         depths: &Vec<usize>,
@@ -82,78 +49,42 @@ impl<'a> PrefixTrie<'a> {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        let self_id = self.id;
-        match &self.data {
-            PrefixTrieData::Leaf => {}
-            PrefixTrieData::DirectChild((_, child_node)) => {
-                child_node.in_prefix_merge_deep(
-                    str,
-                    prog_sa,
-                    depths,
-                    icfl_indexes,
-                    is_custom_vec,
-                    icfl_factor_list,
-                    self_id,
-                    tree_bank_min_max,
-                    compare_cache,
-                    monitor,
-                    verbose,
-                );
-            }
-            PrefixTrieData::Children(children) => {
-                for (_, child_node) in children {
-                    child_node.in_prefix_merge_deep(
-                        str,
-                        prog_sa,
-                        depths,
-                        icfl_indexes,
-                        is_custom_vec,
-                        icfl_factor_list,
-                        self_id,
-                        tree_bank_min_max,
-                        compare_cache,
-                        monitor,
-                        verbose,
-                    );
-                }
-            }
-            PrefixTrieData::Vec(children) => {
-                for child_node in children {
-                    child_node.in_prefix_merge_deep(
-                        str,
-                        prog_sa,
-                        depths,
-                        icfl_indexes,
-                        is_custom_vec,
-                        icfl_factor_list,
-                        self_id,
-                        tree_bank_min_max,
-                        compare_cache,
-                        monitor,
-                        verbose,
-                    );
-                }
-            }
+        for &(_, child_node_id) in &self.get_node(self_node_id).borrow().children {
+            self.in_prefix_merge_deep(
+                child_node_id,
+                str,
+                prog_sa,
+                depths,
+                icfl_indexes,
+                is_custom_vec,
+                icfl_factor_list,
+                self_node_id,
+                tree_bank_min_max,
+                compare_cache,
+                monitor,
+                verbose,
+            );
         }
     }
     fn in_prefix_merge_deep(
         &self,
+        self_node_id: usize,
         str: &str,
         prog_sa: &mut ProgSuffixArray,
         depths: &Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
-        parent_index: usize,
+        parent_node_id: usize,
         tree_bank_min_max: &mut TreeBankMinMax,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
     ) {
         // Compare This Node's Rankings with Parent Node's Rankings.
-        let parent_rankings = prog_sa.get_rankings(parent_index);
+        let parent_rankings = prog_sa.get_rankings(parent_node_id);
 
-        let this_rankings = prog_sa.get_rankings(self.id);
+        let this_rankings = prog_sa.get_rankings(self_node_id);
         let this_first_ls_index = this_rankings[0];
         let this_ls_length = depths[this_first_ls_index];
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
@@ -180,7 +111,7 @@ impl<'a> PrefixTrie<'a> {
                 i_parent += 1;
             } else {
                 // Found a Parent LS that is >= Curr LS.
-                tree_bank_min_max.get_mut(self.id).min_father = Some(i_parent);
+                tree_bank_min_max.get_mut(self_node_id).min_father = Some(i_parent);
                 break;
             }
         }
@@ -205,7 +136,7 @@ impl<'a> PrefixTrie<'a> {
                     // TODO: Monitor string compare
                     if curr_parent_ls == this_ls {
                         // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
-                        tree_bank_min_max.get_mut(self.id).max_father = Some(i_parent + 1);
+                        tree_bank_min_max.get_mut(self_node_id).max_father = Some(i_parent + 1);
                         i_parent += 1;
                     } else {
                         // Found a Parent LS that is > Curr LS.
@@ -213,7 +144,8 @@ impl<'a> PrefixTrie<'a> {
                     }
                 }
 
-                let self_node_min_max = tree_bank_min_max.get(self.id);
+                let self_node_min_max = tree_bank_min_max.get(self_node_id);
+                let self_node = self.get_node(self_node_id).borrow();
                 i_parent = self_node_min_max.min_father.unwrap();
                 let mut j_this = 0;
 
@@ -225,7 +157,7 @@ impl<'a> PrefixTrie<'a> {
                     while i_parent < max_father && j_this < this_rankings.len() {
                         let curr_parent_ls_index = parent_rankings[i_parent];
                         let curr_this_ls_index = this_rankings[j_this];
-                        let child_offset = self.suffix_len; // Could be inline.
+                        let child_offset = self_node.suffix_len; // Could be inline.
                         let result_rules = rules_safe(
                             curr_parent_ls_index,
                             curr_this_ls_index,
@@ -272,8 +204,8 @@ impl<'a> PrefixTrie<'a> {
                 }
                 while j_this < this_rankings.len() {
                     let curr_this_ls_index = this_rankings[j_this];
-                    let child_offset = self.suffix_len; // Could be inline.
                     if verbose {
+                        let child_offset = self_node.suffix_len;
                         println!(
                             "     > adding child=\"{}\" [{}], child.suff.len={}",
                             &str[curr_this_ls_index..curr_this_ls_index + child_offset],
@@ -287,8 +219,8 @@ impl<'a> PrefixTrie<'a> {
                 if let Some(max_father) = self_node_min_max.max_father {
                     while i_parent < max_father {
                         let curr_parent_ls_index = parent_rankings[i_parent];
-                        let child_offset = self.suffix_len; // Could be inline.
                         if verbose {
+                            let child_offset = self_node.suffix_len;
                             println!(
                                 "     > adding father=\"{}\" [{}], father.suff.len={}",
                                 &str[curr_parent_ls_index..curr_parent_ls_index + child_offset],
@@ -304,12 +236,13 @@ impl<'a> PrefixTrie<'a> {
                         println!("     > no parent rankings left to add");
                     }
                 }
-                prog_sa.save_rankings_forced(self.id, new_rankings);
+                prog_sa.save_rankings_forced(self_node_id, new_rankings);
             }
         }
 
         // Now it's your turn to be the parent.
         self.in_prefix_merge_on_children(
+            self_node_id,
             str,
             prog_sa,
             depths,

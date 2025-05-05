@@ -1,19 +1,24 @@
 use crate::suffix_array::prefix_trie::prefix_trie::{get_string_clone, PrefixTrieString};
+use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::Write;
 use std::rc::Rc;
 
+const ROOT_ID: usize = 0;
 pub struct Tree<'a> {
-    pub nodes: Vec<Rc<RefCell<TreeNode<'a>>>>,
+    nodes: Vec<Rc<RefCell<TreeNode<'a>>>>,
 }
 impl<'a> Tree<'a> {
     pub fn new() -> Self {
-        let root = Rc::new(RefCell::new(TreeNode::new()));
+        let root = Rc::new(RefCell::new(TreeNode::new(0)));
         Self { nodes: vec![root] }
     }
     pub fn get_root(&self) -> &Rc<RefCell<TreeNode<'a>>> {
-        &self.nodes[0]
+        &self.nodes[ROOT_ID]
+    }
+    pub fn get_node(&self, index: usize) -> &Rc<RefCell<TreeNode<'a>>> {
+        &self.nodes[index]
     }
     pub fn add(
         &mut self,
@@ -41,7 +46,7 @@ impl<'a> Tree<'a> {
             }
 
             if curr_node.children.is_empty() {
-                let new_node_id = self.create_node();
+                let new_node_id = self.create_node(ls_size);
                 curr_node.children.push((rest_of_ls, new_node_id));
                 i_node = new_node_id;
                 if verbose {
@@ -137,10 +142,10 @@ impl<'a> Tree<'a> {
                             //  and "\0" [] -> "C" [6], so "CA" and "C" are siblings. But actually
                             // "C" should be inserted as the *new father* of "CA" (even if "CA" was
                             // already there).
-                            let new_node_id = self.create_node();
+                            let new_node_id = self.create_node(i_char + rest_of_ls.len());
                             curr_node.children.insert(mid, (rest_of_ls, new_node_id));
                             i_node = new_node_id;
-                            i_char += i;
+                            i_char += rest_of_ls.len();
                             break;
                         }
                     }
@@ -150,7 +155,7 @@ impl<'a> Tree<'a> {
                 if verbose {
                     println!("     -> found index p={p} for creating new node");
                 }
-                let new_node_id = self.create_node();
+                let new_node_id = self.create_node(i_char + rest_of_ls.len());
                 curr_node.children.insert(p, (rest_of_ls, new_node_id));
                 i_node = new_node_id;
                 i_char += rest_of_ls.len();
@@ -163,11 +168,46 @@ impl<'a> Tree<'a> {
         curr_node.update_rankings(ls_index, is_custom_ls, s_bytes);
     }
 
-    pub fn create_node(&mut self) -> usize {
+    pub fn create_node(&mut self, suffix_len: usize) -> usize {
         let new_node_id = self.nodes.len();
-        let new_node = Rc::new(RefCell::new(TreeNode::new()));
+        let new_node = Rc::new(RefCell::new(TreeNode::new(suffix_len)));
         self.nodes.push(new_node);
         new_node_id
+    }
+
+    pub fn get_nodes_count(&self) -> usize {
+        self.nodes.len()
+    }
+    pub fn save_rankings_on_prog_sa(&mut self, prog_sa: &mut ProgSuffixArray) {
+        self.save_node_rankings_into_prog_sa(ROOT_ID, prog_sa);
+    }
+    fn save_node_rankings_into_prog_sa(&mut self, node_id: usize, prog_sa: &mut ProgSuffixArray) {
+        let node_rc = self.get_node(node_id).clone();
+        let mut node = node_rc.borrow_mut();
+        prog_sa.set_rankings_to_node(node_id, &mut node.rankings);
+
+        for &(_, child_node_id) in &node.children {
+            self.save_node_rankings_into_prog_sa(child_node_id, prog_sa);
+        }
+    }
+
+    pub fn print(&self) {
+        self.print_node(ROOT_ID, 0, "");
+    }
+    fn print_node(&self, self_node_id: usize, tabs_offset: usize, self_label: &str) {
+        let self_node = self.get_node(self_node_id).borrow();
+        println!(
+            "{}|{:2}: \"{}\" {}",
+            "\t".repeat(tabs_offset),
+            tabs_offset,
+            self_label,
+            format!("{:?}", self_node.rankings),
+        );
+        for &(child_node_prefix, child_node_id) in &self_node.children {
+            let prefix_str = get_string_clone(child_node_prefix);
+            let child_node_label = format!("{}{}", self_label, prefix_str);
+            self.print_node(child_node_id, tabs_offset + 1, &child_node_label);
+        }
     }
 }
 
@@ -192,35 +232,88 @@ fn log_new_tree_recursive(
         "{}{} <{}>",
         " ".repeat(level),
         node_label,
-        node_id,
+        // node_id, // Avoid showing Node ID.
+        "",
     );
-    let node = tree.nodes[node_id].borrow();
+    let node = tree.get_node(node_id).borrow();
     let rankings = &node.rankings;
-    if !rankings.is_empty() {
-        // This Node has Rankings.
-        line.push_str(" [");
-        for i in 0..rankings.len() - 1 {
-            let ranking = rankings[i];
-            line.push_str(&format!("{}, ", ranking));
-        }
-        line.push_str(&format!("{}]", rankings[rankings.len() - 1]));
+    line.push_str(" [");
+    for i in 0..rankings.len() - 1 {
+        let ranking = rankings[i];
+        line.push_str(&format!("{}, ", ranking));
     }
+    line.push_str(&format!("{}]", rankings[rankings.len() - 1]));
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");
-
     for &(child_node_prefix, child_node_id) in &node.children {
         let child_label = format!("{}{}", node_label, get_string_clone(child_node_prefix));
         log_new_tree_recursive(tree, child_node_id, &child_label, file, level + 1);
     }
 }
+pub fn log_new_tree_using_prog_sa(tree: &Tree, filepath: String, prog_sa: &ProgSuffixArray) {
+    let mut file = File::create(filepath).expect("Unable to create file");
+    // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
+    for &(child_node_prefix, child_node_id) in &tree.get_root().borrow().children {
+        let child_label = format!("{}", get_string_clone(child_node_prefix));
+        log_new_tree_using_prog_sa_recursive(
+            tree,
+            child_node_id,
+            &child_label,
+            prog_sa,
+            &mut file,
+            0,
+        );
+    }
+    file.flush().expect("Unable to flush file");
+}
+fn log_new_tree_using_prog_sa_recursive(
+    tree: &Tree,
+    node_id: usize,
+    node_label: &str,
+    prog_sa: &ProgSuffixArray,
+    file: &mut File,
+    level: usize,
+) {
+    let mut line = format!(
+        //
+        "{}{} <{}>",
+        " ".repeat(level),
+        node_label,
+        // node_id, // Avoid showing Node ID.
+        "",
+    );
+    let node = tree.get_node(node_id).borrow();
+    let rankings = prog_sa.get_rankings(node_id);
+    line.push_str(" [");
+    for i in 0..rankings.len() - 1 {
+        let ranking = rankings[i];
+        line.push_str(&format!("{}, ", ranking));
+    }
+    line.push_str(&format!("{}]", rankings[rankings.len() - 1]));
+    line.push_str("\n");
+    file.write(line.as_bytes()).expect("Unable to write line");
+    for &(child_node_prefix, child_node_id) in &node.children {
+        let child_label = format!("{}{}", node_label, get_string_clone(child_node_prefix));
+        log_new_tree_using_prog_sa_recursive(
+            tree,
+            child_node_id,
+            &child_label,
+            prog_sa,
+            file,
+            level + 1,
+        );
+    }
+}
 
 pub struct TreeNode<'a> {
+    pub suffix_len: usize,
     pub rankings: Vec<usize>,
     pub children: Vec<(&'a PrefixTrieString, usize)>,
 }
 impl<'a> TreeNode<'a> {
-    pub fn new() -> Self {
+    pub fn new(suffix_len: usize) -> Self {
         Self {
+            suffix_len,
             rankings: Vec::new(),
             children: Vec::new(),
         }
