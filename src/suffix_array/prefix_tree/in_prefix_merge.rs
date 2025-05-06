@@ -20,24 +20,26 @@ impl<'a> Tree<'a> {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        for &(_, first_layer_node_id) in &self.get_root().borrow().children {
+        let root_node = self.get_root().borrow();
+        for &(_, child_node_id) in &root_node.children {
             // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
-            let first_layer_node = self.get_node(first_layer_node_id).borrow_mut();
-            self.in_prefix_merge_first_layer(&first_layer_node, ip_merge_params, monitor, verbose);
+            let child_node = self.get_node(child_node_id).borrow_mut();
+            self.in_prefix_merge_first_layer(&child_node, ip_merge_params, monitor, verbose);
         }
     }
     fn in_prefix_merge_first_layer(
         &self,
-        first_layer_node: &RefMut<TreeNode<'a>>,
+        self_node: &RefMut<TreeNode<'a>>,
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        for &(_, second_layer_node_id) in &first_layer_node.children {
+        for &(_, child_node_id) in &self_node.children {
             // All Second Layer Nodes.
+            let mut child_node = self.get_node(child_node_id).borrow_mut();
             self.in_prefix_merge_deep(
-                second_layer_node_id,
-                &first_layer_node,
+                &mut child_node,
+                &self_node,
                 ip_merge_params,
                 monitor,
                 verbose,
@@ -46,7 +48,7 @@ impl<'a> Tree<'a> {
     }
     fn in_prefix_merge_deep(
         &self,
-        self_node_id: usize,
+        self_node: &mut RefMut<TreeNode<'a>>,
         parent_node: &RefMut<TreeNode<'a>>,
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
@@ -58,7 +60,6 @@ impl<'a> Tree<'a> {
         // Compare This Node's Rankings with Parent Node's Rankings.
         let parent_rankings = &parent_node.rankings;
 
-        let mut self_node = self.get_node(self_node_id).borrow_mut();
         let this_first_ls_index = self_node.rankings[0];
         // TODO: It seems that "depths[*]" is always achievable using "*_node.suffix_len"
         let this_ls_length = depths[this_first_ls_index];
@@ -230,7 +231,14 @@ impl<'a> Tree<'a> {
 
         // Now it's your turn to be the parent.
         for &(_, child_node_id) in &self_node.children {
-            self.in_prefix_merge_deep(child_node_id, &self_node, ip_merge_params, monitor, verbose);
+            let mut child_node = self.get_node(child_node_id).borrow_mut();
+            self.in_prefix_merge_deep(
+                &mut child_node,
+                &self_node,
+                ip_merge_params,
+                monitor,
+                verbose,
+            );
         }
     }
 }
