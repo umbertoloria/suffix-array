@@ -23,17 +23,25 @@ impl<'a> Tree<'a> {
         for &(_, first_layer_node_id) in &self.get_root().borrow().children {
             // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
             let first_layer_node = self.get_node(first_layer_node_id).borrow_mut();
-
-            for &(_, second_layer_node_id) in &first_layer_node.children {
-                // All Second Layer Nodes.
-                self.in_prefix_merge_deep(
-                    second_layer_node_id,
-                    &first_layer_node,
-                    ip_merge_params,
-                    monitor,
-                    verbose,
-                );
-            }
+            self.in_prefix_merge_first_layer(&first_layer_node, ip_merge_params, monitor, verbose);
+        }
+    }
+    fn in_prefix_merge_first_layer(
+        &self,
+        first_layer_node: &RefMut<TreeNode<'a>>,
+        ip_merge_params: &mut IPMergeParams,
+        monitor: &mut Monitor,
+        verbose: bool,
+    ) {
+        for &(_, second_layer_node_id) in &first_layer_node.children {
+            // All Second Layer Nodes.
+            self.in_prefix_merge_deep(
+                second_layer_node_id,
+                &first_layer_node,
+                ip_merge_params,
+                monitor,
+                verbose,
+            );
         }
     }
     fn in_prefix_merge_deep(
@@ -104,6 +112,7 @@ impl<'a> Tree<'a> {
                 // There is at least one Parent Ranking that is == to Curr LS. This means that there
                 // is a Window for Comparing Rankings using "RULES" to create. So now we are looking
                 // for the Max Father for closing this Window.
+                i_parent += 1;
                 while i_parent < parent_rankings.len() {
                     let curr_parent_ls_index = parent_rankings[i_parent];
                     let curr_parent_ls = &str[curr_parent_ls_index
