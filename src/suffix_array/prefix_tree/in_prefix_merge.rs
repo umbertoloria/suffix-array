@@ -115,65 +115,69 @@ impl<'a> Tree<'a> {
                     if curr_parent_ls == this_ls {
                         // Ok. This Parent Ranking is = than Curr LS as well. So the Window is not
                         // closed yet.
-                        self_node.max = Some(i_parent + 1);
                     } else {
                         // Found a Parent LS that is > Curr LS.
                         break;
                     }
                     i_parent += 1;
                 }
+                let max_father = i_parent;
+                self_node.max = Some(max_father);
 
                 i_parent = self_node.min.unwrap();
-                let mut j_this = 0;
 
+                // Now, the Window for Comparing Rankings using "RULES" is the following:
+                // - starts from "i_parent", included, and
+                // - ends with "max_father", excluded.
+                if verbose {
+                    println!("   > start comparing, window=[{},{})", i_parent, max_father);
+                }
+
+                // TODO: Avoid cloning Rankings (that live in Parent Rankings) into Child Rankings
                 let mut new_rankings = Vec::new();
-                if let Some(max_father) = self_node.max {
-                    if verbose {
-                        println!("   > start comparing, window=[{},{})", i_parent, max_father);
-                    }
-                    while i_parent < max_father && j_this < self_node.rankings.len() {
-                        let curr_parent_ls_index = parent_rankings[i_parent];
-                        let curr_this_ls_index = self_node.rankings[j_this];
-                        let child_offset = self_node.suffix_len;
-                        let result_rules = rules_safe(
-                            curr_parent_ls_index,
-                            curr_this_ls_index,
-                            child_offset,
-                            str,
-                            icfl_indexes,
-                            is_custom_vec,
-                            icfl_factor_list,
-                            compare_cache,
-                            monitor,
-                            false,
-                        );
-                        if !result_rules {
-                            if verbose {
-                                let curr_parent_ls =
-                                    &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
-                                let curr_this_ls =
-                                    &str[curr_this_ls_index..curr_this_ls_index + child_offset];
-                                println!(
-                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
-                                    curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, child_offset,
-                                );
-                            }
-                            new_rankings.push(curr_parent_ls_index);
-                            i_parent += 1;
-                        } else {
-                            if verbose {
-                                let curr_parent_ls =
-                                    &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
-                                let curr_this_ls =
-                                    &str[curr_this_ls_index..curr_this_ls_index + child_offset];
-                                println!(
-                                    "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
-                                    curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, child_offset,
-                                );
-                            }
-                            new_rankings.push(curr_this_ls_index);
-                            j_this += 1;
+                let mut j_this = 0;
+                while i_parent < max_father && j_this < self_node.rankings.len() {
+                    let curr_parent_ls_index = parent_rankings[i_parent];
+                    let curr_this_ls_index = self_node.rankings[j_this];
+                    let child_offset = self_node.suffix_len;
+                    let result_rules = rules_safe(
+                        curr_parent_ls_index,
+                        curr_this_ls_index,
+                        child_offset,
+                        str,
+                        icfl_indexes,
+                        is_custom_vec,
+                        icfl_factor_list,
+                        compare_cache,
+                        monitor,
+                        false,
+                    );
+                    if !result_rules {
+                        if verbose {
+                            let curr_parent_ls =
+                                &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
+                            let curr_this_ls =
+                                &str[curr_this_ls_index..curr_this_ls_index + child_offset];
+                            println!(
+                                "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
+                                curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, child_offset,
+                            );
                         }
+                        new_rankings.push(curr_parent_ls_index);
+                        i_parent += 1;
+                    } else {
+                        if verbose {
+                            let curr_parent_ls =
+                                &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
+                            let curr_this_ls =
+                                &str[curr_this_ls_index..curr_this_ls_index + child_offset];
+                            println!(
+                                "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
+                                curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, child_offset,
+                            );
+                        }
+                        new_rankings.push(curr_this_ls_index);
+                        j_this += 1;
                     }
                 }
                 if j_this < self_node.rankings.len() {
