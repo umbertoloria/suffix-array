@@ -166,7 +166,7 @@ pub fn compute_innovative_suffix_array(
     // Suffix Array
     monitor.p3_suffix_array.start();
     let mut sa = Vec::new();
-    tree.prepare_get_common_prefix_partition(&mut sa, str, debug_mode == DebugMode::Verbose);
+    tree.prepare_get_common_prefix_partition(&mut sa, debug_mode == DebugMode::Verbose);
     monitor.p3_suffix_array.stop();
 
     // +
