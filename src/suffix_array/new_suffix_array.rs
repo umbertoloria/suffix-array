@@ -1,8 +1,8 @@
 use crate::factorization::icfl::get_icfl_indexes;
 use crate::files::paths::{
     get_path_for_project_folder, get_path_for_project_outcome_file_json,
-    get_path_for_project_prefix_tree_file, get_path_for_project_prefix_trie_file,
-    get_path_for_project_suffix_array_file, get_path_for_project_timing_file_json,
+    get_path_for_project_prefix_trie_file, get_path_for_project_suffix_array_file,
+    get_path_for_project_timing_file_json,
 };
 use crate::suffix_array::chunking::get_custom_factors_and_more;
 use crate::suffix_array::compare_cache::CompareCache;
@@ -138,7 +138,8 @@ pub fn compute_innovative_suffix_array(
         icfl_factor_list: &icfl_factor_list,
         compare_cache: &mut compare_cache,
     };
-    tree.in_prefix_merge(
+    let sa = tree.in_prefix_merge(
+        str_length,
         &mut ip_merge_params,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
@@ -156,17 +157,18 @@ pub fn compute_innovative_suffix_array(
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
             &prog_sa,
         );*/
-        log_new_tree(
+        // TODO: Unable to log Tree with "Inherited Rankings" since In-prefix Merge Phase eats them
+        /*log_new_tree(
             &tree,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
-        );
+        );*/
     }
     // -
 
     // Suffix Array
     monitor.p3_suffix_array.start();
-    let mut sa = Vec::new();
-    tree.prepare_get_common_prefix_partition(&mut sa, debug_mode == DebugMode::Verbose);
+    // let mut sa_old = Vec::new();
+    // tree.prepare_get_common_prefix_partition(&mut sa_old, debug_mode == DebugMode::Verbose);
     monitor.p3_suffix_array.stop();
 
     // +

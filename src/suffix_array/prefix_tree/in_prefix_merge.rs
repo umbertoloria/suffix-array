@@ -16,35 +16,85 @@ pub struct IPMergeParams<'a> {
 impl<'a> Tree<'a> {
     pub fn in_prefix_merge(
         &self,
+        str_length: usize,
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
         verbose: bool,
-    ) {
+    ) -> Vec<usize> {
+        let mut sa = Vec::with_capacity(str_length);
         let root_node = self.get_root().borrow();
         for &(_, child_node_id) in &root_node.children {
             // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
-            let child_node = self.get_node(child_node_id).borrow_mut();
-            self.in_prefix_merge_first_layer(&child_node, ip_merge_params, monitor, verbose);
+            let mut child_node = self.get_node(child_node_id).borrow_mut();
+            let child_node_cpp = self.in_prefix_merge_children_and_get_common_prefix_partition(
+                &mut child_node,
+                ip_merge_params,
+                monitor,
+                verbose,
+            );
+            sa.extend(child_node_cpp);
         }
+        sa
     }
-    fn in_prefix_merge_first_layer(
+    fn in_prefix_merge_children_and_get_common_prefix_partition(
         &self,
-        self_node: &RefMut<TreeNode<'a>>,
+        self_node: &mut RefMut<TreeNode<'a>>,
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
         verbose: bool,
-    ) {
+    ) -> Vec<usize> {
+        let mut result_cpp = Vec::new();
+        let mut position = 0;
+
         for &(_, child_node_id) in &self_node.children {
-            // All Second Layer Nodes.
             let mut child_node = self.get_node(child_node_id).borrow_mut();
-            self.in_prefix_merge_deep(
+            let child_cpp = self.in_prefix_merge_deep(
                 &mut child_node,
                 &self_node,
                 ip_merge_params,
                 monitor,
                 verbose,
             );
+
+            // Add all Self Node's Rankings.
+            if let Some(min_father) = child_node.min {
+                if verbose {
+                    // Unfortunately, we don't have "self_node_id" :(
+                    println!("Here self=?? and child={child_node_id}");
+                }
+
+                // There is a Min Father, so use all Self Node's Rankings remained (from "position")
+                // until "min_father" position (if there are some).
+                if position < min_father {
+                    // There are some Self Node's Rankings from "position" to "min_father".
+                    result_cpp.extend(&self_node.rankings[position..min_father]);
+                    position = min_father;
+                }
+                if let Some(max_father) = child_node.max {
+                    // Here, there is both a Min Father and a Max Father, this means that there
+                    // exist a Window for Comparing Rankings using "RULES". This means that all
+                    // Self Node's Rankings from Min Father to Max Father should be ignored since
+                    // they are transformed into "Inherited Rankings" (during In-prefix Merge Phase)
+                    // now, so they are inside as Children's Rankings and will be dealt with later
+                    // (when these Children Nodes become Self Nodes for this procedure).
+                    position = max_father;
+                }
+            } else {
+                // Min Father is None. There's no Window for Comparing Rankings using "RULES". This
+                // means that:
+                // all Self Node's Rankings have LSs that are < than all Child Node's Rankings.
+                // So we take firstly Self Node's Rankings, and then all the Child Node's Rankings.
+                result_cpp.extend(&self_node.rankings[position..]);
+                position = self_node.rankings.len();
+            }
+
+            // Add all Child Node's Rankings.
+            result_cpp.extend(child_cpp);
         }
+
+        result_cpp.extend(&self_node.rankings[position..]);
+
+        result_cpp
     }
     fn in_prefix_merge_deep(
         &self,
@@ -53,7 +103,7 @@ impl<'a> Tree<'a> {
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
         verbose: bool,
-    ) {
+    ) -> Vec<usize> {
         let str = ip_merge_params.str;
         let depths = ip_merge_params.depths;
 
@@ -230,15 +280,11 @@ impl<'a> Tree<'a> {
         }
 
         // Now it's your turn to be the parent.
-        for &(_, child_node_id) in &self_node.children {
-            let mut child_node = self.get_node(child_node_id).borrow_mut();
-            self.in_prefix_merge_deep(
-                &mut child_node,
-                &self_node,
-                ip_merge_params,
-                monitor,
-                verbose,
-            );
-        }
+        self.in_prefix_merge_children_and_get_common_prefix_partition(
+            self_node,
+            ip_merge_params,
+            monitor,
+            verbose,
+        )
     }
 }
