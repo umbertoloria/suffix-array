@@ -70,8 +70,8 @@ pub fn compute_innovative_suffix_array(
     }
     monitor.p12_cust_fact.stop();
 
-    // Prefix Trie Create
-    monitor.p21_trie_create.start();
+    // Tree Create
+    monitor.p21_tree_create.start();
     let mut depths = vec![0usize; str_length];
     let mut tree = create_new_tree(
         s_bytes,
@@ -81,7 +81,7 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
-    monitor.p21_trie_create.stop();
+    monitor.p21_tree_create.stop();
 
     // +
     if debug_mode == DebugMode::Verbose {
@@ -100,7 +100,7 @@ pub fn compute_innovative_suffix_array(
         );
     }
 
-    // Shrink Trie
+    // Re-order IDs (?)
     monitor.p22_shrink.start();
     // TODO: Remove this phase or just Order IDs in a DFS-fashion.
     monitor.p22_shrink.stop();
@@ -117,10 +117,10 @@ pub fn compute_innovative_suffix_array(
         );
     }
 
-    /*if debug_mode == DebugMode::Verbose {
-        println!("Before PREFIX TREE CREATE");
-        prefix_trie.print_from_prog_sa(0, "", str, &prog_sa);
-    }*/
+    if debug_mode == DebugMode::Verbose {
+        println!("Before IN-PREFIX MERGE");
+        tree.print();
+    }
     // -
 
     // FOR DEBUG PURPOSES
@@ -142,10 +142,10 @@ pub fn compute_innovative_suffix_array(
     monitor.p23_in_prefix_merge.stop();
 
     // +
-    /*if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
-        println!("After IN_PREFIX_MERGE");
-        prefix_trie.print_from_prog_sa(0, "", str, &prog_sa);
-    }*/
+    if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
+        println!("After IN-PREFIX MERGE");
+        tree.print();
+    }
     if perform_logging {
         /*log_new_tree_using_prog_sa(
             &tree,

@@ -130,8 +130,8 @@ fn run_and_validate_test(
         &execution_timing.p12_cust_fact.dur,
     );
     print_duration(
-        " > Phase 2.1: Trie create         ",
-        &execution_timing.p21_trie_create.dur,
+        " > Phase 2.1: Tree create         ",
+        &execution_timing.p21_tree_create.dur,
     );
     print_duration(
         " > Phase 2.2: Shrink              ",

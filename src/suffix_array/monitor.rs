@@ -7,7 +7,7 @@ pub struct Monitor {
     pub whole_duration: MonitorInterval,
     pub p11_icfl: MonitorInterval,
     pub p12_cust_fact: MonitorInterval,
-    pub p21_trie_create: MonitorInterval,
+    pub p21_tree_create: MonitorInterval,
     pub p22_shrink: MonitorInterval,
     pub p23_in_prefix_merge: MonitorInterval,
     pub p3_suffix_array: MonitorInterval,
@@ -21,7 +21,7 @@ impl Monitor {
             whole_duration: MonitorInterval::new(),
             p11_icfl: MonitorInterval::new(),
             p12_cust_fact: MonitorInterval::new(),
-            p21_trie_create: MonitorInterval::new(),
+            p21_tree_create: MonitorInterval::new(),
             p22_shrink: MonitorInterval::new(),
             p23_in_prefix_merge: MonitorInterval::new(),
             p3_suffix_array: MonitorInterval::new(),
@@ -98,7 +98,7 @@ pub struct ExecutionTiming {
     // Phases
     pub p11_icfl: ExecutionTimingPhase,
     pub p12_cust_fact: ExecutionTimingPhase,
-    pub p21_trie_create: ExecutionTimingPhase,
+    pub p21_tree_create: ExecutionTimingPhase,
     pub p22_shrink: ExecutionTimingPhase,
     pub p23_in_prefix_merge: ExecutionTimingPhase,
     pub p3_suffix_array: ExecutionTimingPhase,
@@ -107,7 +107,7 @@ impl ExecutionTiming {
     pub fn new(monitor: &Monitor) -> Self {
         let p11_icfl = monitor.p11_icfl.get_duration().unwrap();
         let p12_cust_fact = monitor.p12_cust_fact.get_duration().unwrap();
-        let p21_trie_create = monitor.p21_trie_create.get_duration().unwrap();
+        let p21_tree_create = monitor.p21_tree_create.get_duration().unwrap();
         let p22_shrink = monitor.p22_shrink.get_duration().unwrap();
         let p23_in_prefix_merge = monitor.p23_in_prefix_merge.get_duration().unwrap();
         let p3_suffix_array = monitor.p3_suffix_array.get_duration().unwrap();
@@ -116,7 +116,7 @@ impl ExecutionTiming {
         // Sum Durations (Only Phases)
         let sum_duration_only_phases = p11_icfl
             + p12_cust_fact
-            + p21_trie_create
+            + p21_tree_create
             + p22_shrink
             + p23_in_prefix_merge
             + p3_suffix_array;
@@ -130,25 +130,24 @@ impl ExecutionTiming {
         let p11_icfl_perc = round_int_100(p11_icfl.as_micros() as f32 / sum_micros_excl_extra);
         let p12_cust_fact_perc =
             round_int_100(p12_cust_fact.as_micros() as f32 / sum_micros_excl_extra);
-        let p21_trie_create_perc =
-            round_int_100(p21_trie_create.as_micros() as f32 / sum_micros_excl_extra);
+        let p21_tree_create_perc =
+            round_int_100(p21_tree_create.as_micros() as f32 / sum_micros_excl_extra);
         let p22_shrink_perc = round_int_100(p22_shrink.as_micros() as f32 / sum_micros_excl_extra);
         let p23_in_prefix_merge_perc =
             round_int_100(p23_in_prefix_merge.as_micros() as f32 / sum_micros_excl_extra);
         let p3_suffix_array_perc = 100
             - (p11_icfl_perc
                 + p12_cust_fact_perc
-                + p21_trie_create_perc
+                + p21_tree_create_perc
                 + p22_shrink_perc
                 + p23_in_prefix_merge_perc)
                 .min(100);
         /*let perc_p3_suffix_array = round_int_5(p3_suffix_array.as_micros() as f32 / sum_micros_excl_extra);
-        let check_sum = perc_p11_icfl
-            + perc_p12_cust_fact
-            + perc_p21_trie_create
-            + perc_p22_shrink
-            + perc_p23_merge_rankings
-            + perc_p23_in_prefix_merge
+        let check_sum = p11_icfl_perc
+            + p12_cust_fact_perc
+            + p21_tree_create_perc
+            + p22_shrink_perc
+            + p3_suffix_array_perc
             + perc_p3_suffix_array;
         if check_sum != 100 {
             // PROBLEM
@@ -160,10 +159,8 @@ impl ExecutionTiming {
             /*duration_extra,
             perc_with_extra_p11: p11_icfl.as_micros() as f64 / sum_micros_incl_extra as f64,
             perc_with_extra_p12: p12_cust_fact.as_micros() as f64 / sum_micros_incl_extra as f64,
-            perc_with_extra_p21: p21_trie_create.as_micros() as f64 / sum_micros_incl_extra as f64,
+            perc_with_extra_p21: p21_tree_create.as_micros() as f64 / sum_micros_incl_extra as f64,
             perc_with_extra_p22: p22_shrink.as_micros() as f64 / sum_micros_incl_extra as f64,
-            perc_with_extra_p23: p23_merge_rankings.as_micros() as f64
-                / sum_micros_incl_extra as f64,
             perc_with_extra_p23: p23_in_prefix_merge.as_micros() as f64
                 / sum_micros_incl_extra as f64,
             perc_with_extra_p3: p3_suffix_array.as_micros() as f64 / sum_micros_incl_extra as f64,
@@ -176,9 +173,9 @@ impl ExecutionTiming {
                 dur: p12_cust_fact,
                 perc: p12_cust_fact_perc,
             },
-            p21_trie_create: ExecutionTimingPhase {
-                dur: p21_trie_create,
-                perc: p21_trie_create_perc,
+            p21_tree_create: ExecutionTimingPhase {
+                dur: p21_tree_create,
+                perc: p21_tree_create_perc,
             },
             p22_shrink: ExecutionTimingPhase {
                 dur: p22_shrink,

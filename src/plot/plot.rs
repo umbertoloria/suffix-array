@@ -30,7 +30,7 @@ pub fn draw_plot_from_monitor(
                     vec![
                         (et.p11_icfl.dur.as_micros() as i32, GREY_500),
                         (et.p12_cust_fact.dur.as_micros() as i32, GREY_600),
-                        (et.p21_trie_create.dur.as_micros() as i32, ORANGE_300),
+                        (et.p21_tree_create.dur.as_micros() as i32, ORANGE_300),
                         (et.p22_shrink.dur.as_micros() as i32, ORANGE_600),
                         (et.p23_in_prefix_merge.dur.as_micros() as i32, GREEN_500),
                         (et.p3_suffix_array.dur.as_micros() as i32, YELLOW_600),
