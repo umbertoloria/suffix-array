@@ -1,15 +1,12 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
+use crate::suffix_array::prefix_tree::in_prefix_merge::IPMergeParams;
 
 pub fn rules_safe(
     x: usize,
     y: usize,
     child_offset: usize,
-    str: &str,
-    icfl_list: &Vec<usize>,
-    is_custom_vec: &Vec<bool>,
-    icfl_factor_list: &Vec<usize>,
-    compare_cache: &mut CompareCache,
+    ip_merge_params: &mut IPMergeParams,
     monitor: &mut Monitor,
     slow_check: bool,
 ) -> bool {
@@ -18,16 +15,16 @@ pub fn rules_safe(
             x,
             y,
             child_offset,
-            str,
-            icfl_list,
-            is_custom_vec,
-            icfl_factor_list,
-            compare_cache,
+            ip_merge_params.str,
+            ip_merge_params.icfl_indexes,
+            ip_merge_params.is_custom_vec,
+            ip_merge_params.icfl_factor_list,
+            ip_merge_params.compare_cache,
             monitor,
         )
     } else {
-        let cmp1_father = &str[x + child_offset..];
-        let cmp2_child = &str[y + child_offset..];
+        let cmp1_father = &ip_merge_params.str[x + child_offset..];
+        let cmp2_child = &ip_merge_params.str[y + child_offset..];
         let mut oracle;
         if cmp1_father < cmp2_child {
             oracle = false; // Father first.
@@ -38,11 +35,11 @@ pub fn rules_safe(
             x,
             y,
             child_offset,
-            str,
-            icfl_list,
-            is_custom_vec,
-            icfl_factor_list,
-            compare_cache,
+            ip_merge_params.str,
+            ip_merge_params.icfl_indexes,
+            ip_merge_params.is_custom_vec,
+            ip_merge_params.icfl_factor_list,
+            ip_merge_params.compare_cache,
             monitor,
         );
         if given != oracle {

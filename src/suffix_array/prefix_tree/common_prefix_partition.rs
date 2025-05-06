@@ -8,6 +8,7 @@ impl<'a> Tree<'a> {
         verbose: bool,
     ) {
         for &(_, child_node_id) in &self.get_root().borrow().children {
+            // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
             sa.extend(self.get_common_prefix_partition(child_node_id, str, verbose));
         }
     }

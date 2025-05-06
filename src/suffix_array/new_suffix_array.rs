@@ -9,6 +9,7 @@ use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
+use crate::suffix_array::prefix_tree::in_prefix_merge::IPMergeParams;
 use crate::suffix_array::prefix_tree::new_tree::log_new_tree;
 use crate::suffix_array::prefix_tree::new_tree_create::create_new_tree;
 use crate::suffix_array::suffix_array::suffix_array_logger::{
@@ -129,13 +130,16 @@ pub fn compute_innovative_suffix_array(
     // In-prefix Merge
     monitor.p23_in_prefix_merge.start();
     let mut compare_cache = CompareCache::new();
-    tree.in_prefix_merge(
+    let mut ip_merge_params = IPMergeParams {
         str,
-        &mut depths,
-        &icfl_indexes,
-        &is_custom_vec,
-        &icfl_factor_list,
-        &mut compare_cache,
+        depths: &depths,
+        icfl_indexes: &icfl_indexes,
+        is_custom_vec: &is_custom_vec,
+        icfl_factor_list: &icfl_factor_list,
+        compare_cache: &mut compare_cache,
+    };
+    tree.in_prefix_merge(
+        &mut ip_merge_params,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );

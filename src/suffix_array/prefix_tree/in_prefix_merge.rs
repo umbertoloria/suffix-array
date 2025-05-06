@@ -4,15 +4,19 @@ use crate::suffix_array::prefix_tree::new_tree::{Tree, TreeNode};
 use crate::suffix_array::prefix_trie::rules::rules_safe;
 use std::cell::RefMut;
 
+pub struct IPMergeParams<'a> {
+    pub str: &'a str,
+    pub depths: &'a Vec<usize>,
+    pub icfl_indexes: &'a Vec<usize>,
+    pub is_custom_vec: &'a Vec<bool>,
+    pub icfl_factor_list: &'a Vec<usize>,
+    pub compare_cache: &'a mut CompareCache,
+}
+
 impl<'a> Tree<'a> {
     pub fn in_prefix_merge(
         &self,
-        str: &str,
-        depths: &Vec<usize>,
-        icfl_indexes: &Vec<usize>,
-        is_custom_vec: &Vec<bool>,
-        icfl_factor_list: &Vec<usize>,
-        compare_cache: &mut CompareCache,
+        ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
         verbose: bool,
     ) {
@@ -25,12 +29,7 @@ impl<'a> Tree<'a> {
                 self.in_prefix_merge_deep(
                     second_layer_node_id,
                     &first_layer_node,
-                    str,
-                    depths,
-                    icfl_indexes,
-                    is_custom_vec,
-                    icfl_factor_list,
-                    compare_cache,
+                    ip_merge_params,
                     monitor,
                     verbose,
                 );
@@ -41,15 +40,13 @@ impl<'a> Tree<'a> {
         &self,
         self_node_id: usize,
         parent_node: &RefMut<TreeNode<'a>>,
-        str: &str,
-        depths: &Vec<usize>,
-        icfl_indexes: &Vec<usize>,
-        is_custom_vec: &Vec<bool>,
-        icfl_factor_list: &Vec<usize>,
-        compare_cache: &mut CompareCache,
+        ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
         verbose: bool,
     ) {
+        let str = ip_merge_params.str;
+        let depths = ip_merge_params.depths;
+
         // Compare This Node's Rankings with Parent Node's Rankings.
         let parent_rankings = &parent_node.rankings;
 
@@ -144,11 +141,7 @@ impl<'a> Tree<'a> {
                         curr_parent_ls_index,
                         curr_this_ls_index,
                         child_offset,
-                        str,
-                        icfl_indexes,
-                        is_custom_vec,
-                        icfl_factor_list,
-                        compare_cache,
+                        ip_merge_params,
                         monitor,
                         false,
                     );
@@ -228,18 +221,7 @@ impl<'a> Tree<'a> {
 
         // Now it's your turn to be the parent.
         for &(_, child_node_id) in &self_node.children {
-            self.in_prefix_merge_deep(
-                child_node_id,
-                &self_node,
-                str,
-                depths,
-                icfl_indexes,
-                is_custom_vec,
-                icfl_factor_list,
-                compare_cache,
-                monitor,
-                verbose,
-            );
+            self.in_prefix_merge_deep(child_node_id, &self_node, ip_merge_params, monitor, verbose);
         }
     }
 }
