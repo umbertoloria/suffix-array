@@ -16,17 +16,20 @@ impl<'a> Tree<'a> {
         monitor: &mut Monitor,
         verbose: bool,
     ) {
-        for &(_, child_node_id) in &self.get_root().borrow().children {
-            let child_node = self.get_node(child_node_id).borrow_mut();
-            for &(_, child_child_node_id) in &child_node.children {
+        for &(_, first_layer_node_id) in &self.get_root().borrow().children {
+            // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
+            let first_layer_node = self.get_node(first_layer_node_id).borrow_mut();
+
+            for &(_, second_layer_node_id) in &first_layer_node.children {
+                // All Second Layer Nodes.
                 self.in_prefix_merge_deep(
-                    child_child_node_id,
+                    second_layer_node_id,
+                    &first_layer_node,
                     str,
                     depths,
                     icfl_indexes,
                     is_custom_vec,
                     icfl_factor_list,
-                    &child_node,
                     compare_cache,
                     monitor,
                     verbose,
@@ -37,12 +40,12 @@ impl<'a> Tree<'a> {
     fn in_prefix_merge_deep(
         &self,
         self_node_id: usize,
+        parent_node: &RefMut<TreeNode<'a>>,
         str: &str,
         depths: &Vec<usize>,
         icfl_indexes: &Vec<usize>,
         is_custom_vec: &Vec<bool>,
         icfl_factor_list: &Vec<usize>,
-        parent_node: &RefMut<TreeNode<'a>>,
         compare_cache: &mut CompareCache,
         monitor: &mut Monitor,
         verbose: bool,
@@ -67,48 +70,57 @@ impl<'a> Tree<'a> {
 
         // MERGE RANKINGS
         let mut i_parent = 0;
-
         while i_parent < parent_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
             // TODO: Monitor string compare
             if curr_parent_ls < this_ls {
-                // Go ahead, this part of Parent Rankings has LSs that are < than Curr LS.
-                i_parent += 1;
+                // Ok. All Parent Rankings from left to here have LSs that are < than Curr LS.
             } else {
                 // Found a Parent LS that is >= Curr LS.
                 self_node.min = Some(i_parent);
                 break;
             }
+            i_parent += 1;
         }
-        if i_parent >= parent_rankings.len() {
-            // This means "min_father"=None and "max_father"=None.
-        } else {
-            // From here, we have a "min_father" value.
+        if i_parent < parent_rankings.len() {
+            // From here, we have a "min_father" value. So it's true that there is at least one
+            // Parent Ranking that have LS that is >= than Curr LS.
 
-            // let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
+            // If Curr Parent Ranking has LS that is > than Curr LS then "max_father"=None. So there
+            // would be no Window for Comparing Rankings using "RULES", since from here on all
+            // Parent Rankings would have LSs that are > than Curr LS.
+
+            // If Curr Parent Ranking has LS that is == than Curr LS then we would look for a
+            // Max Father to set in order to have a Window for Comparing Rankings using "RULES".
+
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
-            // TODO: Monitor string compare
-            if curr_parent_ls > this_ls {
+            /*if curr_parent_ls > this_ls {
                 // This means "max_father"=None.
                 // There's no Window for Comparing Rankings using "RULES".
-            } else {
+            }*/
+            // TODO: Monitor string compare
+            if curr_parent_ls == this_ls {
+                // There is at least one Parent Ranking that is == to Curr LS. This means that there
+                // is a Window for Comparing Rankings using "RULES" to create. So now we are looking
+                // for the Max Father for closing this Window.
                 while i_parent < parent_rankings.len() {
                     let curr_parent_ls_index = parent_rankings[i_parent];
                     let curr_parent_ls = &str[curr_parent_ls_index
                         ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
                     // TODO: Monitor string compare
                     if curr_parent_ls == this_ls {
-                        // Go ahead, this part of Parent Rankings has LSs that are = than Curr LS.
+                        // Ok. This Parent Ranking is = than Curr LS as well. So the Window is not
+                        // closed yet.
                         self_node.max = Some(i_parent + 1);
-                        i_parent += 1;
                     } else {
                         // Found a Parent LS that is > Curr LS.
                         break;
                     }
+                    i_parent += 1;
                 }
 
                 i_parent = self_node.min.unwrap();
@@ -137,22 +149,26 @@ impl<'a> Tree<'a> {
                         );
                         if !result_rules {
                             if verbose {
+                                let curr_parent_ls =
+                                    &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
+                                let curr_this_ls =
+                                    &str[curr_this_ls_index..curr_this_ls_index + child_offset];
                                 println!(
                                     "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
-                                    &str
-                                        [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
-                                        [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
+                                    curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, child_offset,
                                 );
                             }
                             new_rankings.push(curr_parent_ls_index);
                             i_parent += 1;
                         } else {
                             if verbose {
+                                let curr_parent_ls =
+                                    &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
+                                let curr_this_ls =
+                                    &str[curr_this_ls_index..curr_this_ls_index + child_offset];
                                 println!(
                                     "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
-                                    &str
-                                        [curr_parent_ls_index..curr_parent_ls_index + child_offset], curr_parent_ls_index, &str
-                                        [curr_this_ls_index..curr_this_ls_index + child_offset], curr_this_ls_index, child_offset
+                                    curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index, child_offset,
                                 );
                             }
                             new_rankings.push(curr_this_ls_index);
@@ -210,12 +226,12 @@ impl<'a> Tree<'a> {
         for &(_, child_node_id) in &self_node.children {
             self.in_prefix_merge_deep(
                 child_node_id,
+                &self_node,
                 str,
                 depths,
                 icfl_indexes,
                 is_custom_vec,
                 icfl_factor_list,
-                &self_node,
                 compare_cache,
                 monitor,
                 verbose,
