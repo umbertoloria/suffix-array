@@ -6,7 +6,6 @@ use std::cell::Ref;
 
 pub struct IPMergeParams<'a> {
     pub str: &'a str,
-    pub depths: &'a Vec<usize>,
     pub icfl_indexes: &'a Vec<usize>,
     pub is_custom_vec: &'a Vec<bool>,
     pub icfl_factor_list: &'a Vec<usize>,
@@ -115,20 +114,19 @@ impl<'a> Tree<'a> {
         verbose: bool,
     ) -> (Vec<usize>, Option<usize>, Option<usize>) {
         let str = ip_merge_params.str;
-        let depths = ip_merge_params.depths;
 
         // Compare This Node's Rankings with Parent Node's Rankings.
         let this_first_ls_index = self_rankings[0];
-        // TODO: It seems that "depths[*]" is always achievable using "*_node.suffix_len"
-        let this_ls_length = depths[this_first_ls_index];
+        let this_ls_length = self_node.suffix_len;
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
         if verbose {
             let parent_first_ls_index = parent_rankings[0];
-            let parent_ls_length = depths[parent_first_ls_index];
-            let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
+            // Should use "parent_node.suffix_len".
+            // let parent_ls_length = depths[parent_first_ls_index];
+            // let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
             println!(
                 "Compare parent ({}) {:?} with curr ({}) {:?}",
-                parent_ls, parent_rankings, this_ls, self_rankings
+                parent_first_ls_index, parent_rankings, this_ls, self_rankings
             );
         }
 

@@ -6,7 +6,6 @@ pub fn create_new_tree<'a>(
     s_bytes: &'a [u8],
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
-    depths: &mut Vec<usize>,
     monitor: &mut Monitor,
     verbose: bool,
 ) -> Tree<'a> {
@@ -54,7 +53,6 @@ pub fn create_new_tree<'a>(
         // LSs that come from Canonical Factors (already sorted)
         for &(ls_index, ls_size) in &params_canonical {
             tree.add(ls_index, ls_size, false, s_bytes, verbose);
-            depths[ls_index] = ls_size;
             if verbose {
                 tree.print();
             }
@@ -64,7 +62,6 @@ pub fn create_new_tree<'a>(
         // LSs that come from Custom Factors (to sort)
         for &(ls_index, ls_size) in &params_custom {
             tree.add(ls_index, ls_size, true, s_bytes, verbose);
-            depths[ls_index] = ls_size;
             if verbose {
                 tree.print();
             }

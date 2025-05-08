@@ -73,12 +73,10 @@ pub fn compute_innovative_suffix_array(
 
     // Tree Create
     monitor.p21_tree_create.start();
-    let mut depths = vec![0usize; str_length];
     let mut tree = create_new_tree(
         s_bytes,
         &custom_indexes,
         &is_custom_vec,
-        &mut depths,
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
@@ -114,7 +112,6 @@ pub fn compute_innovative_suffix_array(
             &custom_indexes,
             &icfl_factor_list,
             &is_custom_vec,
-            &depths,
         );
     }
 
@@ -132,7 +129,6 @@ pub fn compute_innovative_suffix_array(
     let mut compare_cache = CompareCache::new();
     let mut ip_merge_params = IPMergeParams {
         str,
-        depths: &depths,
         icfl_indexes: &icfl_indexes,
         is_custom_vec: &is_custom_vec,
         icfl_factor_list: &icfl_factor_list,
@@ -217,7 +213,7 @@ fn print_for_human_like_debug(
     custom_indexes: &Vec<usize>,
     icfl_factor_list: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
-    depths: &Vec<usize>,
+    // depths: &Vec<usize>,
 ) {
     // CHAR INDEXES
     for i in 0..str_length {
@@ -247,10 +243,10 @@ fn print_for_human_like_debug(
         i += 1;
     }
     println!("   <= IS IN CUSTOM FACTOR");
-    for i in 0..str_length {
+    /*for i in 0..str_length {
         print!(" {:2} ", depths[i]);
     }
-    println!("   <= DEPTHS");
+    println!("   <= DEPTHS");*/
 }
 fn print_indexes_list(indexes_list: &Vec<usize>, str_length: usize) {
     let mut iter = &mut indexes_list.iter();

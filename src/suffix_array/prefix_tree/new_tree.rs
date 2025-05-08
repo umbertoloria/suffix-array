@@ -28,15 +28,13 @@ impl<'a> Tree<'a> {
         s_bytes: &'a [u8],
         verbose: bool,
     ) {
-        let ls = &s_bytes[ls_index..ls_index + ls_size];
-
         let mut i_node = 0;
         let mut i_char = 0;
         while i_char < ls_size {
             let curr_node_rc = self.nodes[i_node].clone();
             let mut curr_node = curr_node_rc.borrow_mut();
 
-            let rest_of_ls = &ls[i_char..];
+            let rest_of_ls = &s_bytes[ls_index + i_char..ls_index + ls_size];
 
             if verbose {
                 println!(
@@ -55,6 +53,7 @@ impl<'a> Tree<'a> {
                         get_string_clone(rest_of_ls)
                     );
                 }
+                // i_char += rest_of_ls.len(); // Here useless but meaningful.
                 break;
             }
 
