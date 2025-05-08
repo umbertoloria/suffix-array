@@ -314,8 +314,6 @@ pub struct TreeNode<'a> {
     pub suffix_len: usize,
     pub rankings: Vec<usize>,
     pub children: Vec<(&'a PrefixTrieString, usize)>,
-    pub min: Option<usize>,
-    pub max: Option<usize>,
 }
 impl<'a> TreeNode<'a> {
     pub fn new(suffix_len: usize) -> Self {
@@ -323,8 +321,6 @@ impl<'a> TreeNode<'a> {
             suffix_len,
             rankings: Vec::new(),
             children: Vec::new(),
-            min: None,
-            max: None,
         }
     }
     fn update_rankings(&mut self, ls_index: usize, is_custom_ls: bool, s_bytes: &[u8]) {

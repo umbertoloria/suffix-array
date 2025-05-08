@@ -1,6 +1,4 @@
-use crate::suffix_array::prefix_tree::new_tree::{Tree, TreeNode};
-use std::cell::RefMut;
-
+/*
 impl<'a> Tree<'a> {
     pub fn prepare_get_common_prefix_partition(&self, sa: &mut Vec<usize>, verbose: bool) {
         for &(_, first_layer_node_id) in &self.get_root().borrow().children {
@@ -71,3 +69,4 @@ impl<'a> Tree<'a> {
         result
     }
 }
+*/
