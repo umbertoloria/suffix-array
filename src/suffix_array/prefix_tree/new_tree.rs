@@ -87,7 +87,14 @@ impl<'a> Tree<'a> {
                         p = mid + 1;
                     }
                 } else {
-                    // TODO: Simplify branch nidification
+                    // Due to how this New Tree structure is used, all the code commented below can
+                    // be simplified in this code here. Still, it's kept for further explanation.
+                    i_node = mid_node_id;
+                    i_char += i;
+                    break;
+
+                    /*
+                    // TOD: Simplify branch nidification
                     // Here it can be true either:
                     // 1. Strings are the same, or
                     // 2. Strings have some prefix relation.
@@ -128,7 +135,7 @@ impl<'a> Tree<'a> {
                                     get_string_clone(mid_str),
                                 );
                             }
-                            // TODO: Here, we should update this Edge (that has string "mid_str")
+                            // TOD: Here, we should update this Edge (that has string "mid_str")
                             //  to use the string "rest_of_ls", since "rest_of_ls" is prefix of
                             //  "mid_str". Here we avoid coding this since the callee of this
                             //  function already knows that has to add first all LSs with length "i"
@@ -148,6 +155,7 @@ impl<'a> Tree<'a> {
                             break;
                         }
                     }
+                    */
                 }
             }
             if p >= q {
