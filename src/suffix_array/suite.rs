@@ -130,16 +130,8 @@ fn run_and_validate_test(
         &execution_timing.p12_cust_fact.dur,
     );
     print_duration(
-        " > Phase 2.1: Tree create         ",
-        &execution_timing.p21_tree_create.dur,
-    );
-    print_duration(
-        " > Phase 2.2: Shrink              ",
-        &execution_timing.p22_shrink.dur,
-    );
-    print_duration(
-        " > Phase 2.3: In-prefix merge     ",
-        &execution_timing.p23_in_prefix_merge.dur,
+        " > Phase 2  : Tree create         ",
+        &execution_timing.p2_tree_create.dur,
     );
     print_duration(
         " > Phase 3  : Suffix Array        ",

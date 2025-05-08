@@ -72,7 +72,7 @@ pub fn compute_innovative_suffix_array(
     monitor.p12_cust_fact.stop();
 
     // Tree Create
-    monitor.p21_tree_create.start();
+    monitor.p2_tree_create.start();
     let mut tree = create_new_tree(
         s_bytes,
         &custom_indexes,
@@ -80,7 +80,7 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
-    monitor.p21_tree_create.stop();
+    monitor.p2_tree_create.stop();
 
     // +
     if debug_mode == DebugMode::Verbose {
@@ -98,11 +98,6 @@ pub fn compute_innovative_suffix_array(
             get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
         );
     }
-
-    // Re-order IDs (?)
-    monitor.p22_shrink.start();
-    // TODO: Remove this phase or just Order IDs in a DFS-fashion.
-    monitor.p22_shrink.stop();
 
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
         print_for_human_like_debug(
@@ -124,8 +119,8 @@ pub fn compute_innovative_suffix_array(
     // FOR DEBUG PURPOSES
     // prefix_trie.debug_dfs();
 
-    // In-prefix Merge
-    monitor.p23_in_prefix_merge.start();
+    // In-prefix Merge and Common Prefix Partition Assemble for Suffix Array Build
+    monitor.p3_suffix_array.start();
     let mut compare_cache = CompareCache::new();
     let mut ip_merge_params = IPMergeParams {
         str,
@@ -140,7 +135,7 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
         debug_mode == DebugMode::Verbose,
     );
-    monitor.p23_in_prefix_merge.stop();
+    monitor.p3_suffix_array.stop();
 
     // +
     if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
@@ -160,12 +155,6 @@ pub fn compute_innovative_suffix_array(
         );*/
     }
     // -
-
-    // Suffix Array
-    monitor.p3_suffix_array.start();
-    // let mut sa_old = Vec::new();
-    // tree.prepare_get_common_prefix_partition(&mut sa_old, debug_mode == DebugMode::Verbose);
-    monitor.p3_suffix_array.stop();
 
     // +
     if perform_logging {
