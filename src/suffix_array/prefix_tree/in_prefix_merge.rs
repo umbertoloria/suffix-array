@@ -58,7 +58,7 @@ impl<'a> Tree<'a> {
                 child_node_max_father,
                 child_new_rankings,
             ) = self.in_prefix_merge_get_min_max_and_new_rankings(
-                &child_node,
+                child_node.suffix_len,
                 &child_node.rankings,
                 self_rankings, // As Parent Node's Rankings.
                 ip_merge_params,
@@ -67,18 +67,23 @@ impl<'a> Tree<'a> {
             );
 
             // Child Node's Common Prefix Partition
-            let child_rankings_ok = if child_new_rankings.is_empty() {
-                &child_node.rankings
+            let child_cpp = if let Some(child_new_rankings) = child_new_rankings {
+                self.in_prefix_merge_and_get_common_prefix_partition(
+                    &child_node,
+                    &child_new_rankings,
+                    ip_merge_params,
+                    monitor,
+                    verbose,
+                )
             } else {
-                &child_new_rankings
+                self.in_prefix_merge_and_get_common_prefix_partition(
+                    &child_node,
+                    &child_node.rankings,
+                    ip_merge_params,
+                    monitor,
+                    verbose,
+                )
             };
-            let child_cpp = self.in_prefix_merge_and_get_common_prefix_partition(
-                &child_node,
-                child_rankings_ok,
-                ip_merge_params,
-                monitor,
-                verbose,
-            );
 
             // RESULT COMMON PREFIX PARTITION: Self Node's Rankings
             if let Some(min_father) = child_node_min_father {
@@ -122,25 +127,22 @@ impl<'a> Tree<'a> {
     }
     fn in_prefix_merge_get_min_max_and_new_rankings(
         &self,
-        self_node: &Ref<TreeNode<'a>>,
+        self_node_suffix_len: usize,
         self_rankings: &Vec<usize>,
         parent_rankings: &Vec<usize>,
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
         verbose: bool,
     ) -> (
-        Option<usize>, // Min Father
-        Option<usize>, // Max Father
-        Vec<usize>,    // New Self Node's Rankings
+        Option<usize>,      // Min Father
+        Option<usize>,      // Max Father
+        Option<Vec<usize>>, // New Self Node's Rankings
     ) {
         let str = ip_merge_params.str;
 
-        // TODO: Avoid cloning Rankings into auxiliary memory
-        let mut new_self_rankings = Vec::new();
-
         // Compare This Node's Rankings with Parent Node's Rankings.
         let this_first_ls_index = self_rankings[0];
-        let this_ls_length = self_node.suffix_len;
+        let this_ls_length = self_node_suffix_len;
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
         if verbose {
             let parent_first_ls_index = parent_rankings[0];
@@ -168,17 +170,16 @@ impl<'a> Tree<'a> {
             }
             i_parent += 1;
         }
-
         if i_parent < parent_rankings.len() {
             // Go further.
         } else {
             // There's no "min_father".
-            return (None, None, new_self_rankings);
+            return (None, None, None);
         }
 
-        // Here, the following holds: "i_parent < parent_rankings.len()".
-        let min_father = i_parent;
+        // Assuming "i_parent < parent_rankings.len()".
 
+        let min_father = i_parent;
         // From here, we have a "min_father" value. So it's true that there is at least one
         // Parent Ranking that have LS that is >= than Curr LS.
 
@@ -196,12 +197,13 @@ impl<'a> Tree<'a> {
         if curr_parent_ls == this_ls {
             // Go further.
         } else {
-            // Here, the following holds: "curr_parent_ls > this_ls".
+            // Assuming "curr_parent_ls > this_ls".
             // This means "max_father"=None. There's no Window for Comparing Rankings using "RULES".
 
-            return (Some(min_father), None, new_self_rankings);
+            return (Some(min_father), None, None);
         }
-        // Here, the following holds: "curr_parent_ls == this_ls".
+
+        // Assuming "curr_parent_ls == this_ls".
 
         // There is at least one Parent Ranking that is = to Curr LS. This means that there is a
         // Window for Comparing Rankings using "RULES" to create. So now we are looking for the
@@ -230,11 +232,13 @@ impl<'a> Tree<'a> {
             println!("   > start comparing, window=[{},{})", i_parent, max_father);
         }
 
+        // TODO: Avoid cloning Rankings into auxiliary memory
+        let mut new_self_rankings = Vec::new();
         let mut j_this = 0;
         while i_parent < max_father && j_this < self_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_this_ls_index = self_rankings[j_this];
-            let child_offset = self_node.suffix_len;
+            let child_offset = self_node_suffix_len;
             let result_rules = rules_safe(
                 curr_parent_ls_index,
                 curr_this_ls_index,
@@ -271,9 +275,7 @@ impl<'a> Tree<'a> {
                 j_this += 1;
             }
         }
-        if j_this < self_rankings.len() {
-            // Enters in following while.
-        } else {
+        if j_this >= self_rankings.len() {
             if verbose {
                 println!("     > no child rankings left to add");
             }
@@ -281,7 +283,7 @@ impl<'a> Tree<'a> {
         while j_this < self_rankings.len() {
             let curr_this_ls_index = self_rankings[j_this];
             if verbose {
-                let child_offset = self_node.suffix_len;
+                let child_offset = self_node_suffix_len;
                 println!(
                     "     > adding child=\"{}\" [{}], child.suff.len={}",
                     &str[curr_this_ls_index..curr_this_ls_index + child_offset],
@@ -295,7 +297,7 @@ impl<'a> Tree<'a> {
         while i_parent < max_father {
             let curr_parent_ls_index = parent_rankings[i_parent];
             if verbose {
-                let child_offset = self_node.suffix_len;
+                let child_offset = self_node_suffix_len;
                 println!(
                     "     > adding father=\"{}\" [{}], father.suff.len={}",
                     &str[curr_parent_ls_index..curr_parent_ls_index + child_offset],
@@ -307,10 +309,7 @@ impl<'a> Tree<'a> {
             i_parent += 1;
         }
 
-        // Avoid editing Node Rankings. Instead, we use "new_self_rankings".
-        // self_rankings.clear();
-        // self_rankings.append(&mut new_rankings);
-
-        (Some(min_father), Some(max_father), new_self_rankings)
+        // From here, the *NEW* Self Node's Rankings are "new_self_rankings".
+        (Some(min_father), Some(max_father), Some(new_self_rankings))
     }
 }
