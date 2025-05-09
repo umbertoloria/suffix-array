@@ -1,7 +1,7 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_tree::tree::{Tree, TreeNode};
 use crate::suffix_array::prefix_tree::rules::rules_safe;
+use crate::suffix_array::prefix_tree::tree::{Tree, TreeNode};
 use std::cell::Ref;
 
 pub struct IPMergeParams<'a> {

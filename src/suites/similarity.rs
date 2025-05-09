@@ -1,4 +1,4 @@
-use crate::comparing::jaccard::jaccard_similarity_via_kmers;
+use crate::extra::comparing::jaccard::jaccard_similarity_via_kmers;
 use crate::files::fasta::get_fasta_content;
 use std::time::Instant;
 
