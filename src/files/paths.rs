@@ -19,9 +19,9 @@ pub fn get_path_for_plot_file(
     ))
 }
 
-pub fn get_path_for_project_prefix_trie_file(filename: &str, chunk_size: usize) -> String {
+pub fn get_path_for_project_tree_file(filename: &str, chunk_size: usize) -> String {
     format!(
-        "{}/{}-{}-a-prefix-trie.txt",
+        "{}/{}-{}-a-tree.txt",
         get_path_for_project_folder(filename),
         filename,
         chunk_size
