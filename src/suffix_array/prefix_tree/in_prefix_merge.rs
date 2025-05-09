@@ -20,21 +20,24 @@ impl<'a> Tree<'a> {
         monitor: &mut Monitor,
         verbose: bool,
     ) -> Vec<usize> {
-        let mut sa = Vec::with_capacity(str_length);
+        let mut suffix_array = Vec::with_capacity(str_length);
+
         let root_node = self.get_root().borrow();
         for &(_, child_node_id) in &root_node.children {
             // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
             let child_node = self.get_node(child_node_id).borrow();
-            let child_node_cpp = self.in_prefix_merge_and_get_common_prefix_partition(
+
+            self.in_prefix_merge_and_get_common_prefix_partition(
                 &child_node,
                 &child_node.rankings,
                 ip_merge_params,
                 monitor,
                 verbose,
+                &mut suffix_array,
             );
-            sa.extend(child_node_cpp);
         }
-        sa
+
+        suffix_array
     }
     fn in_prefix_merge_and_get_common_prefix_partition(
         &self,
@@ -43,9 +46,8 @@ impl<'a> Tree<'a> {
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
         verbose: bool,
-    ) -> Vec<usize> {
-        // TODO: Avoid using auxiliary memory
-        let mut result_cpp = Vec::new();
+        suffix_array: &mut Vec<usize>,
+    ) {
         let mut position = 0;
 
         for &(_, child_node_id) in &self_node.children {
@@ -78,7 +80,8 @@ impl<'a> Tree<'a> {
                 if position < min_father {
                     // There are some Self Node's Rankings from "position" to "min_father".
 
-                    result_cpp.extend(&self_rankings[position..min_father]);
+                    suffix_array.extend(&self_rankings[position..min_father]);
+                    // result_cpp.extend(&self_rankings[position..min_father]);
                     position = min_father;
                 }
                 if let Some(max_father) = child_node_max_father {
@@ -96,18 +99,20 @@ impl<'a> Tree<'a> {
                 // all Self Node's Rankings have LSs that are < than all Child Node's Rankings.
                 // So we take firstly Self Node's Rankings, and then all the Child Node's Rankings.
 
-                result_cpp.extend(&self_rankings[position..]);
+                suffix_array.extend(&self_rankings[position..]);
+                // result_cpp.extend(&self_rankings[position..]);
                 position = self_rankings.len();
             }
 
             // SELF COMMON PREFIX PARTITION: Child Node's Rankings
-            let child_cpp = if let Some(child_new_rankings) = child_new_rankings {
+            if let Some(child_new_rankings) = child_new_rankings {
                 self.in_prefix_merge_and_get_common_prefix_partition(
                     &child_node,
                     &child_new_rankings,
                     ip_merge_params,
                     monitor,
                     verbose,
+                    suffix_array,
                 )
             } else {
                 self.in_prefix_merge_and_get_common_prefix_partition(
@@ -116,15 +121,15 @@ impl<'a> Tree<'a> {
                     ip_merge_params,
                     monitor,
                     verbose,
+                    suffix_array,
                 )
             };
-            result_cpp.extend(&child_cpp);
+            // result_cpp.extend(&child_cpp);
         }
 
         // SELF COMMON PREFIX PARTITION: Self Node's Rankings remained
-        result_cpp.extend(&self_rankings[position..]);
-
-        result_cpp
+        suffix_array.extend(&self_rankings[position..]);
+        // result_cpp.extend(&self_rankings[position..]);
     }
     fn in_prefix_merge_get_min_max_and_new_rankings(
         &self,
