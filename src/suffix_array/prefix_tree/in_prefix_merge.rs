@@ -66,26 +66,7 @@ impl<'a> Tree<'a> {
                 verbose,
             );
 
-            // Child Node's Common Prefix Partition
-            let child_cpp = if let Some(child_new_rankings) = child_new_rankings {
-                self.in_prefix_merge_and_get_common_prefix_partition(
-                    &child_node,
-                    &child_new_rankings,
-                    ip_merge_params,
-                    monitor,
-                    verbose,
-                )
-            } else {
-                self.in_prefix_merge_and_get_common_prefix_partition(
-                    &child_node,
-                    &child_node.rankings,
-                    ip_merge_params,
-                    monitor,
-                    verbose,
-                )
-            };
-
-            // RESULT COMMON PREFIX PARTITION: Self Node's Rankings
+            // SELF COMMON PREFIX PARTITION: Self Node's Rankings from left
             if let Some(min_father) = child_node_min_father {
                 if verbose {
                     // Unfortunately, we don't have "self_node_id" :(
@@ -96,6 +77,7 @@ impl<'a> Tree<'a> {
                 // until "min_father" position (if there are some).
                 if position < min_father {
                     // There are some Self Node's Rankings from "position" to "min_father".
+
                     result_cpp.extend(&self_rankings[position..min_father]);
                     position = min_father;
                 }
@@ -113,14 +95,33 @@ impl<'a> Tree<'a> {
                 // means that:
                 // all Self Node's Rankings have LSs that are < than all Child Node's Rankings.
                 // So we take firstly Self Node's Rankings, and then all the Child Node's Rankings.
+
                 result_cpp.extend(&self_rankings[position..]);
                 position = self_rankings.len();
             }
 
-            // RESULT COMMON PREFIX PARTITION: Child Node's Rankings
-            result_cpp.extend(child_cpp);
+            // SELF COMMON PREFIX PARTITION: Child Node's Rankings
+            let child_cpp = if let Some(child_new_rankings) = child_new_rankings {
+                self.in_prefix_merge_and_get_common_prefix_partition(
+                    &child_node,
+                    &child_new_rankings,
+                    ip_merge_params,
+                    monitor,
+                    verbose,
+                )
+            } else {
+                self.in_prefix_merge_and_get_common_prefix_partition(
+                    &child_node,
+                    &child_node.rankings,
+                    ip_merge_params,
+                    monitor,
+                    verbose,
+                )
+            };
+            result_cpp.extend(&child_cpp);
         }
 
+        // SELF COMMON PREFIX PARTITION: Self Node's Rankings remained
         result_cpp.extend(&self_rankings[position..]);
 
         result_cpp
