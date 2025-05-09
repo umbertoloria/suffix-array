@@ -16,7 +16,6 @@ fn main() {
     // OLD SUITES
     // main_generation();
     // main_factorization();
-    // main_similarity();
 
     // Chunk Size Interval
     let chunk_size_interval = (3, 35);
