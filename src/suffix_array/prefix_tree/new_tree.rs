@@ -1,9 +1,79 @@
-use crate::suffix_array::prefix_trie::prefix_trie::{get_string_clone, PrefixTrieString};
-use crate::suffix_array::prog_suffix_array::ProgSuffixArray;
+use crate::suffix_array::chunking::get_max_factor_size;
+use crate::suffix_array::monitor::Monitor;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::Write;
 use std::rc::Rc;
+
+pub fn create_new_tree<'a>(
+    s_bytes: &'a [u8],
+    custom_indexes: &Vec<usize>,
+    is_custom_vec: &Vec<bool>,
+    monitor: &mut Monitor,
+    verbose: bool,
+) -> Tree<'a> {
+    let str_length = s_bytes.len();
+    let max_factor_size =
+        get_max_factor_size(&custom_indexes, str_length).expect("max_factor_size is not valid");
+
+    let mut tree = Tree::new();
+
+    let custom_indexes_len = custom_indexes.len();
+    let last_factor_size = str_length - custom_indexes[custom_indexes_len - 1];
+
+    let mut params_canonical = Vec::new();
+    let mut params_custom = Vec::new();
+
+    for ls_size in 1..max_factor_size + 1 {
+        // Every iteration looks for all Custom Factors whose length is <= "ls_size" and, if there
+        // exist, takes their Local Suffixes of "ls_size" length.
+
+        // Last Factor
+        if ls_size <= last_factor_size {
+            let ls_index = str_length - ls_size;
+            let is_custom_ls = is_custom_vec[ls_index];
+            if is_custom_ls {
+                params_custom.push((ls_index, ls_size));
+            } else {
+                params_canonical.push((ls_index, ls_size));
+            }
+        }
+
+        // All Factors from first to second-last
+        for i_factor in 0..custom_indexes_len - 1 {
+            let curr_factor_size = custom_indexes[i_factor + 1] - custom_indexes[i_factor];
+            if ls_size <= curr_factor_size {
+                let ls_index = custom_indexes[i_factor + 1] - ls_size;
+                let is_custom_ls = is_custom_vec[ls_index];
+                if is_custom_ls {
+                    params_custom.push((ls_index, ls_size));
+                } else {
+                    params_canonical.push((ls_index, ls_size));
+                }
+            }
+        }
+
+        // LSs that come from Canonical Factors (already sorted)
+        for &(ls_index, ls_size) in &params_canonical {
+            tree.add(ls_index, ls_size, false, s_bytes, verbose);
+            if verbose {
+                tree.print();
+            }
+        }
+        params_canonical.clear();
+
+        // LSs that come from Custom Factors (to sort)
+        for &(ls_index, ls_size) in &params_custom {
+            tree.add(ls_index, ls_size, true, s_bytes, verbose);
+            if verbose {
+                tree.print();
+            }
+        }
+        params_custom.clear();
+    }
+
+    tree
+}
 
 const ROOT_ID: usize = 0;
 pub struct Tree<'a> {
@@ -182,24 +252,7 @@ impl<'a> Tree<'a> {
         new_node_id
     }
 
-    pub fn get_nodes_count(&self) -> usize {
-        self.nodes.len()
-    }
-
-    // PROG. S.A.
-    pub fn save_rankings_on_prog_sa(&mut self, prog_sa: &mut ProgSuffixArray) {
-        self.save_node_rankings_into_prog_sa(ROOT_ID, prog_sa);
-    }
-    fn save_node_rankings_into_prog_sa(&mut self, node_id: usize, prog_sa: &mut ProgSuffixArray) {
-        let node_rc = self.get_node(node_id).clone();
-        let mut node = node_rc.borrow_mut();
-        prog_sa.set_rankings_to_node(node_id, &mut node.rankings);
-
-        for &(_, child_node_id) in &node.children {
-            self.save_node_rankings_into_prog_sa(child_node_id, prog_sa);
-        }
-    }
-
+    // PRINT
     pub fn print(&self) {
         self.print_node(ROOT_ID, 0, "");
     }
@@ -220,6 +273,7 @@ impl<'a> Tree<'a> {
     }
 }
 
+// LOGGER
 pub fn log_new_tree(tree: &Tree, filepath: String) {
     let mut file = File::create(filepath).expect("Unable to create file");
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
@@ -260,63 +314,6 @@ fn log_new_tree_recursive(
     }
 }
 
-/*
-pub fn log_new_tree_using_prog_sa(tree: &Tree, filepath: String, prog_sa: &ProgSuffixArray) {
-    let mut file = File::create(filepath).expect("Unable to create file");
-    // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
-    for &(child_node_prefix, child_node_id) in &tree.get_root().borrow().children {
-        let child_label = format!("{}", get_string_clone(child_node_prefix));
-        log_new_tree_using_prog_sa_recursive(
-            tree,
-            child_node_id,
-            &child_label,
-            prog_sa,
-            &mut file,
-            0,
-        );
-    }
-    file.flush().expect("Unable to flush file");
-}
-fn log_new_tree_using_prog_sa_recursive(
-    tree: &Tree,
-    node_id: usize,
-    node_label: &str,
-    prog_sa: &ProgSuffixArray,
-    file: &mut File,
-    level: usize,
-) {
-    let mut line = format!(
-        //
-        "{}{} <{}>",
-        " ".repeat(level),
-        node_label,
-        // node_id, // Avoid showing Node ID.
-        "",
-    );
-    let node = tree.get_node(node_id).borrow();
-    let rankings = prog_sa.get_rankings(node_id);
-    line.push_str(" [");
-    for i in 0..rankings.len() - 1 {
-        let ranking = rankings[i];
-        line.push_str(&format!("{}, ", ranking));
-    }
-    line.push_str(&format!("{}]", rankings[rankings.len() - 1]));
-    line.push_str("\n");
-    file.write(line.as_bytes()).expect("Unable to write line");
-    for &(child_node_prefix, child_node_id) in &node.children {
-        let child_label = format!("{}{}", node_label, get_string_clone(child_node_prefix));
-        log_new_tree_using_prog_sa_recursive(
-            tree,
-            child_node_id,
-            &child_label,
-            prog_sa,
-            file,
-            level + 1,
-        );
-    }
-}
-*/
-
 pub struct TreeNode<'a> {
     pub suffix_len: usize,
     pub rankings: Vec<usize>,
@@ -344,4 +341,12 @@ impl<'a> TreeNode<'a> {
             self.rankings.push(ls_index);
         }
     }
+}
+
+// STRING ABSTRACTION
+type PrefixTrieString = [u8];
+fn get_string_clone(str_type: &PrefixTrieString) -> String {
+    // TODO: Needs cloning
+    let cloned_vec = str_type.to_vec();
+    String::from_utf8(cloned_vec).unwrap()
 }
