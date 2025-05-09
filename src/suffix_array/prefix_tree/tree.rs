@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::Write;
 use std::rc::Rc;
 
-pub fn create_new_tree<'a>(
+pub fn create_tree<'a>(
     s_bytes: &'a [u8],
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
@@ -157,8 +157,8 @@ impl<'a> Tree<'a> {
                         p = mid + 1;
                     }
                 } else {
-                    // Due to how this New Tree structure is used, all the code commented below can
-                    // be simplified in this code here. Still, it's kept for further explanation.
+                    // Due to how this Tree structure is used, all the code commented below can be
+                    // simplified in this code here. Still, it's kept for further explanation.
                     i_node = mid_node_id;
                     i_char += i;
                     break;
@@ -274,16 +274,16 @@ impl<'a> Tree<'a> {
 }
 
 // LOGGER
-pub fn log_new_tree(tree: &Tree, filepath: String) {
+pub fn log_tree(tree: &Tree, filepath: String) {
     let mut file = File::create(filepath).expect("Unable to create file");
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
     for &(child_node_prefix, child_node_id) in &tree.get_root().borrow().children {
         let child_label = format!("{}", get_string_clone(child_node_prefix));
-        log_new_tree_recursive(tree, child_node_id, &child_label, &mut file, 0);
+        log_tree_recursive(tree, child_node_id, &child_label, &mut file, 0);
     }
     file.flush().expect("Unable to flush file");
 }
-fn log_new_tree_recursive(
+fn log_tree_recursive(
     tree: &Tree,
     node_id: usize,
     node_label: &str,
@@ -310,7 +310,7 @@ fn log_new_tree_recursive(
     file.write(line.as_bytes()).expect("Unable to write line");
     for &(child_node_prefix, child_node_id) in &node.children {
         let child_label = format!("{}{}", node_label, get_string_clone(child_node_prefix));
-        log_new_tree_recursive(tree, child_node_id, &child_label, file, level + 1);
+        log_tree_recursive(tree, child_node_id, &child_label, file, level + 1);
     }
 }
 

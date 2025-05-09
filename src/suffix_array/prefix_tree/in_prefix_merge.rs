@@ -1,6 +1,6 @@
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_tree::new_tree::{Tree, TreeNode};
+use crate::suffix_array::prefix_tree::tree::{Tree, TreeNode};
 use crate::suffix_array::prefix_tree::rules::rules_safe;
 use std::cell::Ref;
 

@@ -10,7 +10,7 @@ use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
 use crate::suffix_array::prefix_tree::in_prefix_merge::IPMergeParams;
-use crate::suffix_array::prefix_tree::new_tree::{create_new_tree, log_new_tree};
+use crate::suffix_array::prefix_tree::tree::{create_tree, log_tree};
 use crate::suffix_array::suffix_array::suffix_array_logger::{
     log_suffix_array, make_sure_directory_exist,
 };
@@ -72,7 +72,7 @@ pub fn compute_innovative_suffix_array(
 
     // Tree Create
     monitor.p2_tree_create.start();
-    let mut tree = create_new_tree(
+    let mut tree = create_tree(
         s_bytes,
         &custom_indexes,
         &is_custom_vec,
@@ -92,7 +92,7 @@ pub fn compute_innovative_suffix_array(
     let chunk_size_num_for_log = chunk_size.unwrap_or(0);
     if perform_logging {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
-        log_new_tree(
+        log_tree(
             &tree,
             get_path_for_project_prefix_trie_file(fasta_file_name, chunk_size_num_for_log),
         );
@@ -142,13 +142,13 @@ pub fn compute_innovative_suffix_array(
         tree.print();
     }
     if perform_logging {
-        /*log_new_tree_using_prog_sa(
+        /*log_tree_using_prog_sa(
             &tree,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
             &prog_sa,
         );*/
         // TODO: Unable to log Tree with "Inherited Rankings" since In-prefix Merge Phase eats them
-        /*log_new_tree(
+        /*log_tree(
             &tree,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
         );*/
