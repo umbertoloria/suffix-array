@@ -1,1 +1,2 @@
 *.rs text eol=lf
+./results/*.txt text eol=lf
