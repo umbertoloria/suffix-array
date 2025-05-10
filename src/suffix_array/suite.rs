@@ -3,7 +3,7 @@ use crate::files::paths::get_path_in_generated_folder;
 use crate::plot::plot::draw_plot_from_monitor;
 use crate::suffix_array::classic_suffix_array::compute_classic_suffix_array;
 use crate::suffix_array::monitor::ExecutionInfo;
-use crate::suffix_array::new_suffix_array::{compute_innovative_suffix_array, DebugMode};
+use crate::suffix_array::new_suffix_array::compute_innovative_suffix_array;
 use std::time::Duration;
 
 // SUITE COMPLETE FOR CLASSIC VS INNOVATIVE COMPUTATION
@@ -12,7 +12,6 @@ pub fn suite_complete_on_fasta_file(
     chunk_size_interval: (usize, usize), // Both incl.
     max_duration_in_micros: u32,
     perform_logging: bool,
-    debug_mode: DebugMode,
 ) {
     println!("\n\nCOMPUTING SUITE ON FILE: \"{}\"\n", fasta_file_name);
 
@@ -20,11 +19,7 @@ pub fn suite_complete_on_fasta_file(
     let src_str = &get_fasta_content(get_path_in_generated_folder(fasta_file_name));
 
     // CLASSIC SUFFIX ARRAY
-    let classic_suffix_array_computation = compute_classic_suffix_array(
-        //
-        src_str,
-        debug_mode == DebugMode::Verbose,
-    );
+    let classic_suffix_array_computation = compute_classic_suffix_array(src_str);
     let classic_suffix_array = classic_suffix_array_computation.suffix_array;
     println!("CLASSIC SUFFIX ARRAY CALCULATION");
     println!(
@@ -47,7 +42,6 @@ pub fn suite_complete_on_fasta_file(
         run_and_validate_test(
             fasta_file_name,
             perform_logging,
-            debug_mode,
             src_str,
             &classic_suffix_array,
             None,
@@ -58,7 +52,6 @@ pub fn suite_complete_on_fasta_file(
         let test_result = run_and_validate_test(
             fasta_file_name,
             perform_logging,
-            debug_mode,
             src_str,
             &classic_suffix_array,
             Some(chunk_size),
@@ -85,18 +78,12 @@ pub struct RunAndValidateTestOutput {
 fn run_and_validate_test(
     fasta_file_name: &str,
     perform_logging: bool,
-    debug_mode: DebugMode,
     src_str: &str,
     classic_suffix_array: &Vec<usize>,
     chunk_size: Option<usize>,
 ) -> RunAndValidateTestOutput {
-    let innovative_suffix_array_computation = compute_innovative_suffix_array(
-        fasta_file_name,
-        src_str,
-        chunk_size,
-        perform_logging,
-        debug_mode,
-    );
+    let innovative_suffix_array_computation =
+        compute_innovative_suffix_array(fasta_file_name, src_str, chunk_size, perform_logging);
     let suffix_array = innovative_suffix_array_computation.suffix_array;
     let execution_info = innovative_suffix_array_computation.execution_info;
 
@@ -137,7 +124,7 @@ fn run_and_validate_test(
         " > Phase 3  : Suffix Array        ",
         &execution_timing.p3_suffix_array.dur,
     );
-    if debug_mode == DebugMode::Overview || debug_mode == DebugMode::Verbose {
+    if cfg!(feature = "verbose") {
         execution_outcome.print();
     }
     // println!(" > Suffix Array: {:?}", wbsa);

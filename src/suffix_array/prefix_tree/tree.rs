@@ -10,7 +10,6 @@ pub fn create_tree<'a>(
     custom_indexes: &Vec<usize>,
     is_custom_vec: &Vec<bool>,
     monitor: &mut Monitor,
-    verbose: bool,
 ) -> Tree<'a> {
     let str_length = s_bytes.len();
     let max_factor_size =
@@ -55,8 +54,8 @@ pub fn create_tree<'a>(
 
         // LSs that come from Canonical Factors (already sorted)
         for &(ls_index, ls_size) in &params_canonical {
-            tree.add(ls_index, ls_size, false, s_bytes, verbose);
-            if verbose {
+            tree.add(ls_index, ls_size, false, s_bytes);
+            if cfg!(feature = "verbose") {
                 tree.print();
             }
         }
@@ -64,8 +63,8 @@ pub fn create_tree<'a>(
 
         // LSs that come from Custom Factors (to sort)
         for &(ls_index, ls_size) in &params_custom {
-            tree.add(ls_index, ls_size, true, s_bytes, verbose);
-            if verbose {
+            tree.add(ls_index, ls_size, true, s_bytes);
+            if cfg!(feature = "verbose") {
                 tree.print();
             }
         }
@@ -90,14 +89,7 @@ impl<'a> Tree<'a> {
     pub fn get_node(&self, index: usize) -> &Rc<RefCell<TreeNode<'a>>> {
         &self.nodes[index]
     }
-    pub fn add(
-        &mut self,
-        ls_index: usize,
-        ls_size: usize,
-        is_custom_ls: bool,
-        s_bytes: &'a [u8],
-        verbose: bool,
-    ) {
+    pub fn add(&mut self, ls_index: usize, ls_size: usize, is_custom_ls: bool, s_bytes: &'a [u8]) {
         let mut i_node = 0;
         let mut i_char = 0;
         while i_char < ls_size {
@@ -106,7 +98,7 @@ impl<'a> Tree<'a> {
 
             let rest_of_ls = &s_bytes[ls_index + i_char..ls_index + ls_size];
 
-            if verbose {
+            if cfg!(feature = "verbose") {
                 println!(
                     " -> i_char={i_char} on REST={}, i_node={i_node}, ls_index={ls_index}",
                     get_string_clone(rest_of_ls)
@@ -117,7 +109,7 @@ impl<'a> Tree<'a> {
                 let new_node_id = self.create_node(ls_size);
                 curr_node.children.push((rest_of_ls, new_node_id));
                 i_node = new_node_id;
-                if verbose {
+                if cfg!(feature = "verbose") {
                     println!(
                         "   -> was empty, so created node id={new_node_id} with prefix={}",
                         get_string_clone(rest_of_ls)
@@ -132,7 +124,7 @@ impl<'a> Tree<'a> {
             let mut q = curr_node.children.len();
             while p < q {
                 let mid = (q + p) / 2;
-                if verbose {
+                if cfg!(feature = "verbose") {
                     println!("   -> Binary Search: considering Mid Index={mid}");
                 }
                 let (mid_str, mid_node_id) = curr_node.children[mid];
@@ -146,7 +138,7 @@ impl<'a> Tree<'a> {
                     i += 1;
                 }
                 if i < rest_of_ls.len() && i < mid_str.len() {
-                    if verbose {
+                    if cfg!(feature = "verbose") {
                         println!("     -> try another element");
                     }
                     // Strings are different.
@@ -170,21 +162,21 @@ impl<'a> Tree<'a> {
                     // 2. Strings have some prefix relation.
                     if i == rest_of_ls.len() && i == mid_str.len() {
                         // Case 1. Strings are the same.
-                        if verbose {
+                        if cfg!(feature = "verbose") {
                             println!("     -> Case 1: found final Node={mid_node_id}");
                         }
                         i_node = mid_node_id;
                         i_char += i;
                         break;
                     } else {
-                        if verbose {
+                        if cfg!(feature = "verbose") {
                             println!("     -> Case 2");
                         }
                         // Case 2. It can be either:
                         // 2A. "mid_str" is prefix of "rest_of_ls", or
                         // 2B. "rest_of_ls" is prefix of "mid_str".
                         if i < rest_of_ls.len() {
-                            if verbose {
+                            if cfg!(feature = "verbose") {
                                 println!(
                                     "       -> Case 2A: mid_str={} prefix of rest_of_ls={}",
                                     get_string_clone(mid_str),
@@ -198,7 +190,7 @@ impl<'a> Tree<'a> {
                         } else {
                             // Then it's "i < mid_str.len()".
                             // Case 2B. We have that "rest_of_ls" is prefix of "mid_str".
-                            if verbose {
+                            if cfg!(feature = "verbose") {
                                 println!(
                                     "       -> Case 2B: rest_of_ls={} prefix of mid_str={}",
                                     get_string_clone(rest_of_ls),
@@ -229,7 +221,7 @@ impl<'a> Tree<'a> {
                 }
             }
             if p >= q {
-                if verbose {
+                if cfg!(feature = "verbose") {
                     println!("     -> found index p={p} for creating new node");
                 }
                 let new_node_id = self.create_node(i_char + rest_of_ls.len());
@@ -238,7 +230,7 @@ impl<'a> Tree<'a> {
                 i_char += rest_of_ls.len();
             }
         }
-        if verbose {
+        if cfg!(feature = "verbose") {
             println!("   -> Populating node id={i_node} with new ranking {ls_index}");
         }
         let mut curr_node = self.nodes[i_node].borrow_mut();

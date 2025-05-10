@@ -6,10 +6,7 @@ pub struct ClassicSuffixArrayComputationResults<'a> {
     pub suffix_array_pairs: Vec<(usize, &'a str)>,
     pub duration: Duration,
 }
-pub fn compute_classic_suffix_array(
-    src: &str,
-    debug_verbose: bool,
-) -> ClassicSuffixArrayComputationResults {
+pub fn compute_classic_suffix_array(src: &str) -> ClassicSuffixArrayComputationResults {
     let before = Instant::now();
 
     let mut suffix_array_pairs = Vec::new();
@@ -27,7 +24,7 @@ pub fn compute_classic_suffix_array(
     let after = Instant::now();
     let duration = after - before;
 
-    if debug_verbose {
+    if cfg!(feature = "verbose") {
         for &(index, suffix) in &suffix_array_pairs {
             println!(" > SUFFIX_ARRAY [{:3}] = {}", index, suffix);
         }

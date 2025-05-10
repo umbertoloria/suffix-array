@@ -18,7 +18,6 @@ impl<'a> Tree<'a> {
         str_length: usize,
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
-        verbose: bool,
     ) -> Vec<usize> {
         let mut suffix_array = Vec::with_capacity(str_length);
 
@@ -32,7 +31,6 @@ impl<'a> Tree<'a> {
                 &child_node.rankings,
                 ip_merge_params,
                 monitor,
-                verbose,
                 &mut suffix_array,
             );
         }
@@ -45,7 +43,6 @@ impl<'a> Tree<'a> {
         self_rankings: &Vec<usize>,
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
-        verbose: bool,
         suffix_array: &mut Vec<usize>,
     ) {
         let mut position = 0;
@@ -65,12 +62,11 @@ impl<'a> Tree<'a> {
                 self_rankings, // As Parent Node's Rankings.
                 ip_merge_params,
                 monitor,
-                verbose,
             );
 
             // SELF COMMON PREFIX PARTITION: Self Node's Rankings from left
             if let Some(min_father) = child_node_min_father {
-                if verbose {
+                if cfg!(feature = "verbose") {
                     // Unfortunately, we don't have "self_node_id" :(
                     println!("Here self=?? and child={child_node_id}");
                 }
@@ -111,7 +107,6 @@ impl<'a> Tree<'a> {
                     &child_new_rankings,
                     ip_merge_params,
                     monitor,
-                    verbose,
                     suffix_array,
                 )
             } else {
@@ -120,7 +115,6 @@ impl<'a> Tree<'a> {
                     &child_node.rankings,
                     ip_merge_params,
                     monitor,
-                    verbose,
                     suffix_array,
                 )
             };
@@ -138,7 +132,6 @@ impl<'a> Tree<'a> {
         parent_rankings: &Vec<usize>,
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
-        verbose: bool,
     ) -> (
         Option<usize>,      // Min Father
         Option<usize>,      // Max Father
@@ -150,7 +143,7 @@ impl<'a> Tree<'a> {
         let this_first_ls_index = self_rankings[0];
         let this_ls_length = self_node_suffix_len;
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
-        if verbose {
+        if cfg!(feature = "verbose") {
             let parent_first_ls_index = parent_rankings[0];
             // Should use "parent_node.suffix_len".
             // let parent_ls_length = depths[parent_first_ls_index];
@@ -234,7 +227,7 @@ impl<'a> Tree<'a> {
         // Now, the Window for Comparing Rankings using "RULES" is the following:
         // - starts from "i_parent", included, and
         // - ends with "max_father", excluded.
-        if verbose {
+        if cfg!(feature = "verbose") {
             println!("   > start comparing, window=[{},{})", i_parent, max_father);
         }
 
@@ -254,7 +247,7 @@ impl<'a> Tree<'a> {
                 false,
             );
             if !result_rules {
-                if verbose {
+                if cfg!(feature = "verbose") {
                     let curr_parent_ls =
                         &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
                     let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + child_offset];
@@ -267,7 +260,7 @@ impl<'a> Tree<'a> {
                 new_self_rankings.push(curr_parent_ls_index);
                 i_parent += 1;
             } else {
-                if verbose {
+                if cfg!(feature = "verbose") {
                     let curr_parent_ls =
                         &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
                     let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + child_offset];
@@ -282,13 +275,13 @@ impl<'a> Tree<'a> {
             }
         }
         if j_this >= self_rankings.len() {
-            if verbose {
+            if cfg!(feature = "verbose") {
                 println!("     > no child rankings left to add");
             }
         }
         while j_this < self_rankings.len() {
             let curr_this_ls_index = self_rankings[j_this];
-            if verbose {
+            if cfg!(feature = "verbose") {
                 let child_offset = self_node_suffix_len;
                 println!(
                     "     > adding child=\"{}\" [{}], child.suff.len={}",
@@ -302,7 +295,7 @@ impl<'a> Tree<'a> {
         }
         while i_parent < max_father {
             let curr_parent_ls_index = parent_rankings[i_parent];
-            if verbose {
+            if cfg!(feature = "verbose") {
                 let child_offset = self_node_suffix_len;
                 println!(
                     "     > adding father=\"{}\" [{}], father.suff.len={}",

@@ -18,12 +18,6 @@ use crate::utils::json::dump_json_in_file;
 use std::process::exit;
 
 // INNOVATIVE SUFFIX ARRAY
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub enum DebugMode {
-    Silent,
-    Overview,
-    Verbose,
-}
 pub struct InnovativeSuffixArrayComputationResults {
     pub suffix_array: Vec<usize>,
     pub execution_info: ExecutionInfo,
@@ -33,7 +27,6 @@ pub fn compute_innovative_suffix_array(
     str: &str,
     chunk_size: Option<usize>,
     perform_logging: bool,
-    debug_mode: DebugMode,
 ) -> InnovativeSuffixArrayComputationResults {
     let mut monitor = Monitor::new();
     monitor.whole_duration.start();
@@ -72,17 +65,11 @@ pub fn compute_innovative_suffix_array(
 
     // Tree Create
     monitor.p2_tree_create.start();
-    let mut tree = create_tree(
-        s_bytes,
-        &custom_indexes,
-        &is_custom_vec,
-        &mut monitor,
-        debug_mode == DebugMode::Verbose,
-    );
+    let mut tree = create_tree(s_bytes, &custom_indexes, &is_custom_vec, &mut monitor);
     monitor.p2_tree_create.stop();
 
     // +
-    if debug_mode == DebugMode::Verbose {
+    if cfg!(feature = "verbose") {
         println!("Before merge");
         tree.print();
     }
@@ -98,7 +85,7 @@ pub fn compute_innovative_suffix_array(
         );
     }
 
-    if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
+    if cfg!(feature = "verbose") {
         print_for_human_like_debug(
             str,
             str_length,
@@ -107,9 +94,6 @@ pub fn compute_innovative_suffix_array(
             &icfl_factor_list,
             &is_custom_vec,
         );
-    }
-
-    if debug_mode == DebugMode::Verbose {
         println!("Before IN-PREFIX MERGE");
         tree.print();
     }
@@ -128,16 +112,11 @@ pub fn compute_innovative_suffix_array(
         icfl_factor_list: &icfl_factor_list,
         compare_cache: &mut compare_cache,
     };
-    let sa = tree.in_prefix_merge(
-        str_length,
-        &mut ip_merge_params,
-        &mut monitor,
-        debug_mode == DebugMode::Verbose,
-    );
+    let sa = tree.in_prefix_merge(str_length, &mut ip_merge_params, &mut monitor);
     monitor.p3_suffix_array.stop();
 
     // +
-    if debug_mode == DebugMode::Verbose || debug_mode == DebugMode::Overview {
+    if cfg!(feature = "verbose") {
         println!("After IN-PREFIX MERGE");
         tree.print();
     }
