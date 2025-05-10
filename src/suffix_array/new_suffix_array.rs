@@ -31,15 +31,13 @@ pub fn compute_innovative_suffix_array(
     let mut monitor = Monitor::new();
     monitor.whole_duration.start();
 
+    // FACTORIZATION
+    monitor.p1_fact.start();
     // ICFL Factorization
-    monitor.p11_icfl.start();
     let str_length = str.len();
     let s_bytes = str.as_bytes();
     let icfl_indexes = get_icfl_indexes(s_bytes);
-    monitor.p11_icfl.stop();
-
     // Custom Factorization
-    monitor.p12_cust_fact.start();
     let mut custom_indexes = Vec::new();
     let mut is_custom_vec = Vec::new();
     let mut icfl_factor_list = Vec::new();
@@ -48,12 +46,12 @@ pub fn compute_innovative_suffix_array(
     custom_indexes = custom_indexes_;
     is_custom_vec = is_custom_vec_;
     icfl_factor_list = icfl_factor_list_;
-    monitor.p12_cust_fact.stop();
+    monitor.p1_fact.stop();
 
-    // Tree Create
-    monitor.p2_tree_create.start();
+    // TREE
+    monitor.p2_tree.start();
     let mut tree = create_tree(s_bytes, &custom_indexes, &is_custom_vec, &mut monitor);
-    monitor.p2_tree_create.stop();
+    monitor.p2_tree.stop();
 
     // +
     if cfg!(feature = "verbose") {
@@ -88,8 +86,8 @@ pub fn compute_innovative_suffix_array(
     // FOR DEBUG PURPOSES
     // prefix_trie.debug_dfs();
 
-    // In-prefix Merge and Common Prefix Partition Assemble for Suffix Array Build
-    monitor.p3_suffix_array.start();
+    // SUFFIX ARRAY
+    monitor.p3_sa.start();
     let mut compare_cache = CompareCache::new();
     let mut ip_merge_params = IPMergeParams {
         str,
@@ -99,7 +97,7 @@ pub fn compute_innovative_suffix_array(
         compare_cache: &mut compare_cache,
     };
     let sa = tree.in_prefix_merge(str_length, &mut ip_merge_params, &mut monitor);
-    monitor.p3_suffix_array.stop();
+    monitor.p3_sa.stop();
 
     // +
     if cfg!(feature = "verbose") {

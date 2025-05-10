@@ -12,54 +12,48 @@ impl ExecutionInfoFileFormat {
     pub fn new(et: &ExecutionTiming) -> Self {
         Self {
             micros: ExecutionInfoFileFormatMicros {
-                duration_phases_______________: et.sum_duration_only_phases.as_micros(),
-                duration_phases_with_extra____: et.whole_duration.as_micros(),
-                phase_1_1_factorization_icfl__: et.p11_icfl.dur.as_micros(),
-                phase_1_2_factorization_custom: et.p12_cust_fact.dur.as_micros(),
-                phase_2_0_tree_create_________: et.p2_tree_create.dur.as_micros(),
-                phase_3_0_suffix_array________: et.p3_suffix_array.dur.as_micros(),
+                duration_phases: et.phases_only.as_micros(),
+                phase_1_fact___: et.p1_fact.dur.as_micros(),
+                phase_2_tree___: et.p2_tree.dur.as_micros(),
+                phase_3_sa_____: et.p3_sa.dur.as_micros(),
+                duration_phases_with_extra: et.whole.as_micros(),
             },
             seconds: ExecutionInfoFileFormatSeconds {
-                duration_phases_______________: round_secs_x_xxx(et.sum_duration_only_phases),
-                duration_phases_with_extra____: round_secs_x_xxx(et.whole_duration),
-                phase_1_1_factorization_icfl__: round_secs_x_xxx(et.p11_icfl.dur),
-                phase_1_2_factorization_custom: round_secs_x_xxx(et.p12_cust_fact.dur),
-                phase_2_0_tree_create_________: round_secs_x_xxx(et.p2_tree_create.dur),
-                phase_3_0_suffix_array________: round_secs_x_xxx(et.p3_suffix_array.dur),
+                duration_phases: round_secs_x_xxx(et.phases_only),
+                phase_1_fact___: round_secs_x_xxx(et.p1_fact.dur),
+                phase_2_tree___: round_secs_x_xxx(et.p2_tree.dur),
+                phase_3_sa_____: round_secs_x_xxx(et.p3_sa.dur),
+                duration_phases_with_extra: round_secs_x_xxx(et.whole),
             },
             percentages: ExecutionInfoFileFormatPercentages {
-                phase_1_1_factorization_icfl__: et.p11_icfl.perc,
-                phase_1_2_factorization_custom: et.p12_cust_fact.perc,
-                phase_2_0_tree_create_________: et.p2_tree_create.perc,
-                phase_3_0_suffix_array________: et.p3_suffix_array.perc,
+                phase_1_fact: et.p1_fact.perc,
+                phase_2_tree: et.p2_tree.perc,
+                phase_3_sa__: et.p3_sa.perc,
             },
         }
     }
 }
 #[derive(Serialize, Deserialize)]
 struct ExecutionInfoFileFormatMicros {
-    duration_phases_______________: u128,
-    duration_phases_with_extra____: u128,
-    phase_1_1_factorization_icfl__: u128,
-    phase_1_2_factorization_custom: u128,
-    phase_2_0_tree_create_________: u128,
-    phase_3_0_suffix_array________: u128,
+    duration_phases: u128,
+    phase_1_fact___: u128,
+    phase_2_tree___: u128,
+    phase_3_sa_____: u128,
+    duration_phases_with_extra: u128,
 }
 #[derive(Serialize, Deserialize)]
 struct ExecutionInfoFileFormatSeconds {
-    duration_phases_______________: f32,
-    duration_phases_with_extra____: f32,
-    phase_1_1_factorization_icfl__: f32,
-    phase_1_2_factorization_custom: f32,
-    phase_2_0_tree_create_________: f32,
-    phase_3_0_suffix_array________: f32,
+    duration_phases: f32,
+    phase_1_fact___: f32,
+    phase_2_tree___: f32,
+    phase_3_sa_____: f32,
+    duration_phases_with_extra: f32,
 }
 #[derive(Serialize, Deserialize)]
 struct ExecutionInfoFileFormatPercentages {
-    phase_1_1_factorization_icfl__: u16,
-    phase_1_2_factorization_custom: u16,
-    phase_2_0_tree_create_________: u16,
-    phase_3_0_suffix_array________: u16,
+    phase_1_fact: u16,
+    phase_2_tree: u16,
+    phase_3_sa__: u16,
 }
 
 fn round_secs_x_xxx(duration: Duration) -> f32 {

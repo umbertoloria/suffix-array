@@ -80,30 +80,11 @@ fn run_and_validate_test(
     let execution_outcome = &execution_info.execution_outcome;
 
     println!("[CHUNK SIZE={chunk_size}]");
-    print_duration(
-        " > Duration phases                ",
-        &execution_timing.sum_duration_only_phases,
-    );
-    print_duration(
-        " > Duration (with extra)          ",
-        &execution_timing.whole_duration,
-    );
-    print_duration(
-        " > Phase 1.1: Factorization ICFL  ",
-        &execution_timing.p11_icfl.dur,
-    );
-    print_duration(
-        " > Phase 1.2: Factorization Custom",
-        &execution_timing.p12_cust_fact.dur,
-    );
-    print_duration(
-        " > Phase 2  : Tree create         ",
-        &execution_timing.p2_tree_create.dur,
-    );
-    print_duration(
-        " > Phase 3  : Suffix Array        ",
-        &execution_timing.p3_suffix_array.dur,
-    );
+    print_duration(" > Duration phases        ", &execution_timing.phases_only);
+    print_duration(" > Phase 1: Factorization ", &execution_timing.p1_fact.dur);
+    print_duration(" > Phase 2: Tree          ", &execution_timing.p2_tree.dur);
+    print_duration(" > Phase 3: Suffix Array  ", &execution_timing.p3_sa.dur);
+    print_duration(" > Duration (with extra)  ", &execution_timing.whole);
     if cfg!(feature = "verbose") {
         execution_outcome.print();
     }

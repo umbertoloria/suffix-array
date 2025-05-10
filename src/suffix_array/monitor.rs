@@ -5,10 +5,9 @@ use std::time::{Duration, Instant};
 pub struct Monitor {
     // Timing
     pub whole_duration: MonitorInterval,
-    pub p11_icfl: MonitorInterval,
-    pub p12_cust_fact: MonitorInterval,
-    pub p2_tree_create: MonitorInterval,
-    pub p3_suffix_array: MonitorInterval,
+    pub p1_fact: MonitorInterval,
+    pub p2_tree: MonitorInterval,
+    pub p3_sa: MonitorInterval,
 
     // Values
     pub execution_outcome: ExecutionOutcome,
@@ -17,10 +16,9 @@ impl Monitor {
     pub fn new() -> Self {
         Self {
             whole_duration: MonitorInterval::new(),
-            p11_icfl: MonitorInterval::new(),
-            p12_cust_fact: MonitorInterval::new(),
-            p2_tree_create: MonitorInterval::new(),
-            p3_suffix_array: MonitorInterval::new(),
+            p1_fact: MonitorInterval::new(),
+            p2_tree: MonitorInterval::new(),
+            p3_sa: MonitorInterval::new(),
             execution_outcome: ExecutionOutcome::new(),
         }
     }
@@ -89,72 +87,57 @@ pub struct ExecutionTimingPhase {
 }
 pub struct ExecutionTiming {
     // These parameters are the ones used for Plotting, Execution Logging and Suite Output
-    pub sum_duration_only_phases: Duration,
-    pub whole_duration: Duration,
+    pub phases_only: Duration,
+    pub whole: Duration,
     // Phases
-    pub p11_icfl: ExecutionTimingPhase,
-    pub p12_cust_fact: ExecutionTimingPhase,
-    pub p2_tree_create: ExecutionTimingPhase,
-    pub p3_suffix_array: ExecutionTimingPhase,
+    pub p1_fact: ExecutionTimingPhase,
+    pub p2_tree: ExecutionTimingPhase,
+    pub p3_sa: ExecutionTimingPhase,
 }
 impl ExecutionTiming {
     pub fn new(monitor: &Monitor) -> Self {
-        let p11_icfl = monitor.p11_icfl.get_duration().unwrap();
-        let p12_cust_fact = monitor.p12_cust_fact.get_duration().unwrap();
-        let p2_tree_create = monitor.p2_tree_create.get_duration().unwrap();
-        let p3_suffix_array = monitor.p3_suffix_array.get_duration().unwrap();
+        let p1_fact = monitor.p1_fact.get_duration().unwrap();
+        let p2_tree = monitor.p2_tree.get_duration().unwrap();
+        let p3_sa = monitor.p3_sa.get_duration().unwrap();
         let whole_duration = monitor.whole_duration.get_duration().unwrap();
 
         // Sum Durations (Only Phases)
-        let sum_duration_only_phases = p11_icfl + p12_cust_fact + p2_tree_create + p3_suffix_array;
+        let phases_only = p1_fact + p2_tree + p3_sa;
 
         // Percentages with extra
-        /*let duration_extra = whole_duration - sum_duration_only_phases;
+        /*let duration_extra = whole_duration - phases_only;
         let sum_micros_incl_extra = whole_duration.as_micros();*/
 
         // Percentages
-        let sum_micros_excl_extra = sum_duration_only_phases.as_micros() as f32;
-        let p11_icfl_perc = round_int_100(p11_icfl.as_micros() as f32 / sum_micros_excl_extra);
-        let p12_cust_fact_perc =
-            round_int_100(p12_cust_fact.as_micros() as f32 / sum_micros_excl_extra);
-        let p2_tree_create_perc =
-            round_int_100(p2_tree_create.as_micros() as f32 / sum_micros_excl_extra);
-        let p3_suffix_array_perc =
-            100 - (p11_icfl_perc + p12_cust_fact_perc + p2_tree_create_perc).min(100);
-        /*let perc_p3_suffix_array = round_int_5(p3_suffix_array.as_micros() as f32 / sum_micros_excl_extra);
-        let check_sum = p11_icfl_perc
-            + p12_cust_fact_perc
-            + p2_tree_create_perc
-            + p3_suffix_array_perc
-            + perc_p3_suffix_array;
+        let sum_micros_excl_extra = phases_only.as_micros() as f32;
+        let p1_fact_perc = round_int_100(p1_fact.as_micros() as f32 / sum_micros_excl_extra);
+        let p2_tree_perc = round_int_100(p2_tree.as_micros() as f32 / sum_micros_excl_extra);
+        let p3_sa_perc = 100 - (p1_fact_perc + p2_tree_perc).min(100);
+        /*let p3_sa_perc = round_int_5(p3_sa.as_micros() as f32 / sum_micros_excl_extra);
+        let check_sum = p1_fact_perc + p2_tree_perc + p3_sa_perc;
         if check_sum != 100 {
             // PROBLEM
         }*/
 
         Self {
-            sum_duration_only_phases,
-            whole_duration,
+            phases_only,
+            whole: whole_duration,
             /*duration_extra,
-            perc_with_extra_p11: p11_icfl.as_micros() as f64 / sum_micros_incl_extra as f64,
-            perc_with_extra_p12: p12_cust_fact.as_micros() as f64 / sum_micros_incl_extra as f64,
-            perc_with_extra_p2: p2_tree_create.as_micros() as f64 / sum_micros_incl_extra as f64,
-            perc_with_extra_p3: p3_suffix_array.as_micros() as f64 / sum_micros_incl_extra as f64,
+            perc_with_extra_p1: p1_fact.as_micros() as f64 / sum_micros_incl_extra as f64,
+            perc_with_extra_p2: p2_tree.as_micros() as f64 / sum_micros_incl_extra as f64,
+            perc_with_extra_p3: p3_sa.as_micros() as f64 / sum_micros_incl_extra as f64,
             perc_with_extra_extra: duration_extra.as_micros() as f64 / sum_micros_incl_extra as f64,*/
-            p11_icfl: ExecutionTimingPhase {
-                dur: p11_icfl,
-                perc: p11_icfl_perc,
+            p1_fact: ExecutionTimingPhase {
+                dur: p1_fact,
+                perc: p1_fact_perc,
             },
-            p12_cust_fact: ExecutionTimingPhase {
-                dur: p12_cust_fact,
-                perc: p12_cust_fact_perc,
+            p2_tree: ExecutionTimingPhase {
+                dur: p2_tree,
+                perc: p2_tree_perc,
             },
-            p2_tree_create: ExecutionTimingPhase {
-                dur: p2_tree_create,
-                perc: p2_tree_create_perc,
-            },
-            p3_suffix_array: ExecutionTimingPhase {
-                dur: p3_suffix_array,
-                perc: p3_suffix_array_perc,
+            p3_sa: ExecutionTimingPhase {
+                dur: p3_sa,
+                perc: p3_sa_perc,
             },
         }
     }
