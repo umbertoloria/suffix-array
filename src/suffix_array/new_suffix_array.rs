@@ -1,8 +1,8 @@
 use crate::factorization::icfl::get_icfl_indexes;
 use crate::files::paths::{
-    get_path_for_project_folder, get_path_for_project_outcome_file_json,
-    get_path_for_project_suffix_array_file, get_path_for_project_timing_file_json,
-    get_path_for_project_tree_file,
+    get_path_for_project_folder, get_path_for_project_full_tree_file,
+    get_path_for_project_outcome_file_json, get_path_for_project_suffix_array_file,
+    get_path_for_project_timing_file_json, get_path_for_project_tree_file,
 };
 use crate::suffix_array::chunking::get_custom_factors_and_more;
 use crate::suffix_array::compare_cache::CompareCache;
@@ -66,7 +66,13 @@ pub fn compute_innovative_suffix_array(
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_tree(
             &tree,
+            false,
             get_path_for_project_tree_file(fasta_file_name, chunk_size),
+        );
+        log_tree(
+            &tree,
+            true,
+            get_path_for_project_full_tree_file(fasta_file_name, chunk_size),
         );
     }
 

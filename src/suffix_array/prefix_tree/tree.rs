@@ -266,12 +266,12 @@ impl<'a> Tree<'a> {
 }
 
 // LOGGER
-pub fn log_tree(tree: &Tree, filepath: String) {
+pub fn log_tree(tree: &Tree, full_tree: bool, filepath: String) {
     let mut file = File::create(filepath).expect("Unable to create file");
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
     for &(child_node_prefix, child_node_id) in &tree.get_root().borrow().children {
         let child_label = format!("{}", get_string_clone(child_node_prefix));
-        log_tree_recursive(tree, child_node_id, &child_label, &mut file, 0);
+        log_tree_recursive(tree, child_node_id, &child_label, full_tree, &mut file, 0);
     }
     file.flush().expect("Unable to flush file");
 }
@@ -279,6 +279,7 @@ fn log_tree_recursive(
     tree: &Tree,
     node_id: usize,
     node_label: &str,
+    full_tree: bool,
     file: &mut File,
     level: usize,
 ) {
@@ -301,8 +302,19 @@ fn log_tree_recursive(
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");
     for &(child_node_prefix, child_node_id) in &node.children {
-        let child_label = format!("{}{}", node_label, get_string_clone(child_node_prefix));
-        log_tree_recursive(tree, child_node_id, &child_label, file, level + 1);
+        let child_label = if full_tree {
+            format!("{}{}", node_label, get_string_clone(child_node_prefix))
+        } else {
+            format!("{}", get_string_clone(child_node_prefix))
+        };
+        log_tree_recursive(
+            tree,
+            child_node_id,
+            &child_label,
+            full_tree,
+            file,
+            level + 1,
+        );
     }
 }
 
