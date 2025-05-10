@@ -26,7 +26,8 @@ pub fn compute_innovative_suffix_array(
     fasta_file_name: &str,
     str: &str,
     chunk_size: usize,
-    perform_logging: bool,
+    log_execution: bool,
+    log_trees_and_suffix_array: bool,
 ) -> InnovativeSuffixArrayComputationResults {
     let mut monitor = Monitor::new();
     monitor.whole_duration.start();
@@ -61,7 +62,7 @@ pub fn compute_innovative_suffix_array(
     // -
 
     // +
-    if perform_logging {
+    if log_trees_and_suffix_array {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_tree(
             &tree,
@@ -104,7 +105,7 @@ pub fn compute_innovative_suffix_array(
         println!("After IN-PREFIX MERGE");
         tree.print();
     }
-    if perform_logging {
+    if log_trees_and_suffix_array {
         /*log_tree_using_prog_sa(
             &tree,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
@@ -119,7 +120,7 @@ pub fn compute_innovative_suffix_array(
     // -
 
     // +
-    if perform_logging {
+    if log_trees_and_suffix_array {
         log_suffix_array(
             &sa,
             get_path_for_project_suffix_array_file(fasta_file_name, chunk_size),
@@ -131,7 +132,8 @@ pub fn compute_innovative_suffix_array(
 
     // +
     let execution_info = monitor.transform_info_execution_info();
-    if perform_logging {
+    if log_execution {
+        make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         // Execution Outcome JSON file
         let execution_outcome_file_format =
             ExecutionOutcomeFileFormat::new(&execution_info.execution_outcome);
