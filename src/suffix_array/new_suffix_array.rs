@@ -25,7 +25,7 @@ pub struct InnovativeSuffixArrayComputationResults {
 pub fn compute_innovative_suffix_array(
     fasta_file_name: &str,
     str: &str,
-    chunk_size: Option<usize>,
+    chunk_size: usize,
     perform_logging: bool,
 ) -> InnovativeSuffixArrayComputationResults {
     let mut monitor = Monitor::new();
@@ -43,24 +43,11 @@ pub fn compute_innovative_suffix_array(
     let mut custom_indexes = Vec::new();
     let mut is_custom_vec = Vec::new();
     let mut icfl_factor_list = Vec::new();
-    if let Some(chunk_size) = chunk_size {
-        let (custom_indexes_, is_custom_vec_, icfl_factor_list_) =
-            get_custom_factors_and_more(&icfl_indexes, chunk_size, str_length);
-        custom_indexes = custom_indexes_;
-        is_custom_vec = is_custom_vec_;
-        icfl_factor_list = icfl_factor_list_;
-    } else {
-        println!("Lethal with medium files on small PCs => STOP");
-        exit(0x0100);
-        // TODO: Disable this code since will burn your little laptop :_(
-        /*
-        let (custom_indexes_, is_custom_vec_, icfl_factor_list_) =
-            get_icfl_factors_and_more_avoiding_custom_factorization(str_length, &icfl_indexes);
-        custom_indexes = custom_indexes_;
-        is_custom_vec = is_custom_vec_;
-        icfl_factor_list = icfl_factor_list_;
-        */
-    }
+    let (custom_indexes_, is_custom_vec_, icfl_factor_list_) =
+        get_custom_factors_and_more(&icfl_indexes, chunk_size, str_length);
+    custom_indexes = custom_indexes_;
+    is_custom_vec = is_custom_vec_;
+    icfl_factor_list = icfl_factor_list_;
     monitor.p12_cust_fact.stop();
 
     // Tree Create
@@ -76,12 +63,11 @@ pub fn compute_innovative_suffix_array(
     // -
 
     // +
-    let chunk_size_num_for_log = chunk_size.unwrap_or(0);
     if perform_logging {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_tree(
             &tree,
-            get_path_for_project_tree_file(fasta_file_name, chunk_size_num_for_log),
+            get_path_for_project_tree_file(fasta_file_name, chunk_size),
         );
     }
 
@@ -138,7 +124,7 @@ pub fn compute_innovative_suffix_array(
     if perform_logging {
         log_suffix_array(
             &sa,
-            get_path_for_project_suffix_array_file(fasta_file_name, chunk_size_num_for_log),
+            get_path_for_project_suffix_array_file(fasta_file_name, chunk_size),
         );
     }
     // -
@@ -153,7 +139,7 @@ pub fn compute_innovative_suffix_array(
             ExecutionOutcomeFileFormat::new(&execution_info.execution_outcome);
         dump_json_in_file(
             &execution_outcome_file_format,
-            get_path_for_project_outcome_file_json(fasta_file_name, chunk_size_num_for_log),
+            get_path_for_project_outcome_file_json(fasta_file_name, chunk_size),
         );
 
         // Execution Timing JSON file
@@ -161,7 +147,7 @@ pub fn compute_innovative_suffix_array(
             ExecutionInfoFileFormat::new(&execution_info.execution_timing);
         dump_json_in_file(
             &execution_timing_file_format,
-            get_path_for_project_timing_file_json(fasta_file_name, chunk_size_num_for_log),
+            get_path_for_project_timing_file_json(fasta_file_name, chunk_size),
         );
     }
     // -

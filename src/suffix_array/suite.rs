@@ -37,24 +37,13 @@ pub fn suite_complete_on_fasta_file(
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     let chunks_interval = (chunk_size_interval.0..chunk_size_interval.1 + 1).collect::<Vec<_>>();
     let mut chunk_size_and_execution_info_list = Vec::new();
-    /*if run_also_without_custom_factorization {
-        // TODO: Lethal with medium files on small PCs
-        run_and_validate_test(
-            fasta_file_name,
-            perform_logging,
-            src_str,
-            &classic_suffix_array,
-            None,
-        );
-        // TODO: Add into to plot
-    }*/
     for &chunk_size in &chunks_interval {
         let test_result = run_and_validate_test(
             fasta_file_name,
             perform_logging,
             src_str,
             &classic_suffix_array,
-            Some(chunk_size),
+            chunk_size,
         );
         chunk_size_and_execution_info_list.push((chunk_size, test_result.execution_info));
         if test_result.failed {
@@ -80,7 +69,7 @@ fn run_and_validate_test(
     perform_logging: bool,
     src_str: &str,
     classic_suffix_array: &Vec<usize>,
-    chunk_size: Option<usize>,
+    chunk_size: usize,
 ) -> RunAndValidateTestOutput {
     let innovative_suffix_array_computation =
         compute_innovative_suffix_array(fasta_file_name, src_str, chunk_size, perform_logging);
@@ -89,17 +78,8 @@ fn run_and_validate_test(
 
     let execution_timing = &execution_info.execution_timing;
     let execution_outcome = &execution_info.execution_outcome;
-    let chunk_size_or_zero = if let Some(chunk_size) = chunk_size {
-        chunk_size
-    } else {
-        0
-    };
 
-    if chunk_size_or_zero > 0 {
-        println!("[CHUNK SIZE={chunk_size_or_zero}]");
-    } else {
-        println!("[NO CHUNKING]");
-    }
+    println!("[CHUNK SIZE={chunk_size}]");
     print_duration(
         " > Duration phases                ",
         &execution_timing.sum_duration_only_phases,
