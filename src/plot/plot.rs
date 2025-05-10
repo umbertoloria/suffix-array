@@ -21,7 +21,7 @@ pub fn draw_plot_from_monitor(
     for (_, execution_info) in &chunk_size_and_execution_info_list {
         let et = &execution_info.execution_timing;
         groups_of_bars.push(
-            //
+            // Composite Vertical Bar
             GroupOfBars::new_only_one(
                 //
                 create_composite_bar_from_parts(
@@ -75,7 +75,7 @@ pub fn draw_plot_from_monitor(
     bar_plot.draw(
         &get_path_for_plot_file(fasta_file_name, min_chunk_size, max_chunk_size),
         1,
-        min_chunk_size as u32, // min_x,
+        1, // min_x,
         curr_x,
         diagram_max_y,
         &groups_of_bars,
