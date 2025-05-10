@@ -97,7 +97,11 @@ pub fn compute_innovative_suffix_array(
         icfl_factor_list: &icfl_factor_list,
         compare_cache: &mut compare_cache,
     };
-    let sa = tree.in_prefix_merge(str_length, &mut ip_merge_params, &mut monitor);
+    let suffix_array = tree.in_prefix_merge_and_common_prefix_partition(
+        str_length,
+        &mut ip_merge_params,
+        &mut monitor,
+    );
     monitor.p3_sa.stop();
 
     // +
@@ -122,7 +126,7 @@ pub fn compute_innovative_suffix_array(
     // +
     if log_trees_and_suffix_array {
         log_suffix_array(
-            &sa,
+            &suffix_array,
             get_path_for_project_suffix_array_file(fasta_file_name, chunk_size),
         );
     }
@@ -155,7 +159,7 @@ pub fn compute_innovative_suffix_array(
     // println!("Total time: {}", duration.as_secs_f32());
 
     InnovativeSuffixArrayComputationResults {
-        suffix_array: sa,
+        suffix_array,
         execution_info,
     }
 }

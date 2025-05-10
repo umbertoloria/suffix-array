@@ -13,7 +13,7 @@ pub struct IPMergeParams<'a> {
 }
 
 impl<'a> Tree<'a> {
-    pub fn in_prefix_merge(
+    pub fn in_prefix_merge_and_common_prefix_partition(
         &self,
         str_length: usize,
         ip_merge_params: &mut IPMergeParams,
