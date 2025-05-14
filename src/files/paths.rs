@@ -19,6 +19,15 @@ pub fn get_path_for_plot_file(
     ))
 }
 
+pub fn get_path_for_project_factorization_file(filename: &str, chunk_size: usize) -> String {
+    format!(
+        "{}/{}-{}-a-fact.txt",
+        get_path_for_project_folder(filename),
+        filename,
+        chunk_size
+    )
+}
+
 pub fn get_path_for_project_tree_file(filename: &str, chunk_size: usize) -> String {
     format!(
         "{}/{}-{}-a-tree.txt",

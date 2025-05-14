@@ -1,0 +1,8 @@
+icfl > GG
+  cf > GCG
+icfl > TC
+  cf > TCA
+  cf > AGA
+icfl > T
+  cf > TCA
+  cf > CAC

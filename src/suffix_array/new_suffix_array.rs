@@ -1,8 +1,10 @@
 use crate::factorization::icfl::get_icfl_indexes;
+use crate::factorization::logging::log_factorization;
 use crate::files::paths::{
-    get_path_for_project_folder, get_path_for_project_full_tree_file,
-    get_path_for_project_outcome_file_json, get_path_for_project_suffix_array_file,
-    get_path_for_project_timing_file_json, get_path_for_project_tree_file,
+    get_path_for_project_factorization_file, get_path_for_project_folder,
+    get_path_for_project_full_tree_file, get_path_for_project_outcome_file_json,
+    get_path_for_project_suffix_array_file, get_path_for_project_timing_file_json,
+    get_path_for_project_tree_file,
 };
 use crate::suffix_array::chunking::get_custom_factors_and_more;
 use crate::suffix_array::compare_cache::CompareCache;
@@ -27,7 +29,7 @@ pub fn compute_innovative_suffix_array(
     str: &str,
     chunk_size: usize,
     log_execution: bool,
-    log_trees_and_suffix_array: bool,
+    log_factorization_and_trees_and_suffix_array: bool,
 ) -> InnovativeSuffixArrayComputationResults {
     let mut monitor = Monitor::new();
     monitor.whole_duration.start();
@@ -39,30 +41,40 @@ pub fn compute_innovative_suffix_array(
     let s_bytes = str.as_bytes();
     let icfl_indexes = get_icfl_indexes(s_bytes);
     // Custom Factorization
-    let mut custom_indexes = Vec::new();
-    let mut is_custom_vec = Vec::new();
-    let mut icfl_factor_list = Vec::new();
-    let (custom_indexes_, is_custom_vec_, icfl_factor_list_) =
-        get_custom_factors_and_more(&icfl_indexes, chunk_size, str_length);
-    custom_indexes = custom_indexes_;
-    is_custom_vec = is_custom_vec_;
-    icfl_factor_list = icfl_factor_list_;
+    let (
+        //
+        custom_indexes,
+        is_custom_vec,
+        icfl_factor_list,
+    ) = get_custom_factors_and_more(&icfl_indexes, chunk_size, str_length);
     monitor.p1_fact.stop();
+    if log_factorization_and_trees_and_suffix_array {
+        make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
+        log_factorization(
+            &custom_indexes,
+            &icfl_indexes,
+            str,
+            get_path_for_project_factorization_file(fasta_file_name, chunk_size),
+        );
+    }
 
     // TREE
     monitor.p2_tree.start();
     let mut tree = create_tree(s_bytes, &custom_indexes, &is_custom_vec, &mut monitor);
     monitor.p2_tree.stop();
-
-    // +
     if cfg!(feature = "verbose") {
-        println!("Before merge");
+        println!("Before SUFFIX ARRAY PHASE");
+        print_for_human_like_debug(
+            str,
+            str_length,
+            &icfl_indexes,
+            &custom_indexes,
+            &icfl_factor_list,
+            &is_custom_vec,
+        );
         tree.print();
     }
-    // -
-
-    // +
-    if log_trees_and_suffix_array {
+    if log_factorization_and_trees_and_suffix_array {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_tree(
             &tree,
@@ -75,23 +87,6 @@ pub fn compute_innovative_suffix_array(
             get_path_for_project_full_tree_file(fasta_file_name, chunk_size),
         );
     }
-
-    if cfg!(feature = "verbose") {
-        print_for_human_like_debug(
-            str,
-            str_length,
-            &icfl_indexes,
-            &custom_indexes,
-            &icfl_factor_list,
-            &is_custom_vec,
-        );
-        println!("Before IN-PREFIX MERGE");
-        tree.print();
-    }
-    // -
-
-    // FOR DEBUG PURPOSES
-    // prefix_trie.debug_dfs();
 
     // SUFFIX ARRAY
     monitor.p3_sa.start();
@@ -109,13 +104,11 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
     );
     monitor.p3_sa.stop();
-
-    // +
     if cfg!(feature = "verbose") {
-        println!("After IN-PREFIX MERGE");
+        println!("After SUFFIX ARRAY PHASE");
         tree.print();
     }
-    if log_trees_and_suffix_array {
+    if log_factorization_and_trees_and_suffix_array {
         /*log_tree_using_prog_sa(
             &tree,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
@@ -126,21 +119,14 @@ pub fn compute_innovative_suffix_array(
             &tree,
             get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
         );*/
-    }
-    // -
-
-    // +
-    if log_trees_and_suffix_array {
         log_suffix_array(
             &suffix_array,
             get_path_for_project_suffix_array_file(fasta_file_name, chunk_size),
         );
     }
-    // -
 
     monitor.whole_duration.stop();
 
-    // +
     let execution_info = monitor.transform_info_execution_info();
     if log_execution {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
@@ -160,7 +146,6 @@ pub fn compute_innovative_suffix_array(
             get_path_for_project_timing_file_json(fasta_file_name, chunk_size),
         );
     }
-    // -
 
     // println!("Total time: {}", duration.as_secs_f32());
 

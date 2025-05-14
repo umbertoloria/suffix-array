@@ -12,7 +12,7 @@ pub fn suite_complete_on_fasta_file(
     chunk_size_interval: (usize, usize), // Both incl.
     max_duration_in_micros: u32,
     log_execution: bool,
-    log_trees_and_suffix_array: bool,
+    log_factorization_and_trees_and_suffix_array: bool,
 ) {
     println!("\n\nCOMPUTING SUITE ON FILE: \"{}\"\n", fasta_file_name);
 
@@ -40,12 +40,12 @@ pub fn suite_complete_on_fasta_file(
     let mut chunk_size_and_execution_info_list = Vec::new();
     for &chunk_size in &chunks_interval {
         let test_result = run_and_validate_test(
-            fasta_file_name,
-            log_execution,
-            log_trees_and_suffix_array,
-            src_str,
             &classic_suffix_array,
+            fasta_file_name,
+            src_str,
             chunk_size,
+            log_execution,
+            log_factorization_and_trees_and_suffix_array,
         );
         chunk_size_and_execution_info_list.push((chunk_size, test_result.execution_info));
         if test_result.failed {
@@ -67,19 +67,19 @@ pub struct RunAndValidateTestOutput {
     failed: bool,
 }
 fn run_and_validate_test(
-    fasta_file_name: &str,
-    log_execution: bool,
-    log_trees_and_suffix_array: bool,
-    src_str: &str,
     classic_suffix_array: &Vec<usize>,
+    fasta_file_name: &str,
+    src_str: &str,
     chunk_size: usize,
+    log_execution: bool,
+    log_factorization_and_trees_and_suffix_array: bool,
 ) -> RunAndValidateTestOutput {
     let innovative_suffix_array_computation = compute_innovative_suffix_array(
         fasta_file_name,
         src_str,
         chunk_size,
         log_execution,
-        log_trees_and_suffix_array,
+        log_factorization_and_trees_and_suffix_array,
     );
     let suffix_array = innovative_suffix_array_computation.suffix_array;
     let execution_info = innovative_suffix_array_computation.execution_info;

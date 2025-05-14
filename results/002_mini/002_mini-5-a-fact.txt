@@ -1,0 +1,9 @@
+icfl > A
+icfl > C
+icfl > TCGT
+  cf > AGACC
+icfl > TTAC
+  cf > AGAAA
+  cf > GAGGT
+  cf > AGAAC
+  cf > CTCGA

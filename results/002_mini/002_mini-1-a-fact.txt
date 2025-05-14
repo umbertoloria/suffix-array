@@ -1,0 +1,35 @@
+icfl > A
+icfl > C
+icfl > T
+  cf > C
+  cf > G
+  cf > T
+  cf > A
+  cf > G
+  cf > A
+  cf > C
+  cf > C
+icfl > T
+  cf > T
+  cf > A
+  cf > C
+  cf > A
+  cf > G
+  cf > A
+  cf > A
+  cf > A
+  cf > G
+  cf > A
+  cf > G
+  cf > G
+  cf > T
+  cf > A
+  cf > G
+  cf > A
+  cf > A
+  cf > C
+  cf > C
+  cf > T
+  cf > C
+  cf > G
+  cf > A

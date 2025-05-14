@@ -1,0 +1,11 @@
+icfl > G
+  cf > GG
+  cf > CG
+icfl > TC
+  cf > TC
+  cf > AA
+  cf > GA
+icfl > T
+  cf > TC
+  cf > AC
+  cf > AC

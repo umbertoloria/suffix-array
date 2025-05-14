@@ -1,0 +1,7 @@
+icfl > A
+icfl > C
+icfl > T
+  cf > CGTAGACC
+icfl > TTACAGAA
+  cf > AGAGGTAG
+  cf > AACCTCGA

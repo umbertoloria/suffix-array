@@ -1,0 +1,6 @@
+icfl > G
+  cf > GGCG
+icfl > TCTC
+  cf > AAGA
+icfl > TTC
+  cf > ACAC

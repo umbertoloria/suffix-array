@@ -1,0 +1,5 @@
+icfl > GGGCG
+icfl > TC
+  cf > TCAAGA
+icfl > T
+  cf > TCACAC

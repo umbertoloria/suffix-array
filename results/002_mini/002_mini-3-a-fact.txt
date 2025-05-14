@@ -1,0 +1,13 @@
+icfl > A
+icfl > C
+icfl > TCG
+  cf > TAG
+  cf > ACC
+icfl > TTA
+  cf > CAG
+  cf > AAA
+  cf > GAG
+  cf > GTA
+  cf > GAA
+  cf > CCT
+  cf > CGA
