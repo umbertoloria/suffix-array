@@ -16,6 +16,7 @@ use crate::suffix_array::suffix_array::suffix_array_logger::{
 };
 use crate::utils::json::dump_json_in_file;
 use std::process::exit;
+use crate::suffix_array::prefix_tree::pat::test_suffix_tree;
 
 // INNOVATIVE SUFFIX ARRAY
 pub struct InnovativeSuffixArrayComputationResults {
@@ -53,6 +54,11 @@ pub fn compute_innovative_suffix_array(
     monitor.p2_tree.start();
     let mut tree = create_tree(s_bytes, &custom_indexes, &is_custom_vec, &mut monitor);
     monitor.p2_tree.stop();
+
+    // tree.check_suffix_tree();
+    // tree.check_leafs();
+    // tree.check_suffix_tree_2();
+    test_suffix_tree();
 
     // +
     if cfg!(feature = "verbose") {

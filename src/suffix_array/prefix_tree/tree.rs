@@ -1,9 +1,11 @@
 use crate::suffix_array::chunking::get_max_factor_size;
 use crate::suffix_array::monitor::Monitor;
+use generalized_suffix_tree::GeneralizedSuffixTree;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::Write;
 use std::rc::Rc;
+use suffix_tree::{Node, SuffixTree};
 
 pub fn create_tree<'a>(
     s_bytes: &'a [u8],
@@ -262,6 +264,286 @@ impl<'a> Tree<'a> {
             let child_node_label = format!("{}{}", self_label, prefix_str);
             self.print_node(child_node_id, tabs_offset + 1, &child_node_label);
         }
+    }
+
+    // FIXME: additional checks
+    /*pub fn check_suffix_tree(&self) {
+        // let tree = SuffixTree::new("banana"); // FIXME
+        let str = "AAABCAABCADCAABCA$";
+        let tree = SuffixTree::new(str);
+        // println!("{:?}", tree); // FIXME
+        // self.check_suffix_tree_print_rec(tree.root(), 0, 0, str); // FIXME
+
+        let str_len = str.len();
+        let mut stack = Vec::new();
+
+        /*let root = tree.root(); // FIXME
+        let root_len = root.len() as usize;
+        stack.push((root, 0, root_len));*/
+        for node in tree.root().children().rev() {
+            // let node_len = node.len() as usize; // FIXME
+            // stack.push((node, 1, node_len));
+            stack.push((node, 1));
+        }
+
+        let mut curr_offset = 0;
+        while !stack.is_empty() {
+            let (node, tab_offset) = stack.pop().unwrap();
+
+            let node_len = node.len() as usize;
+            let left = str_len - curr_offset - node_len;
+            let right = str_len - curr_offset;
+
+            print!("{} [{left},{right})", "\t".repeat(tab_offset));
+            let curr_str = &str[left..right];
+            println!(
+                "\t\t{} -> |{}{}{}|, {:?}",
+                "\t".repeat(5 - tab_offset),
+                " ".repeat(left),
+                curr_str,
+                " ".repeat(str_len - right),
+                node.suffixes(),
+            );
+
+            println!(" -> node_len={node_len}");
+
+            let children = node.children();
+            if children.len() > 0 {
+                // println!(" -> has children: count={}\n", children.len()); // FIXME
+                println!(" -> has children");
+                curr_offset -= node_len;
+                for child_node in children.rev() {
+                    // let child_node_len = child_node.len() as usize; // FIXME
+                    stack.push((child_node, tab_offset + 1));
+                }
+            } else {
+                curr_offset += node_len;
+            }
+        }
+    }
+    // FIXME
+    fn check_suffix_tree_print_rec(
+        &self,
+        node: &Node,
+        tab_offset: usize,
+        curr_suffix_len: usize,
+        str: &str,
+    ) {
+        let node_len = node.len() as usize;
+        let node_depth = node.depth();
+        let node_suffixes = node.suffixes();
+
+        let left_incl = if str.len() >= curr_suffix_len + node_len {
+            str.len() - curr_suffix_len - node_len
+        } else {
+            0
+        };
+        let right_excl = str.len() - curr_suffix_len;
+        print!(
+            "{} [{curr_suffix_len}+{node_len}/{left_incl}, {right_excl}) / len={} depth={} -> {:?}",
+            "|  ".repeat(tab_offset),
+            node_len,
+            node_depth,
+            node_suffixes,
+        );
+        let node_str = &str[left_incl..right_excl];
+        println!("\t\t\t\"{}\"", node_str);
+        // FIXME: riuscire a printare questo suffix tree e capire come usarlo nel prefix tree mio
+        let mut curr_child_suffix_len = 0;
+        for child_node in node.children() {
+            self.check_suffix_tree_print_rec(
+                child_node,
+                tab_offset + 1,
+                curr_child_suffix_len,
+                str,
+            );
+            curr_child_suffix_len += child_node.len() as usize;
+        }
+    }
+    pub fn check_leafs(&self) {
+        println!("\n\n\n");
+        let leafs = self.check_leafs_rec(ROOT_ID, "");
+
+        let (clusters, singles) = {
+            let mut clusters = Vec::<Cluster>::new();
+
+            println!("ALL NODES:");
+            for mini_node in &leafs {
+                // mini_node.print();
+
+                let mut new_cluster_found = true;
+                for cluster in &mut clusters {
+                    if cluster.is_equivalent_to(&mini_node) {
+                        // FIXME: Avoid cloning
+                        cluster.add_other_label(mini_node.label.clone());
+                        new_cluster_found = false;
+                        break;
+                    }
+                }
+                if new_cluster_found {
+                    // FIXME: Avoid cloning
+                    clusters.push(Cluster::new(mini_node.clone()));
+                }
+            }
+
+            let mut result_clusters = Vec::new();
+            let mut result_singles = Vec::new();
+            for cluster in clusters {
+                if cluster.is_proper_cluster() {
+                    result_clusters.push(cluster);
+                } else {
+                    result_singles.push(cluster.head);
+                }
+            }
+            (result_clusters, result_singles)
+        };
+
+        println!("CLUSTERS ({}):", clusters.len());
+        for cluster in &clusters {
+            cluster.print();
+        }
+        println!("SINGLES ({}):", singles.len());
+        /*for single in &singles {
+            single.print();
+        }*/
+        println!("\n\n\n");
+    }
+    fn check_leafs_rec(&self, node_id: usize, node_label: &str) -> Vec<MiniNode> {
+        let mut result = Vec::new();
+        let node = self.get_node(node_id).borrow();
+        if node.children.is_empty() {
+            result.push(MiniNode::new(
+                node_label.to_string(),
+                node.suffix_len,
+                node.rankings.clone(), // FIXME: Avoid cloning
+            ));
+        } else {
+            for &(child_node_prefix, child_node_id) in &node.children {
+                let child_node_label =
+                    format!("{}{}", node_label, get_string_clone(child_node_prefix));
+                let mut result_child = self.check_leafs_rec(child_node_id, &child_node_label);
+                result.append(&mut result_child);
+            }
+        }
+        result
+    }*/
+
+    pub fn check_suffix_tree_2(&self) {
+        let mut st = GeneralizedSuffixTree::new();
+        st.add_string("AAABCAABCADCAABCA".into(), '$');
+        st.pretty_print();
+        // println!("{:?}", st);
+    }
+}
+
+#[derive(Debug, Clone)]
+struct MiniNode {
+    label: String,
+    suffix_len: usize,
+    normalized_rankings: Vec<usize>,
+    rankings: Vec<usize>,
+}
+impl MiniNode {
+    fn new(prefix: String, suffix_len: usize, rankings: Vec<usize>) -> Self {
+        Self {
+            label: prefix,
+            suffix_len,
+            normalized_rankings: normalize_rankings(&rankings),
+            rankings,
+        }
+    }
+    fn is_equivalent_in_normalized_rankings(&self, to: &MiniNode) -> bool {
+        if self.normalized_rankings.len() != to.normalized_rankings.len() {
+            return false;
+        }
+        let mut i = 0;
+        while i < self.normalized_rankings.len() {
+            if self.normalized_rankings[i] != to.normalized_rankings[i] {
+                break;
+            }
+            i += 1;
+        }
+        i >= self.normalized_rankings.len()
+    }
+    fn print(&self, fit_label_in_space: Option<usize>) {
+        // FIXME: sicuro è un buon default 20?
+        let fit_label_in_space = fit_label_in_space.unwrap_or(20);
+        println!(
+            " -> {:>width$} {} {:?} / {:?}",
+            self.label,
+            self.suffix_len,
+            self.rankings,
+            self.normalized_rankings,
+            width = fit_label_in_space
+        );
+    }
+}
+fn normalize_rankings(rankings: &Vec<usize>) -> Vec<usize> {
+    let mut result = rankings.clone();
+    let mut min = result[0];
+    for i in 1..result.len() {
+        if result[i] < min {
+            min = result[i];
+        }
+    }
+    for i in 0..result.len() {
+        result[i] -= min;
+    }
+    result
+}
+
+struct Cluster {
+    head: MiniNode,
+    other_labels: Vec<String>,
+    other_label_max_length: usize,
+}
+impl Cluster {
+    fn new(head: MiniNode) -> Self {
+        Self {
+            head,
+            other_labels: Vec::new(),
+            other_label_max_length: 0,
+        }
+    }
+    fn is_equivalent_to(&self, to: &MiniNode) -> bool {
+        if !self.head.is_equivalent_in_normalized_rankings(to) {
+            return false;
+        }
+        let my_last_char = self.head.label.chars().last().unwrap();
+        to.label.chars().last().unwrap() == my_last_char
+    }
+    fn is_proper_cluster(&self) -> bool {
+        const MIN_CHARS_TO_SHARE: usize = 2; // FIXME: change?
+        if self.other_labels.is_empty() {
+            return false;
+        }
+        let my_chars = self.head.label.chars().collect::<Vec<_>>();
+        for other_label in &self.other_labels {
+            let other_label_chars = other_label.chars().collect::<Vec<_>>();
+            for i in 1..=MIN_CHARS_TO_SHARE {
+                if my_chars[my_chars.len() - i] != other_label_chars[other_label_chars.len() - i] {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+    fn add_other_label(&mut self, label: String) {
+        if self.other_label_max_length < label.len() {
+            self.other_label_max_length = label.len();
+        }
+        self.other_labels.push(label);
+    }
+    fn print(&self) {
+        let mini_node = &self.head;
+        mini_node.print(Some(self.other_label_max_length + 2));
+        for other_label in &self.other_labels {
+            println!(
+                "      {other_label:>width$}",
+                width = self.other_label_max_length
+            );
+        }
+        println!();
     }
 }
 
