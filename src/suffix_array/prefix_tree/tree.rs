@@ -105,20 +105,6 @@ impl<'a> Tree<'a> {
                 );
             }
 
-            if curr_node.children.is_empty() {
-                let new_node_id = self.create_node(ls_size);
-                curr_node.children.push((rest_of_ls, new_node_id));
-                i_node = new_node_id;
-                if cfg!(feature = "verbose") {
-                    println!(
-                        "   -> was empty, so created node id={new_node_id} with prefix={}",
-                        get_string_clone(rest_of_ls)
-                    );
-                }
-                // i_char += rest_of_ls.len(); // Here useless but meaningful.
-                break;
-            }
-
             // Binary Search
             let mut p = 0;
             let mut q = curr_node.children.len();
@@ -221,13 +207,25 @@ impl<'a> Tree<'a> {
                 }
             }
             if p >= q {
-                if cfg!(feature = "verbose") {
-                    println!("     -> found index p={p} for creating new node");
-                }
-                let new_node_id = self.create_node(i_char + rest_of_ls.len());
+                let new_node_id = self.create_node(ls_size);
                 curr_node.children.insert(p, (rest_of_ls, new_node_id));
                 i_node = new_node_id;
-                i_char += rest_of_ls.len();
+                if cfg!(feature = "verbose") {
+                    let rest_of_ls_str = get_string_clone(rest_of_ls);
+                    if curr_node.children.is_empty() {
+                        println!(
+                            "   -> was empty, new node id={new_node_id} with prefix={}",
+                            rest_of_ls_str
+                        );
+                    } else {
+                        println!(
+                            "   -> found index p={p}, new node id={new_node_id} with prefix={}",
+                            rest_of_ls_str
+                        );
+                    }
+                }
+                // i_char += rest_of_ls.len(); // Here useless but meaningful.
+                break;
             }
         }
         if cfg!(feature = "verbose") {
