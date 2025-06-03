@@ -54,7 +54,7 @@ impl<'a> Tree<'a> {
             let (
                 //
                 min_father,
-                child_node_max_father,
+                max_father,
                 child_new_rankings,
             ) = self.in_prefix_merge_get_min_max_and_new_rankings(
                 child_node.suffix_len,
@@ -74,17 +74,9 @@ impl<'a> Tree<'a> {
 
                 suffix_array.extend(&self_rankings[position..min_father]);
                 // result_cpp.extend(&self_rankings[position..min_father]);
-                position = min_father;
+                // position = min_father;
             }
-            if let Some(max_father) = child_node_max_father {
-                // Here, there is both a Min Father and a Max Father, this means that there
-                // exist a Window for Comparing Rankings using "RULES". This means that all
-                // Self Node's Rankings from Min Father to Max Father should be ignored since
-                // they are transformed into "Inherited Rankings" (during In-prefix Merge Phase)
-                // now, so they are inside as Children's Rankings and will be dealt with later
-                // (when these Children Nodes become Self Nodes for this procedure).
-                position = max_father;
-            }
+            position = max_father;
 
             // SELF COMMON PREFIX PARTITION: Child Node's Rankings
             if let Some(child_new_rankings) = child_new_rankings {
@@ -94,7 +86,7 @@ impl<'a> Tree<'a> {
                     ip_merge_params,
                     monitor,
                     suffix_array,
-                )
+                );
             } else {
                 self.in_prefix_merge_and_get_common_prefix_partition(
                     &child_node,
@@ -102,7 +94,7 @@ impl<'a> Tree<'a> {
                     ip_merge_params,
                     monitor,
                     suffix_array,
-                )
+                );
             };
             // result_cpp.extend(&child_cpp);
         }
@@ -119,8 +111,8 @@ impl<'a> Tree<'a> {
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
     ) -> (
-        usize,              // Min Father
-        Option<usize>,      // Max Father
+        usize,              // Min Father (incl.)
+        usize,              // Max Father (excl.)
         Option<Vec<usize>>, // New Self Node's Rankings
     ) {
         let str = ip_merge_params.str;
@@ -159,7 +151,7 @@ impl<'a> Tree<'a> {
             // Go further.
         } else {
             // Here, all LSs in "parent_rankings" are < than Curr LS.
-            return (i_parent, None, None);
+            return (i_parent, i_parent, None);
         }
 
         // Assuming "i_parent < parent_rankings.len()".
@@ -182,10 +174,10 @@ impl<'a> Tree<'a> {
         if curr_parent_ls == this_ls {
             // Go further.
         } else {
-            // Assuming "curr_parent_ls > this_ls".
-            // This means "max_father"=None. There's no Window for Comparing Rankings using "RULES".
+            // Here, there aren't Parent LSs that are = to Curr LS, so Max Father = Min Father.
+            // There's no Window for Comparing Rankings using "RULES".
 
-            return (min_father, None, None);
+            return (min_father, min_father, None);
         }
 
         // Assuming "curr_parent_ls == this_ls".
@@ -295,6 +287,6 @@ impl<'a> Tree<'a> {
         }
 
         // From here, the *NEW* Self Node's Rankings are "new_self_rankings".
-        (min_father, Some(max_father), Some(new_self_rankings))
+        (min_father, max_father, Some(new_self_rankings))
     }
 }
