@@ -53,7 +53,7 @@ impl<'a> Tree<'a> {
             // CHILD NODE: Window for Comparing Rankings using "RULES"
             let (
                 //
-                child_node_min_father,
+                min_father,
                 child_node_max_father,
                 child_new_rankings,
             ) = self.in_prefix_merge_get_min_max_and_new_rankings(
@@ -64,40 +64,26 @@ impl<'a> Tree<'a> {
                 monitor,
             );
 
-            // SELF COMMON PREFIX PARTITION: Self Node's Rankings from left
-            if let Some(min_father) = child_node_min_father {
-                if cfg!(feature = "verbose") {
-                    // Unfortunately, we don't have "self_node_id" :(
-                    println!("Here self=?? and child={child_node_id}");
-                }
+            // SELF COMMON PREFIX PARTITION: Self Node's Rankings from left to Min Father
+            if cfg!(feature = "verbose") {
+                // Unfortunately, we don't have "self_node_id" :(
+                println!("Here self=?? and child={child_node_id}");
+            }
+            if position < min_father {
+                // There are some Self Node's Rankings from "position" to "min_father".
 
-                // There is a Min Father, so use all Self Node's Rankings remained (from "position")
-                // until "min_father" position (if there are some).
-                if position < min_father {
-                    // There are some Self Node's Rankings from "position" to "min_father".
-
-                    suffix_array.extend(&self_rankings[position..min_father]);
-                    // result_cpp.extend(&self_rankings[position..min_father]);
-                    position = min_father;
-                }
-                if let Some(max_father) = child_node_max_father {
-                    // Here, there is both a Min Father and a Max Father, this means that there
-                    // exist a Window for Comparing Rankings using "RULES". This means that all
-                    // Self Node's Rankings from Min Father to Max Father should be ignored since
-                    // they are transformed into "Inherited Rankings" (during In-prefix Merge Phase)
-                    // now, so they are inside as Children's Rankings and will be dealt with later
-                    // (when these Children Nodes become Self Nodes for this procedure).
-                    position = max_father;
-                }
-            } else {
-                // Min Father is None. There's no Window for Comparing Rankings using "RULES". This
-                // means that:
-                // all Self Node's Rankings have LSs that are < than all Child Node's Rankings.
-                // So we take firstly Self Node's Rankings, and then all the Child Node's Rankings.
-
-                suffix_array.extend(&self_rankings[position..]);
-                // result_cpp.extend(&self_rankings[position..]);
-                position = self_rankings.len();
+                suffix_array.extend(&self_rankings[position..min_father]);
+                // result_cpp.extend(&self_rankings[position..min_father]);
+                position = min_father;
+            }
+            if let Some(max_father) = child_node_max_father {
+                // Here, there is both a Min Father and a Max Father, this means that there
+                // exist a Window for Comparing Rankings using "RULES". This means that all
+                // Self Node's Rankings from Min Father to Max Father should be ignored since
+                // they are transformed into "Inherited Rankings" (during In-prefix Merge Phase)
+                // now, so they are inside as Children's Rankings and will be dealt with later
+                // (when these Children Nodes become Self Nodes for this procedure).
+                position = max_father;
             }
 
             // SELF COMMON PREFIX PARTITION: Child Node's Rankings
@@ -133,7 +119,7 @@ impl<'a> Tree<'a> {
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
     ) -> (
-        Option<usize>,      // Min Father
+        usize,              // Min Father
         Option<usize>,      // Max Father
         Option<Vec<usize>>, // New Self Node's Rankings
     ) {
@@ -172,8 +158,8 @@ impl<'a> Tree<'a> {
         if i_parent < parent_rankings.len() {
             // Go further.
         } else {
-            // There's no "min_father".
-            return (None, None, None);
+            // Here, all LSs in "parent_rankings" are < than Curr LS.
+            return (i_parent, None, None);
         }
 
         // Assuming "i_parent < parent_rankings.len()".
@@ -199,7 +185,7 @@ impl<'a> Tree<'a> {
             // Assuming "curr_parent_ls > this_ls".
             // This means "max_father"=None. There's no Window for Comparing Rankings using "RULES".
 
-            return (Some(min_father), None, None);
+            return (min_father, None, None);
         }
 
         // Assuming "curr_parent_ls == this_ls".
@@ -309,6 +295,6 @@ impl<'a> Tree<'a> {
         }
 
         // From here, the *NEW* Self Node's Rankings are "new_self_rankings".
-        (Some(min_father), Some(max_father), Some(new_self_rankings))
+        (min_father, Some(max_father), Some(new_self_rankings))
     }
 }
