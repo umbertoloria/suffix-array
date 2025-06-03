@@ -65,15 +65,17 @@ impl<'a> Tree<'a> {
             );
 
             // SELF COMMON PREFIX PARTITION: Self Node's Rankings from left to Min Father
-            if cfg!(feature = "verbose") {
-                // Unfortunately, we don't have "self_node_id" :(
-                println!("Here self=?? and child={child_node_id}");
-            }
             if position < min_father {
                 // There are some Self Node's Rankings from "position" to "min_father".
 
-                suffix_array.extend(&self_rankings[position..min_father]);
-                // result_cpp.extend(&self_rankings[position..min_father]);
+                let portion_to_insert = &self_rankings[position..min_father];
+
+                if cfg!(feature = "verbose") {
+                    println!(" -> SA insert: {:?}", portion_to_insert);
+                }
+
+                suffix_array.extend(portion_to_insert);
+                // result_cpp.extend(portion_to_insert);
                 // position = min_father;
             }
             position = max_father;
@@ -96,12 +98,20 @@ impl<'a> Tree<'a> {
                     suffix_array,
                 );
             };
-            // result_cpp.extend(&child_cpp);
         }
 
         // SELF COMMON PREFIX PARTITION: Self Node's Rankings remained
-        suffix_array.extend(&self_rankings[position..]);
-        // result_cpp.extend(&self_rankings[position..]);
+        if position < self_rankings.len() {
+            let portion_to_insert = &self_rankings[position..];
+
+            if cfg!(feature = "verbose") {
+                println!(" -> SA insert: {:?}", portion_to_insert);
+            }
+
+            suffix_array.extend(portion_to_insert);
+            // result_cpp.extend(portion_to_insert);
+            // position = self_rankings.len(); // Here useless but meaningful.
+        }
     }
     fn in_prefix_merge_get_min_max_and_new_rankings(
         &self,
@@ -121,16 +131,6 @@ impl<'a> Tree<'a> {
         let this_first_ls_index = self_rankings[0];
         let this_ls_length = self_node_suffix_len;
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
-        if cfg!(feature = "verbose") {
-            let parent_first_ls_index = parent_rankings[0];
-            // Should use "parent_node.suffix_len".
-            // let parent_ls_length = depths[parent_first_ls_index];
-            // let parent_ls = &str[parent_first_ls_index..parent_first_ls_index + parent_ls_length];
-            println!(
-                "Compare parent ({}) {:?} with curr ({}) {:?}",
-                parent_first_ls_index, parent_rankings, this_ls, self_rankings
-            );
-        }
 
         // IN-PREFIX MERGE RANKINGS
         let mut i_parent = 0;
@@ -147,25 +147,35 @@ impl<'a> Tree<'a> {
             }
             i_parent += 1;
         }
-        if i_parent < parent_rankings.len() {
-            // Go further.
-        } else {
+        let min_father = i_parent;
+
+        if min_father >= parent_rankings.len() {
             // Here, all LSs in "parent_rankings" are < than Curr LS.
-            return (i_parent, i_parent, None);
+
+            let max_father = i_parent;
+
+            if cfg!(feature = "verbose") {
+                let parent_left = &parent_rankings[0..min_father];
+                let parent_window = &parent_rankings[min_father..max_father];
+                let parent_right = &parent_rankings[max_father..];
+                println!(
+                    " -> In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
+                    parent_rankings, self_rankings, parent_left, parent_window, parent_right,
+                );
+            }
+
+            return (min_father, max_father, None);
         }
 
-        // Assuming "i_parent < parent_rankings.len()".
-
-        let min_father = i_parent;
-        // From here, we have a "min_father" value. So it's true that there is at least one
+        // From here, we have a Min Father value. So it's true that there is at least one
         // Parent Ranking that have LS that is >= than Curr LS.
 
-        // If Curr Parent Ranking has LS that is > than Curr LS then "max_father"=None. So there
-        // would be no Window for Comparing Rankings using "RULES", since from here on all
+        // If Curr Parent Ranking has LS that is > than Curr LS then Max Father = Min Father. So
+        // there would be no Window for Comparing Rankings using "RULES", since from here on all
         // Parent Rankings would have LSs that are > than Curr LS.
 
-        // If Curr Parent Ranking has LS that is == than Curr LS then we would look for a Max Father
-        // to set in order to have a Window for Comparing Rankings using "RULES".
+        // If Curr Parent Ranking has LS that is = to Curr LS then we'll use Max Father to define
+        // a Window for Comparing Rankings using "RULES".
 
         let curr_parent_ls_index = parent_rankings[i_parent];
         let curr_parent_ls = &str
@@ -177,7 +187,19 @@ impl<'a> Tree<'a> {
             // Here, there aren't Parent LSs that are = to Curr LS, so Max Father = Min Father.
             // There's no Window for Comparing Rankings using "RULES".
 
-            return (min_father, min_father, None);
+            let max_father = min_father;
+
+            if cfg!(feature = "verbose") {
+                let parent_left = &parent_rankings[0..min_father];
+                let parent_window = &parent_rankings[min_father..max_father];
+                let parent_right = &parent_rankings[max_father..];
+                println!(
+                    " -> In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
+                    parent_rankings, self_rankings, parent_left, parent_window, parent_right,
+                );
+            }
+
+            return (min_father, max_father, None);
         }
 
         // Assuming "curr_parent_ls == this_ls".
@@ -206,7 +228,13 @@ impl<'a> Tree<'a> {
         // - starts from "i_parent", included, and
         // - ends with "max_father", excluded.
         if cfg!(feature = "verbose") {
-            println!("   > start comparing, window=[{},{})", i_parent, max_father);
+            let parent_left = &parent_rankings[0..min_father];
+            let parent_window = &parent_rankings[min_father..max_father];
+            let parent_right = &parent_rankings[max_father..];
+            println!(
+                    " -> In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
+                    parent_rankings, self_rankings, parent_left, parent_window, parent_right,
+                );
         }
 
         // TODO: Avoid cloning Rankings into auxiliary memory
