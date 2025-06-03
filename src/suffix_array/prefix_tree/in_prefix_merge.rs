@@ -60,6 +60,7 @@ impl<'a> Tree<'a> {
                 child_node.suffix_len,
                 &child_node.rankings,
                 self_rankings, // As Parent Node's Rankings.
+                position,
                 ip_merge_params,
                 monitor,
             );
@@ -118,6 +119,7 @@ impl<'a> Tree<'a> {
         self_node_suffix_len: usize,
         self_rankings: &Vec<usize>,
         parent_rankings: &Vec<usize>,
+        parent_left_position: usize,
         ip_merge_params: &mut IPMergeParams,
         monitor: &mut Monitor,
     ) -> (
@@ -133,7 +135,7 @@ impl<'a> Tree<'a> {
         let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
 
         // IN-PREFIX MERGE RANKINGS
-        let mut i_parent = 0;
+        let mut i_parent = parent_left_position;
         while i_parent < parent_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
@@ -155,12 +157,13 @@ impl<'a> Tree<'a> {
             let max_father = i_parent;
 
             if cfg!(feature = "verbose") {
-                let parent_left = &parent_rankings[0..min_father];
+                let parent_left = &parent_rankings[parent_left_position..min_father];
                 let parent_window = &parent_rankings[min_father..max_father];
                 let parent_right = &parent_rankings[max_father..];
                 println!(
                     " -> In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    parent_rankings, self_rankings, parent_left, parent_window, parent_right,
+                    &parent_rankings[parent_left_position..], self_rankings, parent_left, parent_window,
+                    parent_right,
                 );
             }
 
@@ -190,12 +193,13 @@ impl<'a> Tree<'a> {
             let max_father = min_father;
 
             if cfg!(feature = "verbose") {
-                let parent_left = &parent_rankings[0..min_father];
+                let parent_left = &parent_rankings[parent_left_position..min_father];
                 let parent_window = &parent_rankings[min_father..max_father];
                 let parent_right = &parent_rankings[max_father..];
                 println!(
                     " -> In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    parent_rankings, self_rankings, parent_left, parent_window, parent_right,
+                    &parent_rankings[parent_left_position..], self_rankings, parent_left, parent_window,
+                    parent_right,
                 );
             }
 
@@ -228,12 +232,13 @@ impl<'a> Tree<'a> {
         // - starts from "i_parent", included, and
         // - ends with "max_father", excluded.
         if cfg!(feature = "verbose") {
-            let parent_left = &parent_rankings[0..min_father];
+            let parent_left = &parent_rankings[parent_left_position..min_father];
             let parent_window = &parent_rankings[min_father..max_father];
             let parent_right = &parent_rankings[max_father..];
             println!(
                     " -> In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    parent_rankings, self_rankings, parent_left, parent_window, parent_right,
+                    &parent_rankings[parent_left_position..], self_rankings, parent_left, parent_window,
+                    parent_right,
                 );
         }
 
