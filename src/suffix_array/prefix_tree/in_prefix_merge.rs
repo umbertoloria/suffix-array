@@ -144,6 +144,8 @@ impl<'a> Tree<'a> {
         let self_first_ls_index = self_rankings[0]; // Take first or another one, whatever.
         let self_ls = &str[self_first_ls_index..self_first_ls_index + self_ls_size];
 
+        // Note: Binary Search tried before, not much of an improvement :_(
+
         // IN-PREFIX MERGE RANKINGS
         let mut i_parent = parent_left_position;
         while i_parent < parent_rankings.len() {

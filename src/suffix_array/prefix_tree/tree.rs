@@ -265,28 +265,20 @@ impl<'a> TreeNode<'a> {
         }
         if p >= q {
             let mut new_node = TreeNode::new(ls_size);
-            new_node.add(
-                //
-                ls_index,
-                ls_size,
-                ls_size,
-                is_custom_ls,
-                s_bytes,
-                monitor,
-            );
+            new_node.update_rankings(ls_index, is_custom_ls, s_bytes, monitor);
             self.children.insert(p, (rest_of_ls, new_node));
 
             if cfg!(feature = "verbose") {
                 let rest_of_ls_str = get_string_clone(rest_of_ls);
                 if self.children.len() == 1 {
                     println!(
-                        "   -> was empty, new node id=_ with prefix={}",
-                        rest_of_ls_str,
+                        "   -> was empty, new node id=_ with prefix={} and ranking {}",
+                        rest_of_ls_str, ls_index,
                     );
                 } else {
                     println!(
-                        "   -> found index p={p}, new node id=_ with prefix={}",
-                        rest_of_ls_str,
+                        "   -> found index p={p}, new node id=_ with prefix={} and ranking {}",
+                        rest_of_ls_str, ls_index,
                     );
                 }
             }
