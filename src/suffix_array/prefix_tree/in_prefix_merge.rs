@@ -47,6 +47,14 @@ impl<'a> Tree<'a> {
     ) {
         let mut position = 0;
 
+        if cfg!(feature = "verbose") {
+            println!(
+                "{}> CPP node: {:?}",
+                "=".repeat(self_node.suffix_len),
+                self_rankings,
+            );
+        }
+
         for &(_, child_node_id) in &self_node.children {
             let child_node = self.get_node(child_node_id).borrow();
 
@@ -72,7 +80,11 @@ impl<'a> Tree<'a> {
                 let portion_to_insert = &self_rankings[position..min_father];
 
                 if cfg!(feature = "verbose") {
-                    println!(" -> SA insert: {:?}", portion_to_insert);
+                    println!(
+                        "{}. SA insert: {:?}",
+                        ".".repeat(self_node.suffix_len),
+                        portion_to_insert,
+                    );
                 }
 
                 suffix_array.extend(portion_to_insert);
@@ -106,7 +118,11 @@ impl<'a> Tree<'a> {
             let portion_to_insert = &self_rankings[position..];
 
             if cfg!(feature = "verbose") {
-                println!(" -> SA insert: {:?}", portion_to_insert);
+                println!(
+                    "{}. SA insert: {:?}",
+                    ".".repeat(self_node.suffix_len),
+                    portion_to_insert,
+                );
             }
 
             suffix_array.extend(portion_to_insert);
@@ -161,9 +177,9 @@ impl<'a> Tree<'a> {
                 let parent_window = &parent_rankings[min_father..max_father];
                 let parent_right = &parent_rankings[max_father..];
                 println!(
-                    " -> In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    &parent_rankings[parent_left_position..], self_rankings, parent_left, parent_window,
-                    parent_right,
+                    "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
+                    " ".repeat(self_node_suffix_len), &parent_rankings[parent_left_position..],
+                    self_rankings, parent_left, parent_window, parent_right,
                 );
             }
 
@@ -197,9 +213,9 @@ impl<'a> Tree<'a> {
                 let parent_window = &parent_rankings[min_father..max_father];
                 let parent_right = &parent_rankings[max_father..];
                 println!(
-                    " -> In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    &parent_rankings[parent_left_position..], self_rankings, parent_left, parent_window,
-                    parent_right,
+                    "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
+                    " ".repeat(self_node_suffix_len), &parent_rankings[parent_left_position..],
+                    self_rankings, parent_left, parent_window, parent_right,
                 );
             }
 
@@ -236,10 +252,10 @@ impl<'a> Tree<'a> {
             let parent_window = &parent_rankings[min_father..max_father];
             let parent_right = &parent_rankings[max_father..];
             println!(
-                    " -> In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    &parent_rankings[parent_left_position..], self_rankings, parent_left, parent_window,
-                    parent_right,
-                );
+                "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
+                " ".repeat(self_node_suffix_len), &parent_rankings[parent_left_position..],
+                self_rankings, parent_left, parent_window, parent_right,
+            );
         }
 
         // TODO: Avoid cloning Rankings into auxiliary memory
@@ -263,9 +279,9 @@ impl<'a> Tree<'a> {
                         &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
                     let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + child_offset];
                     println!(
-                        "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
-                        curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index,
-                        child_offset,
+                        "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
+                        " ".repeat(self_node_suffix_len), curr_parent_ls, curr_parent_ls_index,
+                        curr_this_ls, curr_this_ls_index, child_offset,
                     );
                 }
                 new_self_rankings.push(curr_parent_ls_index);
@@ -276,9 +292,9 @@ impl<'a> Tree<'a> {
                         &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
                     let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + child_offset];
                     println!(
-                        "     > compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
-                        curr_parent_ls, curr_parent_ls_index, curr_this_ls, curr_this_ls_index,
-                        child_offset,
+                        "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
+                        " ".repeat(self_node_suffix_len), curr_parent_ls, curr_parent_ls_index,
+                        curr_this_ls, curr_this_ls_index, child_offset,
                     );
                 }
                 new_self_rankings.push(curr_this_ls_index);
@@ -287,7 +303,10 @@ impl<'a> Tree<'a> {
         }
         if j_this >= self_rankings.len() {
             if cfg!(feature = "verbose") {
-                println!("     > no child rankings left to add");
+                println!(
+                    "{}/ no child rankings left to add",
+                    " ".repeat(self_node_suffix_len),
+                );
             }
         }
         while j_this < self_rankings.len() {
@@ -295,7 +314,8 @@ impl<'a> Tree<'a> {
             if cfg!(feature = "verbose") {
                 let child_offset = self_node_suffix_len;
                 println!(
-                    "     > adding child=\"{}\" [{}], child.suff.len={}",
+                    "{}/ adding   child=\"{}\" [{}], child.suff.len={}",
+                    " ".repeat(self_node_suffix_len),
                     &str[curr_this_ls_index..curr_this_ls_index + child_offset],
                     curr_this_ls_index,
                     child_offset,
@@ -309,7 +329,8 @@ impl<'a> Tree<'a> {
             if cfg!(feature = "verbose") {
                 let child_offset = self_node_suffix_len;
                 println!(
-                    "     > adding father=\"{}\" [{}], father.suff.len={}",
+                    "{}/ adding  father=\"{}\" [{}], father.suff.len={}",
+                    " ".repeat(self_node_suffix_len),
                     &str[curr_parent_ls_index..curr_parent_ls_index + child_offset],
                     curr_parent_ls_index,
                     child_offset,
