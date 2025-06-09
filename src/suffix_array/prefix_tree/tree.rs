@@ -75,31 +75,23 @@ pub fn create_tree<'a>(
 }
 
 pub struct Tree<'a> {
-    pub root: Rc<RefCell<TreeNode<'a>>>,
+    pub root: TreeNode<'a>,
 }
 impl<'a> Tree<'a> {
     pub fn new() -> Self {
         Self {
-            root: Rc::new(RefCell::new(TreeNode::new(0))),
+            root: TreeNode::new(0),
         }
     }
     pub fn add(&mut self, ls_index: usize, ls_size: usize, is_custom_ls: bool, s_bytes: &'a [u8]) {
-        self.root
-            .borrow_mut()
-            .add(ls_index, ls_size, 0, is_custom_ls, s_bytes);
+        self.root.add(ls_index, ls_size, 0, is_custom_ls, s_bytes);
     }
 
     // PRINT
     pub fn print(&self) {
         self.print_node(&self.root, 0, "");
     }
-    fn print_node(
-        &self,
-        self_node_rc: &Rc<RefCell<TreeNode<'a>>>,
-        tabs_offset: usize,
-        self_label: &str,
-    ) {
-        let self_node = self_node_rc.borrow();
+    fn print_node(&self, self_node: &TreeNode<'a>, tabs_offset: usize, self_label: &str) {
         println!(
             "{}|{:2}: \"{}\" {}",
             "\t".repeat(tabs_offset),
@@ -107,10 +99,11 @@ impl<'a> Tree<'a> {
             self_label,
             format!("{:?}", self_node.rankings),
         );
-        for (child_node_prefix, child_node_rc) in &self_node.children {
+        for (child_node_prefix, child_node) in &self_node.children {
+            let child_node_prefix = *child_node_prefix;
             let prefix_str = get_string_clone(child_node_prefix);
             let child_node_label = format!("{}{}", self_label, prefix_str);
-            self.print_node(child_node_rc, tabs_offset + 1, &child_node_label);
+            self.print_node(child_node, tabs_offset + 1, &child_node_label);
         }
     }
 }
@@ -119,15 +112,15 @@ impl<'a> Tree<'a> {
 pub fn log_tree(tree: &Tree, full_tree: bool, filepath: String) {
     let mut file = File::create(filepath).expect("Unable to create file");
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
-    for (child_node_prefix, child_node_rc) in &tree.root.borrow().children {
+    for (child_node_prefix, child_node) in &tree.root.children {
         let child_node_prefix = *child_node_prefix;
         let child_label = format!("{}", get_string_clone(child_node_prefix));
-        log_tree_recursive(child_node_rc, &child_label, full_tree, &mut file, 0);
+        log_tree_recursive(&child_node, &child_label, full_tree, &mut file, 0);
     }
     file.flush().expect("Unable to flush file");
 }
 fn log_tree_recursive(
-    node_rc: &Rc<RefCell<TreeNode>>,
+    node: &TreeNode,
     node_label: &str,
     full_tree: bool,
     file: &mut File,
@@ -141,7 +134,6 @@ fn log_tree_recursive(
         // node_id, // Avoid showing Node ID.
         "",
     );
-    let node = node_rc.borrow();
     let rankings = &node.rankings;
     line.push_str(" [");
     for i in 0..rankings.len() - 1 {
@@ -151,21 +143,21 @@ fn log_tree_recursive(
     line.push_str(&format!("{}]", rankings[rankings.len() - 1]));
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");
-    for (child_node_prefix, child_node_rc) in &node.children {
+    for (child_node_prefix, child_node) in &node.children {
         let child_node_prefix = *child_node_prefix;
         let child_label = if full_tree {
             format!("{}{}", node_label, get_string_clone(child_node_prefix))
         } else {
             format!("{}", get_string_clone(child_node_prefix))
         };
-        log_tree_recursive(child_node_rc, &child_label, full_tree, file, level + 1);
+        log_tree_recursive(child_node, &child_label, full_tree, file, level + 1);
     }
 }
 
 pub struct TreeNode<'a> {
     pub suffix_len: usize,
     pub rankings: Vec<usize>,
-    pub children: Vec<(&'a PrefixTrieString, Rc<RefCell<TreeNode<'a>>>)>,
+    pub children: Vec<(&'a PrefixTrieString, TreeNode<'a>)>,
 }
 impl<'a> TreeNode<'a> {
     pub fn new(suffix_len: usize) -> Self {
@@ -208,7 +200,7 @@ impl<'a> TreeNode<'a> {
             if cfg!(feature = "verbose") {
                 println!("   -> Binary Search: considering Mid Index={mid}");
             }
-            let (mid_str, mid_node) = &self.children[mid];
+            let (mid_str, mid_node) = &mut self.children[mid];
             let mid_str = *mid_str;
 
             // Comparing "Mid. Str." with "Rest of LS".
@@ -234,9 +226,7 @@ impl<'a> TreeNode<'a> {
                 // Due to how this Tree structure is used, all the code commented below can be
                 // simplified in this code here. Still, it's kept for further explanation.
 
-                mid_node
-                    .borrow_mut()
-                    .add(ls_index, ls_size, i_char + i, is_custom_ls, s_bytes);
+                mid_node.add(ls_index, ls_size, i_char + i, is_custom_ls, s_bytes);
                 break;
 
                 /*
@@ -305,11 +295,10 @@ impl<'a> TreeNode<'a> {
             }
         }
         if p >= q {
-            let mut new_node = Rc::new(RefCell::new(TreeNode::new(ls_size)));
-            new_node
-                .borrow_mut()
-                .add(ls_index, ls_size, ls_size, is_custom_ls, s_bytes);
+            let mut new_node = TreeNode::new(ls_size);
+            new_node.add(ls_index, ls_size, ls_size, is_custom_ls, s_bytes);
             self.children.insert(p, (rest_of_ls, new_node));
+
             if cfg!(feature = "verbose") {
                 let rest_of_ls_str = get_string_clone(rest_of_ls);
                 if self.children.len() == 1 {
