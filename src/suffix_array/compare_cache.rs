@@ -14,11 +14,13 @@ impl CompareCache {
             return false; // Not before.
         }
 
-        if ls_index_1 > ls_index_2 {
-            !Self::perform_compare(str, ls_index_2, ls_index_1)
+        Self::perform_gs_comparison_a_before_b(str, ls_index_1, ls_index_2)
+        /*if ls_index_1 > ls_index_2 {
+            !Self::perform_gs_comparison_a_before_b(str, ls_index_2, ls_index_1)
         } else {
-            Self::perform_compare(str, ls_index_1, ls_index_2)
-        }
+            Self::perform_gs_comparison_a_before_b(str, ls_index_1, ls_index_2)
+        }*/
+
         /*
         // TODO: Optimize and enable this cache
         if let Some(&result) = self.cache.get(&(ls_index_1, ls_index_2)) {
@@ -34,7 +36,7 @@ impl CompareCache {
         }
         */
     }
-    fn perform_compare(str: &str, ls_index_1: usize, ls_index_2: usize) -> bool {
+    fn perform_gs_comparison_a_before_b(str: &str, ls_index_1: usize, ls_index_2: usize) -> bool {
         // println!(" -> *** comparing {} with {}", ls_index_1, ls_index_2);
         let cmp1 = &str[ls_index_1..];
         let cmp2 = &str[ls_index_2..];

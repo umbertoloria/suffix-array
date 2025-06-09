@@ -149,6 +149,7 @@ impl<'a> Tree<'a> {
         while i_parent < parent_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
+                // ..curr_parent_ls_index + self_node_ls_size]; // NO. Safety here is *required*.
                 ..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
             // TODO: Monitor string compare
             if curr_parent_ls < self_ls {
@@ -193,6 +194,7 @@ impl<'a> Tree<'a> {
         let curr_parent_ls_index = parent_rankings[i_parent];
         let curr_parent_ls = &str
             [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
+        // ..curr_parent_ls_index + self_node_ls_size]; // Seems like safety is optional here...
         // TODO: Monitor string compare
         if curr_parent_ls == self_ls {
             // Go further.
@@ -226,6 +228,7 @@ impl<'a> Tree<'a> {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
+            // ..curr_parent_ls_index + self_node_ls_size]; // Seems like safety is optional here...
             // TODO: Monitor string compare
             if curr_parent_ls == self_ls {
                 // Ok. This Parent Ranking is = to Curr LS as well, so the Window is not closed yet.
@@ -268,6 +271,7 @@ impl<'a> Tree<'a> {
             );
             if !result_rules {
                 if cfg!(feature = "verbose") {
+                    // ..usize::min.. // Seems like safety is optional here...
                     let curr_parent_ls =
                         &str[curr_parent_ls_index..curr_parent_ls_index + self_node_ls_size];
                     let curr_this_ls =
@@ -282,6 +286,7 @@ impl<'a> Tree<'a> {
                 i_parent += 1;
             } else {
                 if cfg!(feature = "verbose") {
+                    // ..usize::min.. // Seems like safety is optional here...
                     let curr_parent_ls =
                         &str[curr_parent_ls_index..curr_parent_ls_index + self_node_ls_size];
                     let curr_this_ls =
