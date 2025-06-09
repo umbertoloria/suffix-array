@@ -29,15 +29,15 @@ fn main() {
     let lftsa = false;
     // let lftsa = true;
 
-    // suite_complete_on_fasta_file("000", chunk_size_vec, 25, le, lftsa);
-    // suite_complete_on_fasta_file("001", chunk_size_vec, 25, le, lftsa);
-    // suite_complete_on_fasta_file("002_mini", chunk_size_vec, 30, le, lftsa);
-    suite_complete_on_fasta_file("002_70", chunk_size_vec, 70_000, le, lftsa);
-    // suite_complete_on_fasta_file("002_70", chunk_size_vec, 200_000, le, lftsa);
-    // suite_complete_on_fasta_file("002_70", chunk_size_none_list, 200_000, le, lftsa);
-    // suite_complete_on_fasta_file("002_700", chunk_size_vec, 2_100_000, le, lftsa);
-    // suite_complete_on_fasta_file("002_7000", chunk_size_vec, 50_000_000, le, lftsa);
-    // suite_complete_on_fasta_file("002_70000", chunk_size_vec, le, lftsa);
+    // suite_complete_on_fasta_file("000", &chunk_size_vec, 25, le, lftsa);
+    // suite_complete_on_fasta_file("001", &chunk_size_vec, 25, le, lftsa);
+    // suite_complete_on_fasta_file("002_mini", &chunk_size_vec, 30, le, lftsa);
+    suite_complete_on_fasta_file("002_70", &chunk_size_vec, 70_000, le, lftsa);
+    // suite_complete_on_fasta_file("002_70", &chunk_size_vec, 200_000, le, lftsa);
+    // suite_complete_on_fasta_file("002_70", &chunk_size_none_list, 200_000, le, lftsa);
+    // suite_complete_on_fasta_file("002_700", &chunk_size_vec, 2_100_000, le, lftsa);
+    // suite_complete_on_fasta_file("002_7000", &chunk_size_vec, 50_000_000, le, lftsa);
+    // suite_complete_on_fasta_file("002_70000", &chunk_size_vec, le, lftsa);
 }
 
 fn create_chunk_size_interval(min: usize, max: usize) -> Vec<Option<usize>> {

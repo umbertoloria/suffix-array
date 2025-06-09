@@ -80,17 +80,17 @@ pub fn get_custom_factors_and_more_using_chunk_size(
         for i in 0..icfl_indexes.len() {
             let curr_icfl_factor_index = icfl_indexes[i];
 
-            // Curr Factor Size
+            // Curr ICFL Factor Size
             let curr_icfl_factor_size = if i < icfl_indexes.len() - 1 {
                 icfl_indexes[i + 1]
             } else {
                 str_length
             } - curr_icfl_factor_index;
 
-            // Updating "custom_indexes"
+            // Updating "factor_indexes"
             factor_indexes.push(curr_icfl_factor_index);
 
-            // Updating "is_custom_vec" and "icfl_factor_list"
+            // Updating "idx_to_is_custom" and "idx_to_icfl_factor"
             for _ in 0..curr_icfl_factor_size {
                 idx_to_is_custom.push(false);
                 idx_to_icfl_factor.push(i);
@@ -105,39 +105,6 @@ pub fn get_custom_factors_and_more_using_chunk_size(
         idx_to_icfl_factor,
     )
 }
-/*
-pub fn get_icfl_factors_and_more_avoiding_custom_factorization(
-    str_length: usize,
-    icfl_indexes: &Vec<usize>,
-) -> (Vec<usize>, Vec<bool>, Vec<usize>) {
-    let mut custom_indexes = Vec::new();
-    let mut is_custom_vec = Vec::new();
-    let mut icfl_factor_list = Vec::new();
-
-    for i in 0..icfl_indexes.len() {
-        let cur_factor_index = icfl_indexes[i];
-
-        // Curr Factor Size
-        let cur_factor_size = if i < icfl_indexes.len() - 1 {
-            icfl_indexes[i + 1]
-        } else {
-            str_length
-        } - cur_factor_index;
-
-        // Updating "custom_indexes"
-        custom_indexes.push(cur_factor_index);
-
-        // Updating "is_custom_vec"
-        // Updating "icfl_factor_list"
-        for _ in 0..cur_factor_size {
-            is_custom_vec.push(false);
-            icfl_factor_list.push(i);
-        }
-    }
-
-    (custom_indexes, is_custom_vec, icfl_factor_list)
-}
-*/
 
 pub fn get_max_factor_size(factor_indexes: &Vec<usize>, str_length: usize) -> usize {
     let mut result = factor_indexes[0];

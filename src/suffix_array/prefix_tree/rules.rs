@@ -57,14 +57,14 @@ fn rules(
     y: usize,
     child_offset: usize,
     str: &str,
-    icfl_list: &Vec<usize>,
-    is_custom_vec: &Vec<bool>,
-    icfl_factor_list: &Vec<usize>,
+    icfl_indexes: &Vec<usize>,
+    idx_to_is_custom: &Vec<bool>,
+    idx_to_icfl_factor: &Vec<usize>,
     compare_cache: &mut CompareCache,
     monitor: &mut Monitor,
 ) -> bool {
-    let icfl_list_size = icfl_list.len();
-    if is_custom_vec[x] && is_custom_vec[y] {
+    let icfl_indexes_size = icfl_indexes.len();
+    if idx_to_is_custom[x] && idx_to_is_custom[y] {
         monitor.new_compare_of_two_ls_in_custom_factors();
         monitor.new_compare_using_actual_string_compare();
         compare_cache.compare_1_before_2(
@@ -80,11 +80,11 @@ fn rules(
         } else {
             false
         }*/
-    } else if is_custom_vec[x] {
+    } else if idx_to_is_custom[x] {
         monitor.new_compare_one_ls_in_custom_factor();
-        if icfl_factor_list[x] <= icfl_factor_list[y] {
+        if idx_to_icfl_factor[x] <= idx_to_icfl_factor[y] {
             monitor.new_compare_using_rules();
-            if y >= icfl_list[icfl_list_size - 1] {
+            if y >= icfl_indexes[icfl_indexes_size - 1] {
                 true
             } else {
                 false
@@ -105,11 +105,11 @@ fn rules(
                 false
             }*/
         }
-    } else if is_custom_vec[y] {
+    } else if idx_to_is_custom[y] {
         monitor.new_compare_one_ls_in_custom_factor();
-        if icfl_factor_list[y] <= icfl_factor_list[x] {
+        if idx_to_icfl_factor[y] <= idx_to_icfl_factor[x] {
             monitor.new_compare_using_rules();
-            if x >= icfl_list[icfl_list_size - 1] {
+            if x >= icfl_indexes[icfl_indexes_size - 1] {
                 false
             } else {
                 true
@@ -130,17 +130,17 @@ fn rules(
                 false
             }*/
         }
-    } else if x >= icfl_list[icfl_list_size - 1] && y >= icfl_list[icfl_list_size - 1] {
+    } else if x >= icfl_indexes[icfl_indexes_size - 1] && y >= icfl_indexes[icfl_indexes_size - 1] {
         monitor.new_compare_using_rules();
         false
-    } else if icfl_factor_list[x] == icfl_factor_list[y] {
+    } else if idx_to_icfl_factor[x] == idx_to_icfl_factor[y] {
         monitor.new_compare_using_rules();
         true
     } else {
-        if x >= icfl_list[icfl_list_size - 1] {
+        if x >= icfl_indexes[icfl_indexes_size - 1] {
             monitor.new_compare_using_rules();
             false
-        } else if y >= icfl_list[icfl_list_size - 1] {
+        } else if y >= icfl_indexes[icfl_indexes_size - 1] {
             monitor.new_compare_using_actual_string_compare();
             compare_cache.compare_1_before_2(
                 //
