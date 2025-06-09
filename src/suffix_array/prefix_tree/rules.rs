@@ -17,8 +17,8 @@ pub fn rules_safe(
             child_offset,
             ip_merge_params.str,
             ip_merge_params.icfl_indexes,
-            ip_merge_params.is_custom_vec,
-            ip_merge_params.icfl_factor_list,
+            ip_merge_params.idx_to_is_custom,
+            ip_merge_params.idx_to_icfl_factor,
             ip_merge_params.compare_cache,
             monitor,
         )
@@ -37,8 +37,8 @@ pub fn rules_safe(
             child_offset,
             ip_merge_params.str,
             ip_merge_params.icfl_indexes,
-            ip_merge_params.is_custom_vec,
-            ip_merge_params.icfl_factor_list,
+            ip_merge_params.idx_to_is_custom,
+            ip_merge_params.idx_to_icfl_factor,
             ip_merge_params.compare_cache,
             monitor,
         );

@@ -44,15 +44,15 @@ pub fn compute_innovative_suffix_array(
     // Custom Factorization
     let (
         //
-        custom_indexes,
-        is_custom_vec,
-        icfl_factor_list,
+        factor_indexes,
+        idx_to_is_custom,
+        idx_to_icfl_factor,
     ) = get_custom_factors_and_more_using_chunk_size(&icfl_indexes, chunk_size, str_length);
     monitor.p1_fact.stop();
     if log_factorization_and_trees_and_suffix_array {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_factorization(
-            &custom_indexes,
+            &factor_indexes,
             &icfl_indexes,
             str,
             get_path_for_project_factorization_file(fasta_file_name, chunk_size),
@@ -61,7 +61,7 @@ pub fn compute_innovative_suffix_array(
 
     // TREE
     monitor.p2_tree.start();
-    let mut tree = create_tree(s_bytes, &custom_indexes, &is_custom_vec, &mut monitor);
+    let mut tree = create_tree(s_bytes, &factor_indexes, &idx_to_is_custom, &mut monitor);
     monitor.p2_tree.stop();
     if cfg!(feature = "verbose") {
         println!("Before SUFFIX ARRAY PHASE");
@@ -69,9 +69,9 @@ pub fn compute_innovative_suffix_array(
             str,
             str_length,
             &icfl_indexes,
-            &custom_indexes,
-            &icfl_factor_list,
-            &is_custom_vec,
+            &factor_indexes,
+            &idx_to_icfl_factor,
+            &idx_to_is_custom,
         );
         tree.print();
     }
@@ -100,8 +100,8 @@ pub fn compute_innovative_suffix_array(
     let mut ip_merge_params = IPMergeParams {
         str,
         icfl_indexes: &icfl_indexes,
-        is_custom_vec: &is_custom_vec,
-        icfl_factor_list: &icfl_factor_list,
+        idx_to_is_custom: &idx_to_is_custom,
+        idx_to_icfl_factor: &idx_to_icfl_factor,
         compare_cache: &mut compare_cache,
     };
     let suffix_array = tree.in_prefix_merge_and_common_prefix_partition(
@@ -164,9 +164,9 @@ fn print_for_human_like_debug(
     str: &str,
     str_length: usize,
     icfl_indexes: &Vec<usize>,
-    custom_indexes: &Vec<usize>,
-    icfl_factor_list: &Vec<usize>,
-    is_custom_vec: &Vec<bool>,
+    factor_indexes: &Vec<usize>,
+    idx_to_icfl_factor: &Vec<usize>,
+    idx_to_is_custom: &Vec<bool>,
     // depths: &Vec<usize>,
 ) {
     // CHAR INDEXES
@@ -179,24 +179,25 @@ fn print_for_human_like_debug(
         print!("  {} ", &str[i..i + 1]);
     }
     println!();
-    // ICFL FACTORS
+    // IDX TO ICFL FACTOR
     for i in 0..str_length {
-        print!(" {:2} ", icfl_factor_list[i]);
+        print!(" {:2} ", idx_to_icfl_factor[i]);
     }
-    println!("   <= ICFL FACTORS {:?}", icfl_indexes);
+    println!("   <= IDX TO ICFL FACTOR {:?}", icfl_indexes);
     let mut i = 0;
 
     print_indexes_list(&icfl_indexes, str_length);
-    println!("<= ICFL FACTORS {:?}", icfl_indexes);
-    print_indexes_list(&custom_indexes, str_length);
-    println!("<= CUSTOM FACTORS {:?}", custom_indexes);
+    println!("<= ICFL FACTOR INDEXES {:?}", icfl_indexes);
+    print_indexes_list(&factor_indexes, str_length);
+    println!("<= FACTOR INDEXES {:?}", factor_indexes);
 
+    // IDX TO IS CUSTOM FACTOR
     i = 0;
     while i < str_length {
-        print!("  {} ", if is_custom_vec[i] { "x" } else { " " });
+        print!("  {} ", if idx_to_is_custom[i] { "x" } else { " " });
         i += 1;
     }
-    println!("   <= IS IN CUSTOM FACTOR");
+    println!("   <= IDX TO IS CUSTOM FACTOR");
     /*for i in 0..str_length {
         print!(" {:2} ", depths[i]);
     }

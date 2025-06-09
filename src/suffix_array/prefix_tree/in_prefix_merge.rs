@@ -7,8 +7,8 @@ use std::cell::Ref;
 pub struct IPMergeParams<'a> {
     pub str: &'a str,
     pub icfl_indexes: &'a Vec<usize>,
-    pub is_custom_vec: &'a Vec<bool>,
-    pub icfl_factor_list: &'a Vec<usize>,
+    pub idx_to_is_custom: &'a Vec<bool>,
+    pub idx_to_icfl_factor: &'a Vec<usize>,
     pub compare_cache: &'a mut CompareCache,
 }
 
