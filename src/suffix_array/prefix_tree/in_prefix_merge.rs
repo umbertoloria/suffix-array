@@ -127,7 +127,7 @@ impl<'a> Tree<'a> {
     }
     fn in_prefix_merge_get_min_max_and_new_rankings(
         &self,
-        self_node_suffix_len: usize,
+        self_node_ls_size: usize,
         self_rankings: &Vec<usize>,
         parent_rankings: &Vec<usize>,
         parent_left_position: usize,
@@ -141,18 +141,17 @@ impl<'a> Tree<'a> {
         let str = ip_merge_params.str;
 
         // Compare This Node's Rankings with Parent Node's Rankings.
-        let this_first_ls_index = self_rankings[0];
-        let this_ls_length = self_node_suffix_len;
-        let this_ls = &str[this_first_ls_index..this_first_ls_index + this_ls_length];
+        let self_first_ls_index = self_rankings[0]; // Take first or another one, whatever.
+        let self_ls = &str[self_first_ls_index..self_first_ls_index + self_node_ls_size];
 
         // IN-PREFIX MERGE RANKINGS
         let mut i_parent = parent_left_position;
         while i_parent < parent_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
-                ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
+                ..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
             // TODO: Monitor string compare
-            if curr_parent_ls < this_ls {
+            if curr_parent_ls < self_ls {
                 // Ok. All Parent Rankings from left to here have LSs that are < than Curr LS.
             } else {
                 // Found a Parent LS that is >= Curr LS.
@@ -173,7 +172,7 @@ impl<'a> Tree<'a> {
                 let parent_right = &parent_rankings[max_father..];
                 println!(
                     "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    " ".repeat(self_node_suffix_len), &parent_rankings[parent_left_position..],
+                    " ".repeat(self_node_ls_size), &parent_rankings[parent_left_position..],
                     self_rankings, parent_left, parent_window, parent_right,
                 );
             }
@@ -193,9 +192,9 @@ impl<'a> Tree<'a> {
 
         let curr_parent_ls_index = parent_rankings[i_parent];
         let curr_parent_ls = &str
-            [curr_parent_ls_index..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
+            [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
         // TODO: Monitor string compare
-        if curr_parent_ls == this_ls {
+        if curr_parent_ls == self_ls {
             // Go further.
         } else {
             // Here, there aren't Parent LSs that are = to Curr LS, so Max Father = Min Father.
@@ -209,7 +208,7 @@ impl<'a> Tree<'a> {
                 let parent_right = &parent_rankings[max_father..];
                 println!(
                     "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    " ".repeat(self_node_suffix_len), &parent_rankings[parent_left_position..],
+                    " ".repeat(self_node_ls_size), &parent_rankings[parent_left_position..],
                     self_rankings, parent_left, parent_window, parent_right,
                 );
             }
@@ -226,9 +225,9 @@ impl<'a> Tree<'a> {
         while i_parent < parent_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str[curr_parent_ls_index
-                ..usize::min(curr_parent_ls_index + this_ls_length, str.len())];
+                ..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
             // TODO: Monitor string compare
-            if curr_parent_ls == this_ls {
+            if curr_parent_ls == self_ls {
                 // Ok. This Parent Ranking is = to Curr LS as well, so the Window is not closed yet.
             } else {
                 // Found a Parent LS that is > Curr LS.
@@ -248,7 +247,7 @@ impl<'a> Tree<'a> {
             let parent_right = &parent_rankings[max_father..];
             println!(
                 "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                " ".repeat(self_node_suffix_len), &parent_rankings[parent_left_position..],
+                " ".repeat(self_node_ls_size), &parent_rankings[parent_left_position..],
                 self_rankings, parent_left, parent_window, parent_right,
             );
         }
@@ -259,7 +258,7 @@ impl<'a> Tree<'a> {
         while i_parent < max_father && j_this < self_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_this_ls_index = self_rankings[j_this];
-            let child_offset = self_node_suffix_len;
+            let child_offset = self_node_ls_size;
             let result_rules = rules_safe(
                 curr_parent_ls_index,
                 curr_this_ls_index,
@@ -275,7 +274,7 @@ impl<'a> Tree<'a> {
                     let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + child_offset];
                     println!(
                         "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
-                        " ".repeat(self_node_suffix_len), curr_parent_ls, curr_parent_ls_index,
+                        " ".repeat(self_node_ls_size), curr_parent_ls, curr_parent_ls_index,
                         curr_this_ls, curr_this_ls_index, child_offset,
                     );
                 }
@@ -288,7 +287,7 @@ impl<'a> Tree<'a> {
                     let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + child_offset];
                     println!(
                         "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
-                        " ".repeat(self_node_suffix_len), curr_parent_ls, curr_parent_ls_index,
+                        " ".repeat(self_node_ls_size), curr_parent_ls, curr_parent_ls_index,
                         curr_this_ls, curr_this_ls_index, child_offset,
                     );
                 }
@@ -300,17 +299,17 @@ impl<'a> Tree<'a> {
             if cfg!(feature = "verbose") {
                 println!(
                     "{}/ no child rankings left to add",
-                    " ".repeat(self_node_suffix_len),
+                    " ".repeat(self_node_ls_size),
                 );
             }
         }
         while j_this < self_rankings.len() {
             let curr_this_ls_index = self_rankings[j_this];
             if cfg!(feature = "verbose") {
-                let child_offset = self_node_suffix_len;
+                let child_offset = self_node_ls_size;
                 println!(
                     "{}/ adding   child=\"{}\" [{}], child.suff.len={}",
-                    " ".repeat(self_node_suffix_len),
+                    " ".repeat(self_node_ls_size),
                     &str[curr_this_ls_index..curr_this_ls_index + child_offset],
                     curr_this_ls_index,
                     child_offset,
@@ -322,10 +321,10 @@ impl<'a> Tree<'a> {
         while i_parent < max_father {
             let curr_parent_ls_index = parent_rankings[i_parent];
             if cfg!(feature = "verbose") {
-                let child_offset = self_node_suffix_len;
+                let child_offset = self_node_ls_size;
                 println!(
                     "{}/ adding  father=\"{}\" [{}], father.suff.len={}",
-                    " ".repeat(self_node_suffix_len),
+                    " ".repeat(self_node_ls_size),
                     &str[curr_parent_ls_index..curr_parent_ls_index + child_offset],
                     curr_parent_ls_index,
                     child_offset,
