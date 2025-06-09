@@ -87,7 +87,7 @@ pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
     }
 
     let mut res1 = Vec::new();
-    for i in 0..j + 1 {
+    for i in 0..=j {
         res1.push(w[i]);
     }
     let mut res2 = Vec::new();

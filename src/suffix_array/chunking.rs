@@ -119,25 +119,17 @@ pub fn get_icfl_factors_and_more_avoiding_custom_factorization(
 }
 */
 
-pub fn get_max_factor_size(factor_indexes: &Vec<usize>, str_length: usize) -> Option<usize> {
-    let mut result = None;
-    for i in 0..factor_indexes.len() - 1 {
-        let len = factor_indexes[i + 1] - factor_indexes[i];
-        if let Some(result_value) = result {
-            if result_value < len {
-                result = Some(len);
-            }
-        } else {
-            result = Some(len);
+pub fn get_max_factor_size(factor_indexes: &Vec<usize>, str_length: usize) -> usize {
+    let mut result = factor_indexes[0];
+    for i in 1..factor_indexes.len() - 1 {
+        let curr_factor_size = factor_indexes[i + 1] - factor_indexes[i];
+        if result < curr_factor_size {
+            result = curr_factor_size;
         }
     }
-    let len = str_length - factor_indexes[factor_indexes.len() - 1];
-    if let Some(result_value) = result {
-        if result_value < len {
-            result = Some(len);
-        }
-    } else {
-        result = Some(len);
+    let curr_factor_size = str_length - factor_indexes[factor_indexes.len() - 1];
+    if result < curr_factor_size {
+        result = curr_factor_size;
     }
     result
 }

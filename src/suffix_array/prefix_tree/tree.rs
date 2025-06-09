@@ -12,8 +12,7 @@ pub fn create_tree<'a>(
     monitor: &mut Monitor,
 ) -> Tree<'a> {
     let str_length = s_bytes.len();
-    let max_factor_size =
-        get_max_factor_size(&custom_indexes, str_length).expect("max_factor_size is not valid");
+    let max_factor_size = get_max_factor_size(&custom_indexes, str_length);
 
     let mut tree = Tree::new();
 
@@ -23,7 +22,7 @@ pub fn create_tree<'a>(
     let mut params_canonical = Vec::new();
     let mut params_custom = Vec::new();
 
-    for ls_size in 1..max_factor_size + 1 {
+    for ls_size in 1..=max_factor_size {
         // Every iteration looks for all Custom Factors whose length is <= "ls_size" and, if there
         // exist, takes their Local Suffixes of "ls_size" length.
 
