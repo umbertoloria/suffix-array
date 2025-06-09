@@ -9,7 +9,7 @@ use std::time::Duration;
 // SUITE COMPLETE FOR CLASSIC VS INNOVATIVE COMPUTATION
 pub fn suite_complete_on_fasta_file(
     fasta_file_name: &str,
-    chunk_size_vec: Vec<usize>,
+    chunk_size_vec: Vec<Option<usize>>,
     max_duration_in_micros: u32,
     log_execution: bool,
     log_factorization_and_trees_and_suffix_array: bool,
@@ -46,7 +46,8 @@ pub fn suite_complete_on_fasta_file(
             log_execution,
             log_factorization_and_trees_and_suffix_array,
         );
-        chunk_size_and_execution_info_list.push((chunk_size, test_result.execution_info));
+        let chunk_size_or_zero = chunk_size.unwrap_or(0);
+        chunk_size_and_execution_info_list.push((chunk_size_or_zero, test_result.execution_info));
         if test_result.failed {
             break;
         }
@@ -69,7 +70,7 @@ fn run_and_validate_test(
     classic_suffix_array: &Vec<usize>,
     fasta_file_name: &str,
     src_str: &str,
-    chunk_size: usize,
+    chunk_size: Option<usize>,
     log_execution: bool,
     log_factorization_and_trees_and_suffix_array: bool,
 ) -> RunAndValidateTestOutput {
@@ -86,7 +87,8 @@ fn run_and_validate_test(
     let execution_timing = &execution_info.execution_timing;
     let execution_outcome = &execution_info.execution_outcome;
 
-    println!("[CHUNK SIZE={chunk_size}]");
+    let chunk_size_or_zero = chunk_size.unwrap_or(0);
+    println!("[CHUNK SIZE={chunk_size_or_zero}]");
     print_duration(" > Duration phases        ", &execution_timing.phases_only);
     print_duration(" > Phase 1: Factorization ", &execution_timing.p1_fact.dur);
     print_duration(" > Phase 2: Tree          ", &execution_timing.p2_tree.dur);

@@ -28,10 +28,11 @@ pub struct InnovativeSuffixArrayComputationResults {
 pub fn compute_innovative_suffix_array(
     fasta_file_name: &str,
     str: &str,
-    chunk_size: usize,
+    chunk_size: Option<usize>,
     log_execution: bool,
     log_factorization_and_trees_and_suffix_array: bool,
 ) -> InnovativeSuffixArrayComputationResults {
+    let chunk_size_or_zero = chunk_size.unwrap_or(0);
     let mut monitor = Monitor::new();
     monitor.whole_duration.start();
 
@@ -55,7 +56,7 @@ pub fn compute_innovative_suffix_array(
             &factor_indexes,
             &icfl_indexes,
             str,
-            get_path_for_project_factorization_file(fasta_file_name, chunk_size),
+            get_path_for_project_factorization_file(fasta_file_name, chunk_size_or_zero),
         );
     }
 
@@ -80,17 +81,17 @@ pub fn compute_innovative_suffix_array(
         log_tree(
             &tree,
             TreeLogMode::Tree,
-            get_path_for_project_tree_file(fasta_file_name, chunk_size),
+            get_path_for_project_tree_file(fasta_file_name, chunk_size_or_zero),
         );
         log_tree(
             &tree,
             TreeLogMode::FullTree,
-            get_path_for_project_full_tree_file(fasta_file_name, chunk_size),
+            get_path_for_project_full_tree_file(fasta_file_name, chunk_size_or_zero),
         );
         log_tree(
             &tree,
             TreeLogMode::MiniTree,
-            get_path_for_project_mini_tree_file(fasta_file_name, chunk_size),
+            get_path_for_project_mini_tree_file(fasta_file_name, chunk_size_or_zero),
         );
     }
 
@@ -115,19 +116,9 @@ pub fn compute_innovative_suffix_array(
         tree.print();
     }
     if log_factorization_and_trees_and_suffix_array {
-        /*log_tree_using_prog_sa(
-            &tree,
-            get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
-            &prog_sa,
-        );*/
-        // TODO: Unable to log Tree with "Inherited Rankings" since In-prefix Merge Phase eats them
-        /*log_tree(
-            &tree,
-            get_path_for_project_prefix_tree_file(fasta_file_name, chunk_size_num_for_log),
-        );*/
         log_suffix_array(
             &suffix_array,
-            get_path_for_project_suffix_array_file(fasta_file_name, chunk_size),
+            get_path_for_project_suffix_array_file(fasta_file_name, chunk_size_or_zero),
         );
     }
 
@@ -141,7 +132,7 @@ pub fn compute_innovative_suffix_array(
             ExecutionOutcomeFileFormat::new(&execution_info.execution_outcome);
         dump_json_in_file(
             &execution_outcome_file_format,
-            get_path_for_project_outcome_file_json(fasta_file_name, chunk_size),
+            get_path_for_project_outcome_file_json(fasta_file_name, chunk_size_or_zero),
         );
 
         // Execution Timing JSON file
@@ -149,7 +140,7 @@ pub fn compute_innovative_suffix_array(
             ExecutionInfoFileFormat::new(&execution_info.execution_timing);
         dump_json_in_file(
             &execution_timing_file_format,
-            get_path_for_project_timing_file_json(fasta_file_name, chunk_size),
+            get_path_for_project_timing_file_json(fasta_file_name, chunk_size_or_zero),
         );
     }
 
