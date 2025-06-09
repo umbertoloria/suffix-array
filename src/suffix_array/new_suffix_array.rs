@@ -6,7 +6,7 @@ use crate::files::paths::{
     get_path_for_project_outcome_file_json, get_path_for_project_suffix_array_file,
     get_path_for_project_timing_file_json, get_path_for_project_tree_file,
 };
-use crate::suffix_array::chunking::get_custom_factors_and_more;
+use crate::suffix_array::chunking::get_custom_factors_and_more_using_chunk_size;
 use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
@@ -47,7 +47,7 @@ pub fn compute_innovative_suffix_array(
         custom_indexes,
         is_custom_vec,
         icfl_factor_list,
-    ) = get_custom_factors_and_more(&icfl_indexes, chunk_size, str_length);
+    ) = get_custom_factors_and_more_using_chunk_size(&icfl_indexes, chunk_size, str_length);
     monitor.p1_fact.stop();
     if log_factorization_and_trees_and_suffix_array {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
