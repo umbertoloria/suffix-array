@@ -63,16 +63,15 @@ fn rules(
     compare_cache: &mut CompareCache,
     monitor: &mut Monitor,
 ) -> bool {
-    let icfl_indexes_size = icfl_indexes.len();
     if idx_to_is_custom[x] && idx_to_is_custom[y] {
         monitor.new_compare_of_two_ls_in_custom_factors();
         monitor.new_compare_using_actual_string_compare();
-        compare_cache.compare_1_before_2(
+        return compare_cache.compare_1_before_2(
             //
             str,
             y + child_offset,
             x + child_offset,
-        )
+        );
         /*let cmp1 = &str[y + child_offset..];
         let cmp2 = &str[x + child_offset..];
         if cmp1 < cmp2 {
@@ -80,11 +79,15 @@ fn rules(
         } else {
             false
         }*/
-    } else if idx_to_is_custom[x] {
+    }
+
+    let last_icfl_index = icfl_indexes[icfl_indexes.len() - 1];
+
+    if idx_to_is_custom[x] {
         monitor.new_compare_one_ls_in_custom_factor();
-        if idx_to_icfl_factor[x] <= idx_to_icfl_factor[y] {
+        return if idx_to_icfl_factor[x] <= idx_to_icfl_factor[y] {
             monitor.new_compare_using_rules();
-            if y >= icfl_indexes[icfl_indexes_size - 1] {
+            if y >= last_icfl_index {
                 true
             } else {
                 false
@@ -104,12 +107,14 @@ fn rules(
             } else {
                 false
             }*/
-        }
-    } else if idx_to_is_custom[y] {
+        };
+    }
+
+    if idx_to_is_custom[y] {
         monitor.new_compare_one_ls_in_custom_factor();
-        if idx_to_icfl_factor[y] <= idx_to_icfl_factor[x] {
+        return if idx_to_icfl_factor[y] <= idx_to_icfl_factor[x] {
             monitor.new_compare_using_rules();
-            if x >= icfl_indexes[icfl_indexes_size - 1] {
+            if x >= last_icfl_index {
                 false
             } else {
                 true
@@ -129,18 +134,20 @@ fn rules(
             } else {
                 false
             }*/
-        }
-    } else if x >= icfl_indexes[icfl_indexes_size - 1] && y >= icfl_indexes[icfl_indexes_size - 1] {
+        };
+    }
+
+    if x >= last_icfl_index && y >= last_icfl_index {
         monitor.new_compare_using_rules();
         false
     } else if idx_to_icfl_factor[x] == idx_to_icfl_factor[y] {
         monitor.new_compare_using_rules();
         true
     } else {
-        if x >= icfl_indexes[icfl_indexes_size - 1] {
+        if x >= last_icfl_index {
             monitor.new_compare_using_rules();
             false
-        } else if y >= icfl_indexes[icfl_indexes_size - 1] {
+        } else if y >= last_icfl_index {
             monitor.new_compare_using_actual_string_compare();
             compare_cache.compare_1_before_2(
                 //
