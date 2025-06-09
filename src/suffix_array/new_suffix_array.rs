@@ -12,7 +12,8 @@ use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
 use crate::suffix_array::prefix_tree::in_prefix_merge::IPMergeParams;
-use crate::suffix_array::prefix_tree::tree::{create_tree, log_tree};
+use crate::suffix_array::prefix_tree::logging::log_tree;
+use crate::suffix_array::prefix_tree::tree::create_tree;
 use crate::suffix_array::suffix_array::suffix_array_logger::{
     log_suffix_array, make_sure_directory_exist,
 };
