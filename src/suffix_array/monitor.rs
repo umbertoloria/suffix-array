@@ -149,6 +149,8 @@ pub struct ExecutionOutcome {
     pub compares_with_one_cf: usize,
     pub compares_using_rules: usize,
     pub compares_using_strcmp: usize,
+    pub compares_ls: usize,
+    pub compares_gs: usize,
 }
 impl ExecutionOutcome {
     pub fn new() -> Self {
@@ -157,7 +159,15 @@ impl ExecutionOutcome {
             compares_with_one_cf: 0,
             compares_using_rules: 0,
             compares_using_strcmp: 0,
+            compares_ls: 0,
+            compares_gs: 0,
         }
+    }
+    pub fn monitor_new_local_suffix_compare(&mut self) {
+        self.compares_ls += 1;
+    }
+    pub fn monitor_new_global_suffix_compare(&mut self) {
+        self.compares_gs += 1;
     }
     pub fn print(&self) {
         println!("Execution Outcome:");
@@ -165,5 +175,7 @@ impl ExecutionOutcome {
         println!(" > one custom: {}", self.compares_with_one_cf);
         println!(" > rules: {}", self.compares_using_rules);
         println!(" > string compares: {}", self.compares_using_strcmp);
+        println!(" > local suffix comparisons: {}", self.compares_ls);
+        println!(" > global suffix comparisons: {}", self.compares_gs);
     }
 }

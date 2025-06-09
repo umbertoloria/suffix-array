@@ -151,7 +151,10 @@ impl<'a> Tree<'a> {
             let curr_parent_ls = &str[curr_parent_ls_index
                 // ..curr_parent_ls_index + self_node_ls_size]; // NO. Safety here is *required*.
                 ..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
+
             // TODO: Monitor string compare
+            monitor.execution_outcome.monitor_new_local_suffix_compare();
+
             if curr_parent_ls < self_ls {
                 // Ok. All Parent Rankings from left to here have LSs that are < than Curr LS.
             } else {
@@ -195,7 +198,10 @@ impl<'a> Tree<'a> {
         let curr_parent_ls = &str
             [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
         // ..curr_parent_ls_index + self_node_ls_size]; // Seems like safety is optional here...
+
         // TODO: Monitor string compare
+        monitor.execution_outcome.monitor_new_local_suffix_compare();
+
         if curr_parent_ls == self_ls {
             // Go further.
         } else {
@@ -229,7 +235,10 @@ impl<'a> Tree<'a> {
             let curr_parent_ls = &str[curr_parent_ls_index
                 ..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
             // ..curr_parent_ls_index + self_node_ls_size]; // Seems like safety is optional here...
+
             // TODO: Monitor string compare
+            monitor.execution_outcome.monitor_new_local_suffix_compare();
+
             if curr_parent_ls == self_ls {
                 // Ok. This Parent Ranking is = to Curr LS as well, so the Window is not closed yet.
             } else {
