@@ -9,7 +9,7 @@ use std::time::Duration;
 // SUITE COMPLETE FOR CLASSIC VS INNOVATIVE COMPUTATION
 pub fn suite_complete_on_fasta_file(
     fasta_file_name: &str,
-    chunk_size_interval: (usize, usize), // Both incl.
+    chunk_size_vec: Vec<usize>,
     max_duration_in_micros: u32,
     log_execution: bool,
     log_factorization_and_trees_and_suffix_array: bool,
@@ -36,9 +36,8 @@ pub fn suite_complete_on_fasta_file(
     // INNOVATIVE SUFFIX ARRAY
     println!();
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
-    let chunks_interval = (chunk_size_interval.0..chunk_size_interval.1 + 1).collect::<Vec<_>>();
     let mut chunk_size_and_execution_info_list = Vec::new();
-    for &chunk_size in &chunks_interval {
+    for chunk_size in chunk_size_vec {
         let test_result = run_and_validate_test(
             &classic_suffix_array,
             fasta_file_name,
