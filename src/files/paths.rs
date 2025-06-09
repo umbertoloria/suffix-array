@@ -46,6 +46,15 @@ pub fn get_path_for_project_full_tree_file(filename: &str, chunk_size: usize) ->
     )
 }
 
+pub fn get_path_for_project_mini_tree_file(filename: &str, chunk_size: usize) -> String {
+    format!(
+        "{}/{}-{}-aa-mini-tree.txt",
+        get_path_for_project_folder(filename),
+        filename,
+        chunk_size
+    )
+}
+
 pub fn get_path_for_project_prefix_tree_file(filename: &str, chunk_size: usize) -> String {
     format!(
         "{}/{}-{}-b-prefix-tree.txt",
