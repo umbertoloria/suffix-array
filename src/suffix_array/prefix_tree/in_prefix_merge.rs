@@ -258,11 +258,10 @@ impl<'a> Tree<'a> {
         while i_parent < max_father && j_this < self_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_this_ls_index = self_rankings[j_this];
-            let child_offset = self_node_ls_size;
             let result_rules = rules_safe(
                 curr_parent_ls_index,
                 curr_this_ls_index,
-                child_offset,
+                self_node_ls_size,
                 ip_merge_params,
                 monitor,
                 false,
@@ -270,12 +269,13 @@ impl<'a> Tree<'a> {
             if !result_rules {
                 if cfg!(feature = "verbose") {
                     let curr_parent_ls =
-                        &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
-                    let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + child_offset];
+                        &str[curr_parent_ls_index..curr_parent_ls_index + self_node_ls_size];
+                    let curr_this_ls =
+                        &str[curr_this_ls_index..curr_this_ls_index + self_node_ls_size];
                     println!(
                         "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
                         " ".repeat(self_node_ls_size), curr_parent_ls, curr_parent_ls_index,
-                        curr_this_ls, curr_this_ls_index, child_offset,
+                        curr_this_ls, curr_this_ls_index, self_node_ls_size,
                     );
                 }
                 new_self_rankings.push(curr_parent_ls_index);
@@ -283,12 +283,13 @@ impl<'a> Tree<'a> {
             } else {
                 if cfg!(feature = "verbose") {
                     let curr_parent_ls =
-                        &str[curr_parent_ls_index..curr_parent_ls_index + child_offset];
-                    let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + child_offset];
+                        &str[curr_parent_ls_index..curr_parent_ls_index + self_node_ls_size];
+                    let curr_this_ls =
+                        &str[curr_this_ls_index..curr_this_ls_index + self_node_ls_size];
                     println!(
                         "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
                         " ".repeat(self_node_ls_size), curr_parent_ls, curr_parent_ls_index,
-                        curr_this_ls, curr_this_ls_index, child_offset,
+                        curr_this_ls, curr_this_ls_index, self_node_ls_size,
                     );
                 }
                 new_self_rankings.push(curr_this_ls_index);
@@ -306,13 +307,12 @@ impl<'a> Tree<'a> {
         while j_this < self_rankings.len() {
             let curr_this_ls_index = self_rankings[j_this];
             if cfg!(feature = "verbose") {
-                let child_offset = self_node_ls_size;
                 println!(
                     "{}/ adding   child=\"{}\" [{}], child.suff.len={}",
                     " ".repeat(self_node_ls_size),
-                    &str[curr_this_ls_index..curr_this_ls_index + child_offset],
+                    &str[curr_this_ls_index..curr_this_ls_index + self_node_ls_size],
                     curr_this_ls_index,
-                    child_offset,
+                    self_node_ls_size,
                 );
             }
             new_self_rankings.push(curr_this_ls_index);
@@ -321,13 +321,12 @@ impl<'a> Tree<'a> {
         while i_parent < max_father {
             let curr_parent_ls_index = parent_rankings[i_parent];
             if cfg!(feature = "verbose") {
-                let child_offset = self_node_ls_size;
                 println!(
                     "{}/ adding  father=\"{}\" [{}], father.suff.len={}",
                     " ".repeat(self_node_ls_size),
-                    &str[curr_parent_ls_index..curr_parent_ls_index + child_offset],
+                    &str[curr_parent_ls_index..curr_parent_ls_index + self_node_ls_size],
                     curr_parent_ls_index,
-                    child_offset,
+                    self_node_ls_size,
                 );
             }
             new_self_rankings.push(curr_parent_ls_index);

@@ -5,7 +5,7 @@ use crate::suffix_array::prefix_tree::in_prefix_merge::IPMergeParams;
 pub fn rules_safe(
     x: usize,
     y: usize,
-    child_offset: usize,
+    child_ls_size: usize,
     ip_merge_params: &mut IPMergeParams,
     monitor: &mut Monitor,
     slow_check: bool,
@@ -14,7 +14,7 @@ pub fn rules_safe(
         rules(
             x,
             y,
-            child_offset,
+            child_ls_size,
             ip_merge_params.str,
             ip_merge_params.icfl_indexes,
             ip_merge_params.idx_to_is_custom,
@@ -23,8 +23,8 @@ pub fn rules_safe(
             monitor,
         )
     } else {
-        let cmp1_father = &ip_merge_params.str[x + child_offset..];
-        let cmp2_child = &ip_merge_params.str[y + child_offset..];
+        let cmp1_father = &ip_merge_params.str[x + child_ls_size..];
+        let cmp2_child = &ip_merge_params.str[y + child_ls_size..];
         let mut oracle;
         if cmp1_father < cmp2_child {
             oracle = false; // Father first.
@@ -34,7 +34,7 @@ pub fn rules_safe(
         let given = rules(
             x,
             y,
-            child_offset,
+            child_ls_size,
             ip_merge_params.str,
             ip_merge_params.icfl_indexes,
             ip_merge_params.idx_to_is_custom,
@@ -44,10 +44,10 @@ pub fn rules_safe(
         );
         if given != oracle {
             println!(
-                " RULES: x={x:2}, y={y:2}, offset={child_offset} => {oracle}, BUT GIVEN WRONG!"
+                " RULES: x={x:2}, y={y:2}, offset={child_ls_size} => {oracle}, BUT GIVEN WRONG!"
             );
         } else {
-            // println!(" RULES: x={x:2}, y={y:2}, offset={child_offset} => {oracle}");
+            // println!(" RULES: x={x:2}, y={y:2}, offset={child_ls_size} => {oracle}");
         }
         oracle
     }
@@ -55,7 +55,7 @@ pub fn rules_safe(
 fn rules(
     x: usize,
     y: usize,
-    child_offset: usize,
+    child_ls_size: usize,
     str: &str,
     icfl_indexes: &Vec<usize>,
     idx_to_is_custom: &Vec<bool>,
@@ -69,8 +69,8 @@ fn rules(
         return compare_cache.compare_1_before_2(
             //
             str,
-            y + child_offset,
-            x + child_offset,
+            y + child_ls_size,
+            x + child_ls_size,
         );
         /*let cmp1 = &str[y + child_offset..];
         let cmp2 = &str[x + child_offset..];
@@ -97,8 +97,8 @@ fn rules(
             compare_cache.compare_1_before_2(
                 //
                 str,
-                y + child_offset,
-                x + child_offset,
+                y + child_ls_size,
+                x + child_ls_size,
             )
             /*let cmp1 = &str[y + child_offset..];
             let cmp2 = &str[x + child_offset..];
@@ -124,8 +124,8 @@ fn rules(
             compare_cache.compare_1_before_2(
                 //
                 str,
-                y + child_offset,
-                x + child_offset,
+                y + child_ls_size,
+                x + child_ls_size,
             )
             /*let cmp1 = &str[y + child_offset..];
             let cmp2 = &str[x + child_offset..];
@@ -152,8 +152,8 @@ fn rules(
             compare_cache.compare_1_before_2(
                 //
                 str,
-                y + child_offset,
-                x + child_offset,
+                y + child_ls_size,
+                x + child_ls_size,
             )
             /*let cmp1 = &str[y + child_offset..];
             let cmp2 = &str[x + child_offset..];
@@ -171,8 +171,8 @@ fn rules(
                 compare_cache.compare_1_before_2(
                     //
                     str,
-                    y + child_offset,
-                    x + child_offset,
+                    y + child_ls_size,
+                    x + child_ls_size,
                 )
                 /*let cmp1 = &str[y + child_offset..];
                 let cmp2 = &str[x + child_offset..];
