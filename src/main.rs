@@ -21,6 +21,7 @@ fn main() {
     // let chunk_size_vec = create_chunk_size_interval(5, 200);
     // let chunk_size_vec = create_chunk_size_interval(5, 30);
     // let chunk_size_vec = create_chunk_size_interval(5, 5);
+    // let chunk_size_vec = create_chunk_size_of_thousands_with_steps(1, 70);
 
     // Logging?
     let le = true;
@@ -38,4 +39,11 @@ fn main() {
 
 fn create_chunk_size_interval(min: usize, max: usize) -> Vec<usize> {
     (min..=max).collect()
+}
+
+fn create_chunk_size_of_thousands_with_steps(min: usize, max: usize) -> Vec<usize> {
+    (min..=max)
+        .map(|x| (x * 1_000, x * 1_000 + 250, x * 1_000 + 500, x * 1_000 + 750))
+        .flat_map(|a| vec![a.0, a.1, a.2, a.3])
+        .collect()
 }
