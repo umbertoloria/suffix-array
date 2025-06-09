@@ -21,10 +21,9 @@ impl<'a> Tree<'a> {
     ) -> Vec<usize> {
         let mut suffix_array = Vec::with_capacity(str_length);
 
-        let root_node = self.get_root().borrow();
-        for &(_, child_node_id) in &root_node.children {
+        for (_, child_node_rc) in &self.root.borrow().children {
             // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
-            let child_node = self.get_node(child_node_id).borrow();
+            let child_node = child_node_rc.borrow();
 
             self.in_prefix_merge_and_get_common_prefix_partition(
                 &child_node,
@@ -55,8 +54,8 @@ impl<'a> Tree<'a> {
             );
         }
 
-        for &(_, child_node_id) in &self_node.children {
-            let child_node = self.get_node(child_node_id).borrow();
+        for (_, child_node_rc) in &self_node.children {
+            let child_node = child_node_rc.borrow();
 
             // CHILD NODE: Window for Comparing Rankings using "RULES"
             let (
