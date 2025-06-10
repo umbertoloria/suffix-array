@@ -26,6 +26,7 @@ pub fn icfl(s: &str) -> Vec<String> {
     result
 }
 
+const ZERO_SYMBOL_BYTE: u8 = '0' as u8;
 pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
     /**
     input: a string w
@@ -38,7 +39,7 @@ pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
     let (x, y) = icfl_find_prefix(w);
 
     // if x == w + '0' // Should be.
-    if x.len() == w.len() + 1 && x[w.len()] == <char as TryInto<u8>>::try_into('0').unwrap() {
+    if x.len() == w.len() + 1 && x[w.len()] == ZERO_SYMBOL_BYTE {
         let mut i = 0;
         while i < w.len() && x[i] == w[i] {
             i += 1;
@@ -52,7 +53,7 @@ pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
     // l = icfl(bre + y); // Should be.
     let mut bre_plus_y = bre;
     bre_plus_y.extend(y);
-    let mut l = icfl_bytes(bre_plus_y.as_slice());
+    let mut l = icfl_bytes(&bre_plus_y);
     if l[0].len() as i32 > last {
         // |m1'| > |r|
         l.insert(0, p);
@@ -82,9 +83,9 @@ pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
     */
     let n = w.len();
     if n == 1 {
-        let mut new_w = w.to_vec();
-        new_w.push('0'.try_into().unwrap());
         // return (w + '0', '');
+        let mut new_w = w.to_vec();
+        new_w.push(ZERO_SYMBOL_BYTE);
         return (new_w, Vec::new());
     }
 
@@ -101,9 +102,9 @@ pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
 
     if j == n - 1 {
         if w[j] <= w[i] {
-            let mut new_w = w.to_vec();
-            new_w.push('0'.try_into().unwrap());
             // return (w + '0', '');
+            let mut new_w = w.to_vec();
+            new_w.push(ZERO_SYMBOL_BYTE);
             return (new_w, Vec::new());
         }
     }
@@ -129,7 +130,6 @@ pub fn icfl_find_bre(x: &[u8], y: &[u8]) -> (Vec<u8>, Vec<u8>, i32) {
     let mut w = Vec::with_capacity(x.len() + y.len());
     w.extend_from_slice(x);
     w.extend_from_slice(y);
-    let w = w.as_slice();
 
     let n = x.len() as i32 - 1;
     let f = icfl_get_failure_function(x, x.len() - 1);
