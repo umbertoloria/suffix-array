@@ -27,6 +27,14 @@ pub fn icfl(s: &str) -> Vec<String> {
 }
 
 pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
+    /**
+    input: a string w
+    output: the inverse factorization of w obtained with the algorithm ICFL
+        If w is an inverse lyndon word, ICFL(w) = w otherwise we have w=pv
+        and ICFL(v) = (m1', ..., mk') and p' bounded right extension of p in w.
+        ICFL(w) = (p) + ICFL(v)         if p' = rb <= m1'
+                  (pm1', m2', ..., mk') if m1' <= r
+    */
     let (x, y) = icfl_find_prefix(w);
 
     // if x == w + '0' // Should be.
@@ -58,6 +66,20 @@ pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
 }
 
 pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
+    /**
+    input: a string w
+    output: (x, y) where x = w0, y = '' if w in an inverse Lyndon word
+        w = xy, x = pp' where (p, p') ∈ Pref_bre(w), otherwise.
+        p is an inverse Lyndon word which is a proper prefix of w = pv;
+        p' is the bounded right extension of p in w.
+        A bounder right extension is a proper prefix of v such that:
+            - p' is an inverse Lyndon word
+            - pz' is an inverse Lyndon word for each proper prefix z' of p'
+            - pp' is not an inverse Lyndon word
+            - p << p' (p < p' and p is not a proper prefix of p')
+        Pref_bre(w) = {(p, p') | p is an inverse Lyndon word which is a non
+            empty proper prefix of w }
+    */
     let n = w.len();
     if n == 1 {
         let mut new_w = w.to_vec();
@@ -99,7 +121,11 @@ pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
 }
 
 pub fn icfl_find_bre(x: &[u8], y: &[u8]) -> (Vec<u8>, Vec<u8>, i32) {
-    // TODO: Improve conversion logics
+    /**
+    input: (x, y) where w = xy is not an inverse Lyndon word;
+        x = pp' = raurb, (p, p') ∈ Pref_bre(w)
+    output: (p, p', y, last) = (rau, rb, y, |r|)
+    */
     let mut w = Vec::with_capacity(x.len() + y.len());
     w.extend_from_slice(x);
     w.extend_from_slice(y);
