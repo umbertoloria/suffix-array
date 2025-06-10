@@ -45,7 +45,7 @@ pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
     let mut bre_plus_y = bre;
     bre_plus_y.extend(y);
     let mut l = icfl_bytes(bre_plus_y.as_slice());
-    if l[0].len() > last.try_into().unwrap() {
+    if l[0].len() as i32 > last {
         // |m1'| > |r|
         l.insert(0, p);
     } else {
@@ -105,44 +105,33 @@ pub fn icfl_find_bre(x: &[u8], y: &[u8]) -> (Vec<u8>, Vec<u8>, i32) {
     w.extend_from_slice(y);
     let w = w.as_slice();
 
-    let n = i32::try_from(x.len() - 1).unwrap();
+    let n = x.len() as i32 - 1;
     let f = icfl_get_failure_function(x, x.len() - 1);
-    let f = f.as_slice();
 
     let mut i = n - 1;
     let mut last = n;
 
     while i >= 0 {
-        if w[f[i as usize]] < x[x.len() - 1] {
-            last = i32::try_from(f[i as usize]).unwrap() - 1;
+        let i_usize = i as usize;
+        if w[f[i_usize]] < x[x.len() - 1] {
+            last = f[i_usize] as i32 - 1;
         }
-        // i = f[i] - 1; // Should be.
-        i = i32::try_from(f[i as usize]).unwrap() - 1;
+        i = f[i_usize] as i32 - 1;
     }
 
-    let mut first_separator_i32 = n - last - 1;
-    if first_separator_i32 < 0 {
-        first_separator_i32 += i32::try_from(w.len()).unwrap();
+    let mut sep1_i32 = n - last - 1;
+    if sep1_i32 < 0 {
+        sep1_i32 += w.len() as i32;
     }
-    let sep1_usize = usize::try_from(first_separator_i32).unwrap();
+    let sep1_usize = sep1_i32 as usize;
+    let sep2_usize = (n + 1) as usize;
 
-    let sep2_i32 = n + 1;
-    let sep2_usize = usize::try_from(sep2_i32).unwrap();
-
-    let mut res1 = Vec::with_capacity(sep1_usize);
-    let mut res2 = Vec::with_capacity(
-        usize::try_from(i32::max(
-            i32::try_from(sep2_usize).unwrap() - i32::try_from(sep1_usize).unwrap(),
-            0,
-        ))
-        .unwrap(),
-    );
-    for i in 0..sep1_usize {
-        res1.push(w[i]);
-    }
-    for i in sep1_usize..sep2_usize {
-        res2.push(w[i]);
-    }
+    let res1 = (&w[0..sep1_usize]).to_vec();
+    let res2 = if sep2_usize > sep1_usize {
+        (&w[sep1_usize..sep2_usize]).to_vec()
+    } else {
+        Vec::new()
+    };
 
     (res1, res2, last + 1)
 }
