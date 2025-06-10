@@ -36,13 +36,13 @@ pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
             i += 1;
         }
         if i == w.len() {
-            return [w.to_vec()].to_vec();
+            return vec![w.to_vec()];
         }
     }
     let (p, bre, last) = icfl_find_bre(&x, &y);
 
-    // l = icfl(bre + y) // Should be.
-    let mut bre_plus_y = bre.clone();
+    // l = icfl(bre + y); // Should be.
+    let mut bre_plus_y = bre;
     bre_plus_y.extend(y);
     let mut l = icfl_bytes(bre_plus_y.as_slice());
     if l[0].len() > last.try_into().unwrap() {
@@ -101,12 +101,8 @@ pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
 pub fn icfl_find_bre(x: &[u8], y: &[u8]) -> (Vec<u8>, Vec<u8>, i32) {
     // TODO: Improve conversion logics
     let mut w = Vec::with_capacity(x.len() + y.len());
-    for i in 0..x.len() {
-        w.push(x[i]);
-    }
-    for i in 0..y.len() {
-        w.push(y[i]);
-    }
+    w.extend_from_slice(x);
+    w.extend_from_slice(y);
     let w = w.as_slice();
 
     let n = i32::try_from(x.len() - 1).unwrap();
