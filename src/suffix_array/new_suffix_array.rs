@@ -18,7 +18,6 @@ use crate::suffix_array::suffix_array::suffix_array_logger::{
     log_suffix_array, make_sure_directory_exist,
 };
 use crate::utils::json::dump_json_in_file;
-use std::process::exit;
 
 // INNOVATIVE SUFFIX ARRAY
 pub struct InnovativeSuffixArrayComputationResults {

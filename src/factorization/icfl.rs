@@ -27,7 +27,7 @@ pub fn icfl(s: &str) -> Vec<String> {
 }
 
 const ZERO_SYMBOL_BYTE: u8 = '0' as u8;
-pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
+fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
     /**
     input: a string w
     output: the inverse factorization of w obtained with the algorithm ICFL
@@ -66,7 +66,7 @@ pub fn icfl_bytes(w: &[u8]) -> Vec<Vec<u8>> {
     l
 }
 
-pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
+fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
     /**
     input: a string w
     output: (x, y) where x = w0, y = '' if w in an inverse Lyndon word
@@ -109,19 +109,14 @@ pub fn icfl_find_prefix(w: &[u8]) -> (Vec<u8>, Vec<u8>) {
         }
     }
 
-    let mut res1 = Vec::new();
-    for i in 0..=j {
-        res1.push(w[i]);
-    }
-    let mut res2 = Vec::new();
-    for i in j + 1..w.len() {
-        res2.push(w[i]);
-    }
-    // return (w[:j+1], w[j+1:])
-    (res1, res2)
+    (
+        //
+        (&w[0..j + 1]).to_vec(),
+        (&w[j + 1..]).to_vec(),
+    )
 }
 
-pub fn icfl_find_bre(x: &[u8], y: &[u8]) -> (Vec<u8>, Vec<u8>, i32) {
+fn icfl_find_bre(x: &[u8], y: &[u8]) -> (Vec<u8>, Vec<u8>, i32) {
     /**
     input: (x, y) where w = xy is not an inverse Lyndon word;
         x = pp' = raurb, (p, p') ∈ Pref_bre(w)
@@ -132,7 +127,7 @@ pub fn icfl_find_bre(x: &[u8], y: &[u8]) -> (Vec<u8>, Vec<u8>, i32) {
     w.extend_from_slice(y);
 
     let n = x.len() as i32 - 1;
-    let f = icfl_get_failure_function(x, x.len() - 1);
+    let f = icfl_get_failure_function(x, x.len() - 1); // Border(raur)
 
     let mut i = n - 1;
     let mut last = n;
@@ -162,7 +157,7 @@ pub fn icfl_find_bre(x: &[u8], y: &[u8]) -> (Vec<u8>, Vec<u8>, i32) {
     (res1, res2, last + 1)
 }
 
-pub fn icfl_get_failure_function(s: &[u8], s_inner_size: usize) -> Vec<usize> {
+fn icfl_get_failure_function(s: &[u8], s_inner_size: usize) -> Vec<usize> {
     // Here we fake that "m" is the size of "s", since the caller is most likely to exclude the last
     // item of "s".
     // let m = s.len();
