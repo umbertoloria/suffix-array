@@ -2,11 +2,10 @@ use crate::files::paths::get_path_for_plot_file;
 use crate::plot::interface::{BarPlot, CompositeBar, CompositeBarRectangle, GroupOfBars};
 use plotters::prelude::full_palette::{GREEN_500, GREY_500, ORANGE_300, PURPLE_500};
 use plotters::style::RGBColor;
-use std::time::Duration;
 
 pub fn draw_plot_from_monitor(
     fasta_file_name: &str,
-    classic_computation_duration: Duration,
+    classic_computation_duration_micros: u64,
     chunk_size_and_phase_micros_list: Vec<(usize, (u64, u64, u64))>,
     max_duration_in_micros: u32,
 ) {
@@ -49,7 +48,7 @@ pub fn draw_plot_from_monitor(
                     curr_x,
                     0,
                     proportional_value(
-                        classic_computation_duration.as_micros() as i32,
+                        classic_computation_duration_micros as i32,
                         abs_max_value,
                         diagram_max_y,
                     ),
