@@ -1,0 +1,21 @@
+{
+  "micros": {
+    "duration_phases": 634266,
+    "phase_1_fact___": 2730,
+    "phase_2_tree___": 616677,
+    "phase_3_sa_____": 14858,
+    "duration_phases_with_extra": 634778
+  },
+  "seconds": {
+    "duration_phases": 0.634,
+    "phase_1_fact___": 0.003,
+    "phase_2_tree___": 0.617,
+    "phase_3_sa_____": 0.015,
+    "duration_phases_with_extra": 0.635
+  },
+  "percentages": {
+    "phase_1_fact": 0,
+    "phase_2_tree": 97,
+    "phase_3_sa__": 3
+  }
+}

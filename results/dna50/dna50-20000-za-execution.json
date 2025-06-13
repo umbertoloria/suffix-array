@@ -1,0 +1,8 @@
+{
+  "compares_using_rules": 1,
+  "compares_using_strcmp": 24,
+  "compares_using_one_cf": 15,
+  "compares_using_two_cf": 9,
+  "compares_ls": 330901,
+  "compares_gs": 33
+}

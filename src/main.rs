@@ -59,6 +59,22 @@ fn main() {
     // let chunk_size_vec = create_chunk_size_interval(5, 5);
     // let chunk_size_vec = create_chunk_size_of_thousands_with_steps(1, 70);
     // let chunk_size_none_list = vec![None];
+    let chunk_size_vec_dna = merge_chunk_size_intervals(
+        create_chunk_size_interval(2, 9),
+        merge_chunk_size_intervals(
+            create_chunk_size_of_steps(10, 100, 10),
+            merge_chunk_size_intervals(
+                create_chunk_size_of_steps(100, 1_000, 100),
+                merge_chunk_size_intervals(
+                    create_chunk_size_of_steps(1_000, 10_000, 1_000),
+                    merge_chunk_size_intervals(
+                        create_chunk_size_of_steps(10_000, 30_001, 1000),
+                        vec![None],
+                    ),
+                ),
+            ),
+        ),
+    );
 
     // Logging?
     let le = true;
@@ -75,6 +91,12 @@ fn main() {
     // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_1, 1_600_000, le, lf, false);
     // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_2, 30_000_000, le, lf, false);
     // suite_complete_on_fasta_file("002_7000", &chunk_size_vec, 50_000_000, le, lf, false);
+
+    // DNAs
+    // suite_complete_on_fasta_file("dna", &chunk_size_vec_dna, 1_000_000, le, lf, lts);
+    // suite_complete_on_fasta_file("dna50", &chunk_size_vec_dna, 1_000_000, le, lf, lts);
+    // suite_complete_on_fasta_file("dna100", &chunk_size_vec_dna, 1_000_000, le, lf, lts);
+    // suite_complete_on_fasta_file("dna200", &chunk_size_vec_dna, 1_000_000, le, lf, lts);
 }
 
 fn create_chunk_size_interval(min: usize, max: usize) -> Vec<Option<usize>> {
