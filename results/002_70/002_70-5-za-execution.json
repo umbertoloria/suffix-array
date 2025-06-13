@@ -2,5 +2,7 @@
   "compares_using_rules": 10,
   "compares_using_strcmp": 190504,
   "compares_using_one_cf": 246,
-  "compares_using_two_cf": 190268
+  "compares_using_two_cf": 190268,
+  "compares_ls": 142401,
+  "compares_gs": 542384
 }
