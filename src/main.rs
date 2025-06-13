@@ -1,7 +1,5 @@
 #![allow(warnings)]
 
-use crate::suffix_array::suite::full_suite;
-
 mod extra;
 mod factorization;
 mod files;
@@ -20,7 +18,6 @@ fn main() {
     let chunk_size_vec_000 = create_chunk_size_interval_and_none(2, 7);
     let chunk_size_vec_001 = create_chunk_size_interval_and_none(2, 8);
     let chunk_size_vec_002_mini = create_chunk_size_interval_and_none(2, 24);
-    let chunk_size_vec = create_chunk_size_interval(1, 50);
     let chunk_size_vec_70 = merge_chunk_size_intervals(
         create_chunk_size_interval(2, 9),
         merge_chunk_size_intervals(
@@ -54,12 +51,14 @@ fn main() {
             ),
         ),
     );
+    let chunk_size_vec_dna = vec![Some(6)];
+    /*
+    let chunk_size_vec = create_chunk_size_interval(1, 50);
     // let chunk_size_vec = create_chunk_size_interval(5, 200);
     // let chunk_size_vec = create_chunk_size_interval(5, 30);
     // let chunk_size_vec = create_chunk_size_interval(5, 5);
     // let chunk_size_vec = create_chunk_size_of_thousands_with_steps(1, 70);
-    // let chunk_size_none_list = vec![None];
-    let chunk_size_vec_dna = vec![Some(6)];
+    */
 
     // Logging?
     let le = true;
@@ -73,7 +72,7 @@ fn main() {
     // full_suite("000", &chunk_size_vec_000, 25, 10, le, lf, lts, dp);
     // full_suite("001", &chunk_size_vec_001, 25, 10, le, lf, lts, dp);
     // full_suite("002_mini", &chunk_size_vec_002_mini, 30, 10, le, lf, lts, dp);
-    full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false, dp);
+    // full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false, dp);
     /*full_suite(
         "002_70",
         &vec![Some(6), Some(56_137)],
@@ -86,7 +85,7 @@ fn main() {
     );*/
     // full_suite("002_700", &chunk_size_vec_700_1, 1_600_000, 10, le, lf, false, dp);
     // full_suite("002_700", &chunk_size_vec_700_2, 30_000_000, 3, le, lf, false, dp);
-    // full_suite("002_7000", &chunk_size_vec, 50_000_000, le, lf, false, dp);
+    // full_suite("002_7000", &create_chunk_size_interval(5, 30), 50_000_000, 3, le, lf, false, dp);
 
     // DNAs
     // full_suite("dna50", &chunk_size_vec_dna, 1_000_000, 1, le, lf, lts, dp);
