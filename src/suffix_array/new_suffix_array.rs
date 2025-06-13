@@ -30,7 +30,8 @@ pub fn compute_innovative_suffix_array(
     str: &str,
     chunk_size: Option<usize>,
     log_execution: bool,
-    log_factorization_and_trees_and_suffix_array: bool,
+    log_fact: bool,
+    log_trees_and_suffix_array: bool,
 ) -> InnovativeSuffixArrayComputationResults {
     let chunk_size_or_zero = chunk_size.unwrap_or(0);
     let mut monitor = Monitor::new();
@@ -50,7 +51,7 @@ pub fn compute_innovative_suffix_array(
         idx_to_icfl_factor,
     ) = get_custom_factors_and_more_using_chunk_size(&icfl_indexes, chunk_size, str_length);
     monitor.p1_fact.stop();
-    if log_factorization_and_trees_and_suffix_array {
+    if log_fact {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_factorization(
             &factor_indexes,
@@ -76,7 +77,7 @@ pub fn compute_innovative_suffix_array(
         );
         tree.print();
     }
-    if log_factorization_and_trees_and_suffix_array {
+    if log_trees_and_suffix_array {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_tree(
             &tree,
@@ -115,7 +116,7 @@ pub fn compute_innovative_suffix_array(
         println!("After SUFFIX ARRAY PHASE");
         tree.print();
     }
-    if log_factorization_and_trees_and_suffix_array {
+    if log_trees_and_suffix_array {
         log_suffix_array(
             &suffix_array,
             get_path_for_project_suffix_array_file(fasta_file_name, chunk_size_or_zero),

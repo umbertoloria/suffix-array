@@ -12,7 +12,8 @@ pub fn suite_complete_on_fasta_file(
     chunk_size_vec: &Vec<Option<usize>>,
     max_duration_in_micros: u32,
     log_execution: bool,
-    log_factorization_and_trees_and_suffix_array: bool,
+    log_fact: bool,
+    log_trees_and_suffix_array: bool,
 ) {
     println!("\n\nCOMPUTING SUITE ON FILE: \"{}\"\n", fasta_file_name);
 
@@ -44,7 +45,8 @@ pub fn suite_complete_on_fasta_file(
             src_str,
             chunk_size,
             log_execution,
-            log_factorization_and_trees_and_suffix_array,
+            log_fact,
+            log_trees_and_suffix_array,
         );
         let chunk_size_or_zero = chunk_size.unwrap_or(0);
         chunk_size_and_execution_info_list.push((chunk_size_or_zero, test_result.execution_info));
@@ -72,14 +74,16 @@ fn run_and_validate_test(
     src_str: &str,
     chunk_size: Option<usize>,
     log_execution: bool,
-    log_factorization_and_trees_and_suffix_array: bool,
+    log_fact: bool,
+    log_trees_and_suffix_array: bool,
 ) -> RunAndValidateTestOutput {
     let innovative_suffix_array_computation = compute_innovative_suffix_array(
         fasta_file_name,
         src_str,
         chunk_size,
         log_execution,
-        log_factorization_and_trees_and_suffix_array,
+        log_fact,
+        log_trees_and_suffix_array,
     );
     let suffix_array = innovative_suffix_array_computation.suffix_array;
     let execution_info = innovative_suffix_array_computation.execution_info;

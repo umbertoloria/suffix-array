@@ -1,21 +1,21 @@
 {
   "micros": {
-    "duration_phases": 23256,
-    "phase_1_fact___": 3893,
-    "phase_2_tree___": 14473,
-    "phase_3_sa_____": 4890,
-    "duration_phases_with_extra": 23257
+    "duration_phases": 21094,
+    "phase_1_fact___": 3960,
+    "phase_2_tree___": 12724,
+    "phase_3_sa_____": 4409,
+    "duration_phases_with_extra": 21095
   },
   "seconds": {
-    "duration_phases": 0.023,
+    "duration_phases": 0.021,
     "phase_1_fact___": 0.004,
-    "phase_2_tree___": 0.014,
-    "phase_3_sa_____": 0.005,
-    "duration_phases_with_extra": 0.023
+    "phase_2_tree___": 0.013,
+    "phase_3_sa_____": 0.004,
+    "duration_phases_with_extra": 0.021
   },
   "percentages": {
-    "phase_1_fact": 17,
-    "phase_2_tree": 62,
+    "phase_1_fact": 19,
+    "phase_2_tree": 60,
     "phase_3_sa__": 21
   }
 }
