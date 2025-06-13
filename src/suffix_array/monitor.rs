@@ -169,13 +169,4 @@ impl ExecutionOutcome {
     pub fn monitor_new_global_suffix_compare(&mut self) {
         self.compares_gs += 1;
     }
-    pub fn print(&self) {
-        println!("Execution Outcome:");
-        println!(" > two custom: {}", self.compares_with_two_cfs);
-        println!(" > one custom: {}", self.compares_with_one_cf);
-        println!(" > rules: {}", self.compares_using_rules);
-        println!(" > string compares: {}", self.compares_using_strcmp);
-        println!(" > local suffix comparisons: {}", self.compares_ls);
-        println!(" > global suffix comparisons: {}", self.compares_gs);
-    }
 }

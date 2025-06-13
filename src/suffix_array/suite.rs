@@ -2,7 +2,6 @@ use crate::files::fasta::get_fasta_content;
 use crate::files::paths::get_path_in_generated_folder;
 use crate::plot::plot::draw_plot_from_monitor;
 use crate::suffix_array::classic_suffix_array::compute_classic_suffix_array;
-use crate::suffix_array::monitor::ExecutionInfo;
 use crate::suffix_array::new_suffix_array::compute_innovative_suffix_array;
 use std::time::Duration;
 
@@ -24,21 +23,13 @@ pub fn suite_complete_on_fasta_file(
     let classic_suffix_array_computation = compute_classic_suffix_array(src_str);
     let classic_suffix_array = classic_suffix_array_computation.suffix_array;
     let classic_sa_computation_duration = classic_suffix_array_computation.duration;
+    let classic_micros = classic_sa_computation_duration.as_micros() as u64;
     println!("CLASSIC SUFFIX ARRAY CALCULATION");
     {
-        println!(
-            " > Duration: {:15} micros",
-            classic_sa_computation_duration.as_micros(),
-        );
-        println!(
-            " > Duration: {:15.3} seconds",
-            classic_sa_computation_duration.as_secs_f64(),
-        );
-        // println!(" > Suffix Array: {:?}", classic_suffix_array);
+        print_duration(" > Sorting GSs duration   ", classic_micros);
     }
 
     // INNOVATIVE SUFFIX ARRAY
-    println!();
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     let mut chunk_size_and_phase_micros_list = Vec::new();
     for &chunk_size in chunk_size_vec {
@@ -80,7 +71,6 @@ pub fn suite_complete_on_fasta_file(
         let et = &innovative_suffix_array_computation
             .execution_info
             .execution_timing;
-
         let micros = (
             et.p1_fact.dur.as_micros() as u64,
             et.p2_tree.dur.as_micros() as u64,
@@ -89,12 +79,13 @@ pub fn suite_complete_on_fasta_file(
         let chunk_size_or_zero = chunk_size.unwrap_or(0);
         chunk_size_and_phase_micros_list.push((chunk_size_or_zero, micros));
 
+        /*
         {
             let chunk_size_or_zero = chunk_size.unwrap_or(0);
             println!("[CHUNK SIZE={chunk_size_or_zero}]");
             print_duration(" > Duration phases        ", &et.phases_only);
             print_duration(" > Phase 1: Factorization ", &et.p1_fact.dur);
-            print_duration(" > Phase 2: Tree          ", &et.p2_tree.dur);
+            print_duration(" > Phase 2: Prefix Tree   ", &et.p2_tree.dur);
             print_duration(" > Phase 3: Suffix Array  ", &et.p3_sa.dur);
             print_duration(" > Duration (with extra)  ", &et.whole);
             if cfg!(feature = "verbose") {
@@ -104,6 +95,14 @@ pub fn suite_complete_on_fasta_file(
                     .print();
             }
             // println!(" > Suffix Array: {:?}", suffix_array);
+        }
+        */
+        {
+            let chunk_size_or_zero = chunk_size.unwrap_or(0);
+            println!("[CHUNK SIZE={chunk_size_or_zero}]");
+            print_duration(" > Phase 1: Factorization ", micros.0);
+            print_duration(" > Phase 2: Prefix Tree   ", micros.1);
+            print_duration(" > Phase 3: Suffix Array  ", micros.2);
         }
     }
 
@@ -116,9 +115,10 @@ pub fn suite_complete_on_fasta_file(
     );
 }
 
-fn print_duration(prefix: &str, duration: &Duration) {
+fn print_duration(prefix: &str, micros: u64) {
+    let duration = Duration::from_micros(micros);
     println!(
-        "{}: {:15} micros / {:15.3} seconds",
+        "{}: {:10} micros / {:10.3} seconds",
         prefix,
         duration.as_micros(),
         duration.as_secs_f64()
