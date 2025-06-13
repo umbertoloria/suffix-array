@@ -23,21 +23,22 @@ pub fn suite_complete_on_fasta_file(
     // CLASSIC SUFFIX ARRAY
     let classic_suffix_array_computation = compute_classic_suffix_array(src_str);
     let classic_suffix_array = classic_suffix_array_computation.suffix_array;
+    let classic_sa_computation_duration = classic_suffix_array_computation.duration;
     println!("CLASSIC SUFFIX ARRAY CALCULATION");
     println!(
         " > Duration: {:15} micros",
-        classic_suffix_array_computation.duration.as_micros()
+        classic_sa_computation_duration.as_micros(),
     );
     println!(
         " > Duration: {:15.3} seconds",
-        classic_suffix_array_computation.duration.as_secs_f64()
+        classic_sa_computation_duration.as_secs_f64(),
     );
     // println!(" > Suffix Array: {:?}", classic_suffix_array);
 
     // INNOVATIVE SUFFIX ARRAY
     println!();
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
-    let mut chunk_size_and_execution_info_list = Vec::new();
+    let mut chunk_size_and_phase_micros_list = Vec::new();
     for &chunk_size in chunk_size_vec {
         let test_result = run_and_validate_test(
             &classic_suffix_array,
@@ -48,18 +49,24 @@ pub fn suite_complete_on_fasta_file(
             log_fact,
             log_trees_and_suffix_array,
         );
-        let chunk_size_or_zero = chunk_size.unwrap_or(0);
-        chunk_size_and_execution_info_list.push((chunk_size_or_zero, test_result.execution_info));
         if test_result.failed {
             break;
         }
+        let et = &test_result.execution_info.execution_timing;
+        let micros = (
+            et.p1_fact.dur.as_micros() as u64,
+            et.p2_tree.dur.as_micros() as u64,
+            et.p3_sa.dur.as_micros() as u64,
+        );
+        let chunk_size_or_zero = chunk_size.unwrap_or(0);
+        chunk_size_and_phase_micros_list.push((chunk_size_or_zero, micros));
     }
 
     // Plots
     draw_plot_from_monitor(
         fasta_file_name,
-        classic_suffix_array_computation.duration,
-        chunk_size_and_execution_info_list,
+        classic_sa_computation_duration,
+        chunk_size_and_phase_micros_list,
         max_duration_in_micros,
     );
 }

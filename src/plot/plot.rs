@@ -1,6 +1,5 @@
 use crate::files::paths::get_path_for_plot_file;
 use crate::plot::interface::{BarPlot, CompositeBar, CompositeBarRectangle, GroupOfBars};
-use crate::suffix_array::monitor::ExecutionInfo;
 use plotters::prelude::full_palette::{GREEN_500, GREY_500, ORANGE_300, PURPLE_500};
 use plotters::style::RGBColor;
 use std::time::Duration;
@@ -8,7 +7,7 @@ use std::time::Duration;
 pub fn draw_plot_from_monitor(
     fasta_file_name: &str,
     classic_computation_duration: Duration,
-    chunk_size_and_execution_info_list: Vec<(usize, ExecutionInfo)>,
+    chunk_size_and_phase_micros_list: Vec<(usize, (u64, u64, u64))>,
     max_duration_in_micros: u32,
 ) {
     let diagram_max_y = 10000;
@@ -18,8 +17,7 @@ pub fn draw_plot_from_monitor(
     let mut groups_of_bars = Vec::new();
 
     // Innovative Technique Executions
-    for (_, execution_info) in &chunk_size_and_execution_info_list {
-        let et = &execution_info.execution_timing;
+    for (_, micros) in &chunk_size_and_phase_micros_list {
         groups_of_bars.push(
             // Composite Vertical Bar
             GroupOfBars::new_only_one(
@@ -27,9 +25,9 @@ pub fn draw_plot_from_monitor(
                 create_composite_bar_from_parts(
                     curr_x,
                     vec![
-                        (et.p1_fact.dur.as_micros() as i32, GREY_500),
-                        (et.p2_tree.dur.as_micros() as i32, ORANGE_300),
-                        (et.p3_sa.dur.as_micros() as i32, GREEN_500),
+                        (micros.0 as i32, GREY_500),   // Factorization phase
+                        (micros.1 as i32, ORANGE_300), // Tree phase
+                        (micros.2 as i32, GREEN_500),  // Suffix Array phase
                     ],
                     abs_max_value,
                     diagram_max_y,
@@ -62,8 +60,8 @@ pub fn draw_plot_from_monitor(
     );
     curr_x += 1;
 
-    let min_chunk_size = chunk_size_and_execution_info_list.first().unwrap().0;
-    let max_chunk_size = chunk_size_and_execution_info_list.last().unwrap().0;
+    let min_chunk_size = chunk_size_and_phase_micros_list.first().unwrap().0;
+    let max_chunk_size = chunk_size_and_phase_micros_list.last().unwrap().0;
     let bar_plot = BarPlot::new(
         3600,
         1200,
