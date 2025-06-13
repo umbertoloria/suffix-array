@@ -37,6 +37,23 @@ fn main() {
             ),
         ),
     );
+    let chunk_size_vec_700_1 = merge_chunk_size_intervals(
+        create_chunk_size_interval(4, 9),
+        merge_chunk_size_intervals(
+            create_chunk_size_of_steps(10, 100, 10),
+            vec![Some(100), Some(500), Some(1_000)],
+        ),
+    );
+    let chunk_size_vec_700_2 = merge_chunk_size_intervals(
+        vec![Some(1_000), Some(5_000)],
+        merge_chunk_size_intervals(
+            vec![Some(10_000), Some(50_000)],
+            merge_chunk_size_intervals(
+                create_chunk_size_of_steps(100_000, 500_000, 100_000),
+                vec![Some(500_000), Some(598_865), None],
+            ),
+        ),
+    );
     // let chunk_size_vec = create_chunk_size_interval(5, 200);
     // let chunk_size_vec = create_chunk_size_interval(5, 30);
     // let chunk_size_vec = create_chunk_size_interval(5, 5);
@@ -54,10 +71,9 @@ fn main() {
     // suite_complete_on_fasta_file("001", &chunk_size_vec_001, 25, le, lf, lts);
     // suite_complete_on_fasta_file("002_mini", &chunk_size_vec_002_mini, 30, le, lf, lts);
     // suite_complete_on_fasta_file("002_70", &chunk_size_vec, 70_000, le, lf, false);
-    // suite_complete_on_fasta_file("002_70", &chunk_size_vec, 200_000, le, lf, false);
-    // suite_complete_on_fasta_file("002_70", &chunk_size_none_list, 200_000, le, lf, false);
     suite_complete_on_fasta_file("002_70", &chunk_size_vec_70, 200_000, le, lf, false);
-    // suite_complete_on_fasta_file("002_700", &chunk_size_vec, 2_100_000, le, lf, false);
+    // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_1, 1_600_000, le, lf, false);
+    // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_2, 30_000_000, le, lf, false);
     // suite_complete_on_fasta_file("002_7000", &chunk_size_vec, 50_000_000, le, lf, false);
     // suite_complete_on_fasta_file("002_70000", &chunk_size_vec, le, lf, false);
 }
