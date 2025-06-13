@@ -19,6 +19,7 @@ fn main() {
     // Chunk Size Interval
     let chunk_size_vec_000 = create_chunk_size_interval_and_none(2, 7);
     let chunk_size_vec_001 = create_chunk_size_interval_and_none(2, 8);
+    let chunk_size_vec_002_mini = create_chunk_size_interval_and_none(2, 24);
     let chunk_size_vec = create_chunk_size_interval(1, 50);
     // let chunk_size_vec = create_chunk_size_interval(5, 200);
     // let chunk_size_vec = create_chunk_size_interval(5, 30);
@@ -33,7 +34,7 @@ fn main() {
 
     // suite_complete_on_fasta_file("000", &chunk_size_vec_000, 25, le, lftsa);
     // suite_complete_on_fasta_file("001", &chunk_size_vec_001, 25, le, lftsa);
-    // suite_complete_on_fasta_file("002_mini", &chunk_size_vec, 30, le, lftsa);
+    // suite_complete_on_fasta_file("002_mini", &chunk_size_vec_002_mini, 30, le, lftsa);
     suite_complete_on_fasta_file("002_70", &chunk_size_vec, 70_000, le, lftsa);
     // suite_complete_on_fasta_file("002_70", &chunk_size_vec, 200_000, le, lftsa);
     // suite_complete_on_fasta_file("002_70", &chunk_size_none_list, 200_000, le, lftsa);

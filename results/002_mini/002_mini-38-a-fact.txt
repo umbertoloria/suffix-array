@@ -1,4 +1,0 @@
-icfl > A
-icfl > C
-icfl > TCGTAGACC
-icfl > TTACAGAAAGAGGTAGAACCTCGA
