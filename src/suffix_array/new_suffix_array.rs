@@ -48,7 +48,7 @@ pub fn compute_innovative_suffix_array(
         factor_indexes,
         idx_to_is_custom,
         idx_to_icfl_factor,
-    ) = get_custom_factors_and_more_using_chunk_size(&icfl_indexes, chunk_size, str_length);
+    ) = get_custom_factors_and_more_using_chunk_size(&icfl_indexes, chunk_size, s_bytes, str_length);
     monitor.p1_fact.stop();
     if log_fact {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));

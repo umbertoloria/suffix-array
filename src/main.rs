@@ -70,8 +70,11 @@ fn main() {
     // suite_complete_on_fasta_file("000", &chunk_size_vec_000, 25, le, lf, lts);
     // suite_complete_on_fasta_file("001", &chunk_size_vec_001, 25, le, lf, lts);
     // suite_complete_on_fasta_file("002_mini", &chunk_size_vec_002_mini, 30, le, lf, lts);
-    // suite_complete_on_fasta_file("002_70", &chunk_size_vec, 70_000, le, lf, false);
-    suite_complete_on_fasta_file("002_70", &chunk_size_vec_70, 200_000, le, lf, false);
+
+    // suite_complete_on_fasta_file("002_mini", &vec![None], 70_000, le, lf, false);
+    suite_complete_on_fasta_file("002_70", &vec![None], 200_000, le, lf, false);
+
+    // suite_complete_on_fasta_file("002_70", &chunk_size_vec_70, 200_000, le, lf, false);
     // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_1, 1_600_000, le, lf, false);
     // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_2, 30_000_000, le, lf, false);
     // suite_complete_on_fasta_file("002_7000", &chunk_size_vec, 50_000_000, le, lf, false);

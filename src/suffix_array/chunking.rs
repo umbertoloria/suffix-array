@@ -1,3 +1,5 @@
+use crate::factorization::icfl::get_icfl_indexes;
+
 pub fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
     let mut result = Vec::new();
     let mut i = 0;
@@ -9,8 +11,9 @@ pub fn get_indexes_from_factors(factors: &Vec<String>) -> Vec<usize> {
 }
 
 pub fn get_custom_factors_and_more_using_chunk_size(
-    icfl_indexes: &Vec<usize>,
+    mut icfl_indexes: &Vec<usize>,
     chunk_size: Option<usize>,
+    s_bytes: &[u8],
     str_length: usize,
 ) -> (Vec<usize>, Vec<bool>, Vec<usize>) {
     // From string "AAA|B|CAABCA|DCAABCA"
@@ -77,6 +80,73 @@ pub fn get_custom_factors_and_more_using_chunk_size(
             }
         }
     } else {
+        let padding = 3; // FIXME
+
+        let mut real_icfl_indexes = Vec::new();
+        // let mut offset = 0;
+        real_icfl_indexes.push(0);
+        let mut offset = *real_icfl_indexes.last().unwrap();
+        // println!("   -- 0 --> {}", offset);
+        let mut rest = str_length - offset;
+
+        while rest > 0 {
+            let slice = &s_bytes[offset..];
+            // println!(" SLICE STR: {}", get_string_clone(slice));
+
+            let icfl_indexes = get_icfl_indexes(slice);
+            // println!(" ICFL INDEXES: {:?}", icfl_indexes);
+
+            if icfl_indexes.len() >= 2 {
+                // NON-LAST ICFL FACTOR.
+                // let first_index = icfl_indexes[0]; // This is always "0".
+                let second_index = icfl_indexes[1];
+                if second_index >= padding {
+                    if s_bytes[offset] == s_bytes[offset + 1]
+                        && s_bytes[offset + 1] == s_bytes[offset + 2]
+                    {
+                        real_icfl_indexes.push(offset + padding);
+                        // println!("   -- 1 --> push {}", offset + padding);
+
+                        offset = *real_icfl_indexes.last().unwrap();
+                        rest = str_length - offset;
+
+                        continue;
+                    }
+                }
+                real_icfl_indexes.push(offset + second_index);
+                // println!("   -- 2 --> push {}", offset + second_index);
+
+                offset = *real_icfl_indexes.last().unwrap();
+                rest = str_length - offset;
+            } else {
+                // LAST ICFL FACTOR.
+                // let first_index = icfl_indexes[0]; // This is always "0".
+                let second_index = str_length;
+                if second_index >= padding {
+                    if s_bytes[offset] == s_bytes[offset + 1]
+                        && s_bytes[offset + 1] == s_bytes[offset + 2]
+                    {
+                        real_icfl_indexes.push(offset + padding);
+                        // println!("   -- 3 --> push {}", offset + padding);
+
+                        offset = *real_icfl_indexes.last().unwrap();
+                        rest = str_length - offset;
+
+                        continue;
+                    }
+                }
+                break;
+                /*real_icfl_indexes.push(offset + second_index);
+                println!("   -- 4 --> push {}", offset + second_index);
+
+                offset = *real_icfl_indexes.last().unwrap();
+                rest = str_length - offset;*/
+            }
+        }
+        // println!("RESULT: {:?}", real_icfl_indexes);
+        // exit(0x0100);
+
+        let icfl_indexes = real_icfl_indexes;
         for i in 0..icfl_indexes.len() {
             let curr_icfl_factor_index = icfl_indexes[i];
 
