@@ -6,11 +6,11 @@ use crate::suffix_array::new_suffix_array::compute_innovative_suffix_array;
 use std::time::Duration;
 
 // SUITE COMPLETE FOR CLASSIC VS INNOVATIVE COMPUTATION
-const NUM_ATTEMPTS: u32 = 10;
-pub fn suite_complete_on_fasta_file(
+pub fn full_suite(
     fasta_file_name: &str,
     chunk_size_vec: &Vec<Option<usize>>,
     max_duration_in_micros: u32,
+    num_attempts: usize,
     log_execution: bool,
     log_fact: bool,
     log_trees_and_suffix_array: bool,
@@ -28,8 +28,8 @@ pub fn suite_complete_on_fasta_file(
     }
 
     // MULTIPLE ATTEMPTS
-    for i_attempt in 1..=NUM_ATTEMPTS {
-        println!(" > NUM ATTEMPT: {}/{}", i_attempt, NUM_ATTEMPTS);
+    for i_attempt in 1..=num_attempts {
+        println!(" > NUM ATTEMPT: {}/{}", i_attempt, num_attempts);
 
         // CLASSIC SUFFIX ARRAY
         let classic_suffix_array_computation = compute_classic_suffix_array(src_str);
@@ -86,7 +86,7 @@ pub fn suite_complete_on_fasta_file(
 
     // CALCULATING MEANS AND PRINTING
     println!("CLASSIC SUFFIX ARRAY CALCULATION");
-    let mean_classic_micros = (sum_classic_micros as f32 / NUM_ATTEMPTS as f32) as u64;
+    let mean_classic_micros = (sum_classic_micros as f32 / num_attempts as f32) as u64;
     print_duration(" > Sorting GSs duration   ", mean_classic_micros);
     println!("INNOVATIVE SUFFIX ARRAY CALCULATION");
     let mut chunk_size_and_phase_micros_list = Vec::new();
@@ -95,10 +95,9 @@ pub fn suite_complete_on_fasta_file(
         let chunk_size_or_zero = chunk_size.unwrap_or(0);
         let sum_micros = &sum_innovative_micros_vec[i];
         let micros = (
-            //
-            (sum_micros.0 as f32 / NUM_ATTEMPTS as f32) as u64,
-            (sum_micros.1 as f32 / NUM_ATTEMPTS as f32) as u64,
-            (sum_micros.2 as f32 / NUM_ATTEMPTS as f32) as u64,
+            (sum_micros.0 as f32 / num_attempts as f32) as u64,
+            (sum_micros.1 as f32 / num_attempts as f32) as u64,
+            (sum_micros.2 as f32 / num_attempts as f32) as u64,
         );
         let chunk_size_or_zero = chunk_size.unwrap_or(0);
         println!("[CHUNK SIZE={chunk_size_or_zero}]");

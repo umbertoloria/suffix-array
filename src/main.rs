@@ -1,6 +1,6 @@
 #![allow(warnings)]
 
-use crate::suffix_array::suite::suite_complete_on_fasta_file;
+use crate::suffix_array::suite::full_suite;
 
 mod extra;
 mod factorization;
@@ -83,20 +83,19 @@ fn main() {
     let lts = false;
     // let lts = true;
 
-    // suite_complete_on_fasta_file("000", &chunk_size_vec_000, 25, le, lf, lts);
-    // suite_complete_on_fasta_file("001", &chunk_size_vec_001, 25, le, lf, lts);
-    // suite_complete_on_fasta_file("002_mini", &chunk_size_vec_002_mini, 30, le, lf, lts);
-    // suite_complete_on_fasta_file("002_70", &chunk_size_vec, 70_000, le, lf, false);
-    suite_complete_on_fasta_file("002_70", &chunk_size_vec_70, 200_000, le, lf, false);
-    // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_1, 1_600_000, le, lf, false);
-    // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_2, 30_000_000, le, lf, false);
-    // suite_complete_on_fasta_file("002_7000", &chunk_size_vec, 50_000_000, le, lf, false);
+    // full_suite("000", &chunk_size_vec_000, 25, 10, le, lf, lts);
+    // full_suite("001", &chunk_size_vec_001, 25, 10, le, lf, lts);
+    // full_suite("002_mini", &chunk_size_vec_002_mini, 30, 10, le, lf, lts);
+    full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false);
+    // full_suite("002_700", &chunk_size_vec_700_1, 1_600_000, 10, le, lf, false);
+    // full_suite("002_700", &chunk_size_vec_700_2, 30_000_000, 3, le, lf, false);
+    // full_suite("002_7000", &chunk_size_vec, 50_000_000, le, lf, false);
 
     // DNAs
-    // suite_complete_on_fasta_file("dna", &chunk_size_vec_dna, 1_000_000, le, lf, lts);
-    // suite_complete_on_fasta_file("dna50", &chunk_size_vec_dna, 1_000_000, le, lf, lts);
-    // suite_complete_on_fasta_file("dna100", &chunk_size_vec_dna, 1_000_000, le, lf, lts);
-    // suite_complete_on_fasta_file("dna200", &chunk_size_vec_dna, 1_000_000, le, lf, lts);
+    // full_suite("dna", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts);
+    // full_suite("dna50", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts);
+    // full_suite("dna100", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts);
+    // full_suite("dna200", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts);
 }
 
 fn create_chunk_size_interval(min: usize, max: usize) -> Vec<Option<usize>> {
