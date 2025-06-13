@@ -78,6 +78,7 @@ pub fn compute_innovative_suffix_array(
     }
     if log_trees_and_suffix_array {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
+        /*
         log_tree(
             &tree,
             TreeLogMode::Tree,
@@ -88,6 +89,7 @@ pub fn compute_innovative_suffix_array(
             TreeLogMode::FullTree,
             get_path_for_project_full_tree_file(fasta_file_name, chunk_size_or_zero),
         );
+        */
         log_tree(
             &tree,
             TreeLogMode::MiniTree,

@@ -14,6 +14,7 @@ pub fn full_suite(
     log_execution: bool,
     log_fact: bool,
     log_trees_and_suffix_array: bool,
+    draw_plot: bool,
 ) {
     println!("\n\nCOMPUTING SUITE ON FILE: \"{}\"\n", fasta_file_name);
 
@@ -108,13 +109,15 @@ pub fn full_suite(
         i += 1;
     }
 
-    // Plots
-    draw_plot_from_monitor(
-        fasta_file_name,
-        mean_classic_micros,
-        chunk_size_and_phase_micros_list,
-        max_duration_in_micros,
-    );
+    // PLOT
+    if draw_plot {
+        draw_plot_from_monitor(
+            fasta_file_name,
+            mean_classic_micros,
+            chunk_size_and_phase_micros_list,
+            max_duration_in_micros,
+        );
+    }
 }
 
 fn print_duration(prefix: &str, micros: u64) {

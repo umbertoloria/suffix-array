@@ -16,7 +16,7 @@ pub fn log_tree(tree: &Tree, mode: TreeLogMode, filepath: String) {
         let child_label = match mode {
             TreeLogMode::Tree => format!("{}", get_string_clone(child_node_prefix)),
             TreeLogMode::FullTree => format!("{}", get_string_clone(child_node_prefix)),
-            TreeLogMode::MiniTree => "_".to_string(),
+            TreeLogMode::MiniTree => format!("\"{:6}\"", child_node_prefix.len()),
         };
         log_tree_recursive(&child_node, &child_label, mode, &mut file, 0);
     }
@@ -53,7 +53,7 @@ fn log_tree_recursive(
             TreeLogMode::FullTree => {
                 format!("{}{}", node_label, get_string_clone(child_node_prefix))
             }
-            TreeLogMode::MiniTree => "_".to_string(),
+            TreeLogMode::MiniTree => format!("\"{:6}\"", child_node_prefix.len()),
         };
         log_tree_recursive(child_node, &child_label, mode, file, level + 1);
     }

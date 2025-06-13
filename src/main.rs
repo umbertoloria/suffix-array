@@ -59,22 +59,7 @@ fn main() {
     // let chunk_size_vec = create_chunk_size_interval(5, 5);
     // let chunk_size_vec = create_chunk_size_of_thousands_with_steps(1, 70);
     // let chunk_size_none_list = vec![None];
-    let chunk_size_vec_dna = merge_chunk_size_intervals(
-        create_chunk_size_interval(2, 9),
-        merge_chunk_size_intervals(
-            create_chunk_size_of_steps(10, 100, 10),
-            merge_chunk_size_intervals(
-                create_chunk_size_of_steps(100, 1_000, 100),
-                merge_chunk_size_intervals(
-                    create_chunk_size_of_steps(1_000, 10_000, 1_000),
-                    merge_chunk_size_intervals(
-                        create_chunk_size_of_steps(10_000, 30_001, 1000),
-                        vec![None],
-                    ),
-                ),
-            ),
-        ),
-    );
+    let chunk_size_vec_dna = vec![Some(6)];
 
     // Logging?
     let le = true;
@@ -83,19 +68,29 @@ fn main() {
     let lts = false;
     // let lts = true;
 
-    // full_suite("000", &chunk_size_vec_000, 25, 10, le, lf, lts);
-    // full_suite("001", &chunk_size_vec_001, 25, 10, le, lf, lts);
-    // full_suite("002_mini", &chunk_size_vec_002_mini, 30, 10, le, lf, lts);
-    full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false);
-    // full_suite("002_700", &chunk_size_vec_700_1, 1_600_000, 10, le, lf, false);
-    // full_suite("002_700", &chunk_size_vec_700_2, 30_000_000, 3, le, lf, false);
-    // full_suite("002_7000", &chunk_size_vec, 50_000_000, le, lf, false);
+    // full_suite("000", &chunk_size_vec_000, 25, 10, le, lf, lts, dp);
+    // full_suite("001", &chunk_size_vec_001, 25, 10, le, lf, lts, dp);
+    // full_suite("002_mini", &chunk_size_vec_002_mini, 30, 10, le, lf, lts, dp);
+    // full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false, dp);
+    full_suite(
+        "002_70",
+        &vec![Some(6), Some(56_137)],
+        200_000,
+        1,
+        false,
+        true,
+        true,
+        false,
+    );
+    // full_suite("002_700", &chunk_size_vec_700_1, 1_600_000, 10, le, lf, false, dp);
+    // full_suite("002_700", &chunk_size_vec_700_2, 30_000_000, 3, le, lf, false, dp);
+    // full_suite("002_7000", &chunk_size_vec, 50_000_000, le, lf, false, dp);
 
     // DNAs
-    // full_suite("dna", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts);
-    // full_suite("dna50", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts);
-    // full_suite("dna100", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts);
-    // full_suite("dna200", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts);
+    // full_suite("dna50", &chunk_size_vec_dna, 1_000_000, 1, le, lf, lts, dp);
+    // full_suite("dna10", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts, dp);
+    // full_suite("dna200", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts, dp);
+    // full_suite("dna400", &chunk_size_vec_dna, 1_000_000, 5, le, lf, lts, dp);
 }
 
 fn create_chunk_size_interval(min: usize, max: usize) -> Vec<Option<usize>> {
