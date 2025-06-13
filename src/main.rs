@@ -45,7 +45,7 @@ fn main() {
         ),
     );
     let chunk_size_vec_700_2 = merge_chunk_size_intervals(
-        vec![Some(1_000), Some(5_000)],
+        vec![Some(2_000), Some(5_000)],
         merge_chunk_size_intervals(
             vec![Some(10_000), Some(50_000)],
             merge_chunk_size_intervals(
@@ -75,7 +75,6 @@ fn main() {
     // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_1, 1_600_000, le, lf, false);
     // suite_complete_on_fasta_file("002_700", &chunk_size_vec_700_2, 30_000_000, le, lf, false);
     // suite_complete_on_fasta_file("002_7000", &chunk_size_vec, 50_000_000, le, lf, false);
-    // suite_complete_on_fasta_file("002_70000", &chunk_size_vec, le, lf, false);
 }
 
 fn create_chunk_size_interval(min: usize, max: usize) -> Vec<Option<usize>> {

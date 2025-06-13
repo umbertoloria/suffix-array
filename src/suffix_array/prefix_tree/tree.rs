@@ -165,6 +165,7 @@ impl<'a> TreeNode<'a> {
             let mid_str = *mid_str;
 
             // Comparing "Mid. Str." with "Rest of LS".
+            // TODO: Monitor string compare
             let mut i = 0;
             while i < rest_of_ls.len() && i < mid_str.len() {
                 if rest_of_ls[i] != mid_str[i] {
@@ -195,7 +196,7 @@ impl<'a> TreeNode<'a> {
                     s_bytes,
                     monitor,
                 );
-                break;
+                return;
 
                 /*
                 // TOD: Simplify branch nidification
