@@ -127,7 +127,7 @@ impl<'a> Tree<'a> {
     }
     fn in_prefix_merge_get_min_max_and_new_rankings(
         &self,
-        self_node_ls_size: usize,
+        self_ls_size: usize,
         self_rankings: &Vec<usize>,
         parent_rankings: &Vec<usize>,
         parent_left_position: usize,
@@ -142,15 +142,15 @@ impl<'a> Tree<'a> {
 
         // Compare This Node's Rankings with Parent Node's Rankings.
         let self_first_ls_index = self_rankings[0]; // Take first or another one, whatever.
-        let self_ls = &str[self_first_ls_index..self_first_ls_index + self_node_ls_size];
+        let self_ls = &str[self_first_ls_index..self_first_ls_index + self_ls_size];
 
         // IN-PREFIX MERGE RANKINGS
         let mut i_parent = parent_left_position;
         while i_parent < parent_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
-            let curr_parent_ls = &str[curr_parent_ls_index
-                // ..curr_parent_ls_index + self_node_ls_size]; // NO. Safety here is *required*.
-                ..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
+            let curr_parent_ls = &str
+                [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
+            // Safety is required here: "..curr_parent_ls_index + self_ls_size"
 
             // TODO: Monitor string compare
             monitor.execution_outcome.monitor_new_local_suffix_compare();
@@ -176,7 +176,7 @@ impl<'a> Tree<'a> {
                 let parent_right = &parent_rankings[max_father..];
                 println!(
                     "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    " ".repeat(self_node_ls_size), &parent_rankings[parent_left_position..],
+                    " ".repeat(self_ls_size), &parent_rankings[parent_left_position..],
                     self_rankings, parent_left, parent_window, parent_right,
                 );
             }
@@ -195,9 +195,9 @@ impl<'a> Tree<'a> {
         // a Window for Comparing Rankings using "RULES".
 
         let curr_parent_ls_index = parent_rankings[i_parent];
-        let curr_parent_ls = &str
-            [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
-        // ..curr_parent_ls_index + self_node_ls_size]; // Seems like safety is optional here...
+        let curr_parent_ls =
+            &str[curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
+        // Seems like safety is optional here: "..curr_parent_ls_index + self_ls_size"
 
         // TODO: Monitor string compare
         monitor.execution_outcome.monitor_new_local_suffix_compare();
@@ -216,7 +216,7 @@ impl<'a> Tree<'a> {
                 let parent_right = &parent_rankings[max_father..];
                 println!(
                     "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    " ".repeat(self_node_ls_size), &parent_rankings[parent_left_position..],
+                    " ".repeat(self_ls_size), &parent_rankings[parent_left_position..],
                     self_rankings, parent_left, parent_window, parent_right,
                 );
             }
@@ -232,9 +232,9 @@ impl<'a> Tree<'a> {
         i_parent += 1;
         while i_parent < parent_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
-            let curr_parent_ls = &str[curr_parent_ls_index
-                ..usize::min(curr_parent_ls_index + self_node_ls_size, str.len())];
-            // ..curr_parent_ls_index + self_node_ls_size]; // Seems like safety is optional here...
+            let curr_parent_ls = &str
+                [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
+            // Seems like safety is optional here: "..curr_parent_ls_index + self_ls_size"
 
             // TODO: Monitor string compare
             monitor.execution_outcome.monitor_new_local_suffix_compare();
@@ -259,7 +259,7 @@ impl<'a> Tree<'a> {
             let parent_right = &parent_rankings[max_father..];
             println!(
                 "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                " ".repeat(self_node_ls_size), &parent_rankings[parent_left_position..],
+                " ".repeat(self_ls_size), &parent_rankings[parent_left_position..],
                 self_rankings, parent_left, parent_window, parent_right,
             );
         }
@@ -273,37 +273,35 @@ impl<'a> Tree<'a> {
             let result_rules = rules_safe(
                 curr_parent_ls_index,
                 curr_this_ls_index,
-                self_node_ls_size,
+                self_ls_size,
                 ip_merge_params,
                 monitor,
                 false,
             );
             if !result_rules {
                 if cfg!(feature = "verbose") {
-                    // ..usize::min.. // Seems like safety is optional here...
                     let curr_parent_ls =
-                        &str[curr_parent_ls_index..curr_parent_ls_index + self_node_ls_size];
-                    let curr_this_ls =
-                        &str[curr_this_ls_index..curr_this_ls_index + self_node_ls_size];
+                        &str[curr_parent_ls_index..curr_parent_ls_index + self_ls_size];
+                    // Seems like safety is optional here: "..usize::min"
+                    let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + self_ls_size];
                     println!(
                         "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
-                        " ".repeat(self_node_ls_size), curr_parent_ls, curr_parent_ls_index,
-                        curr_this_ls, curr_this_ls_index, self_node_ls_size,
+                        " ".repeat(self_ls_size), curr_parent_ls, curr_parent_ls_index,
+                        curr_this_ls, curr_this_ls_index, self_ls_size,
                     );
                 }
                 new_self_rankings.push(curr_parent_ls_index);
                 i_parent += 1;
             } else {
                 if cfg!(feature = "verbose") {
-                    // ..usize::min.. // Seems like safety is optional here...
                     let curr_parent_ls =
-                        &str[curr_parent_ls_index..curr_parent_ls_index + self_node_ls_size];
-                    let curr_this_ls =
-                        &str[curr_this_ls_index..curr_this_ls_index + self_node_ls_size];
+                        &str[curr_parent_ls_index..curr_parent_ls_index + self_ls_size];
+                    // Seems like safety is optional here: "..usize::min"
+                    let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + self_ls_size];
                     println!(
                         "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
-                        " ".repeat(self_node_ls_size), curr_parent_ls, curr_parent_ls_index,
-                        curr_this_ls, curr_this_ls_index, self_node_ls_size,
+                        " ".repeat(self_ls_size), curr_parent_ls, curr_parent_ls_index,
+                        curr_this_ls, curr_this_ls_index, self_ls_size,
                     );
                 }
                 new_self_rankings.push(curr_this_ls_index);
@@ -314,7 +312,7 @@ impl<'a> Tree<'a> {
             if cfg!(feature = "verbose") {
                 println!(
                     "{}/ no child rankings left to add",
-                    " ".repeat(self_node_ls_size),
+                    " ".repeat(self_ls_size),
                 );
             }
         }
@@ -323,10 +321,10 @@ impl<'a> Tree<'a> {
             if cfg!(feature = "verbose") {
                 println!(
                     "{}/ adding   child=\"{}\" [{}], child.suff.len={}",
-                    " ".repeat(self_node_ls_size),
-                    &str[curr_this_ls_index..curr_this_ls_index + self_node_ls_size],
+                    " ".repeat(self_ls_size),
+                    &str[curr_this_ls_index..curr_this_ls_index + self_ls_size],
                     curr_this_ls_index,
-                    self_node_ls_size,
+                    self_ls_size,
                 );
             }
             new_self_rankings.push(curr_this_ls_index);
@@ -337,10 +335,10 @@ impl<'a> Tree<'a> {
             if cfg!(feature = "verbose") {
                 println!(
                     "{}/ adding  father=\"{}\" [{}], father.suff.len={}",
-                    " ".repeat(self_node_ls_size),
-                    &str[curr_parent_ls_index..curr_parent_ls_index + self_node_ls_size],
+                    " ".repeat(self_ls_size),
+                    &str[curr_parent_ls_index..curr_parent_ls_index + self_ls_size],
                     curr_parent_ls_index,
-                    self_node_ls_size,
+                    self_ls_size,
                 );
             }
             new_self_rankings.push(curr_parent_ls_index);

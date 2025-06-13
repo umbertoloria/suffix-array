@@ -67,12 +67,14 @@ fn main() {
     // let lf = true;
     let lts = false;
     // let lts = true;
+    let dp = true;
+    // let dp = false;
 
     // full_suite("000", &chunk_size_vec_000, 25, 10, le, lf, lts, dp);
     // full_suite("001", &chunk_size_vec_001, 25, 10, le, lf, lts, dp);
     // full_suite("002_mini", &chunk_size_vec_002_mini, 30, 10, le, lf, lts, dp);
-    // full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false, dp);
-    full_suite(
+    full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false, dp);
+    /*full_suite(
         "002_70",
         &vec![Some(6), Some(56_137)],
         200_000,
@@ -81,7 +83,7 @@ fn main() {
         true,
         true,
         false,
-    );
+    );*/
     // full_suite("002_700", &chunk_size_vec_700_1, 1_600_000, 10, le, lf, false, dp);
     // full_suite("002_700", &chunk_size_vec_700_2, 30_000_000, 3, le, lf, false, dp);
     // full_suite("002_7000", &chunk_size_vec, 50_000_000, le, lf, false, dp);
