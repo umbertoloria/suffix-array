@@ -8,65 +8,58 @@ use std::rc::Rc;
 pub fn create_tree<'a>(
     s_bytes: &'a [u8],
     factor_indexes: &Vec<usize>,
+    icfl_indexes: &Vec<usize>,
     idx_to_is_custom: &Vec<bool>,
     monitor: &mut Monitor,
 ) -> Tree<'a> {
     let str_length = s_bytes.len();
     let max_factor_size = get_max_factor_size(&factor_indexes, str_length);
+    let last_icfl_factor_size = str_length - icfl_indexes[icfl_indexes.len() - 1];
 
     let mut tree = Tree::new();
-
-    let last_factor_size = str_length - factor_indexes[factor_indexes.len() - 1];
-
-    let mut params_canonical = Vec::new();
-    let mut params_custom = Vec::new();
 
     for ls_size in 1..=max_factor_size {
         // Every iteration looks for all Custom Factors whose length is <= "ls_size" and, if there
         // exist, takes their Local Suffixes of "ls_size" length.
 
-        // Last Factor
-        if ls_size <= last_factor_size {
+        // Last ICFL Factor
+        if ls_size <= last_icfl_factor_size {
             let ls_index = str_length - ls_size;
-            let is_custom_ls = idx_to_is_custom[ls_index];
-            if is_custom_ls {
-                params_custom.push((ls_index, ls_size));
-            } else {
-                params_canonical.push((ls_index, ls_size));
+            tree.add(ls_index, ls_size, false, s_bytes, monitor);
+            if cfg!(feature = "verbose") {
+                tree.print();
             }
         }
 
-        // All Factors from first to second-last
+        // All ICFL Factors from first to second-last
+        for i_factor in 0..icfl_indexes.len() - 1 {
+            let next_icfl_factor_index = icfl_indexes[i_factor + 1];
+            let curr_icfl_factor_size = next_icfl_factor_index - icfl_indexes[i_factor];
+            if ls_size <= curr_icfl_factor_size {
+                let ls_index = next_icfl_factor_index - ls_size;
+                tree.add(ls_index, ls_size, false, s_bytes, monitor);
+                if cfg!(feature = "verbose") {
+                    tree.print();
+                }
+            }
+        }
+
+        // All Custom Factors from first to second-last
         for i_factor in 0..factor_indexes.len() - 1 {
             let curr_factor_size = factor_indexes[i_factor + 1] - factor_indexes[i_factor];
             if ls_size <= curr_factor_size {
                 let ls_index = factor_indexes[i_factor + 1] - ls_size;
                 let is_custom_ls = idx_to_is_custom[ls_index];
                 if is_custom_ls {
-                    params_custom.push((ls_index, ls_size));
+                    tree.add(ls_index, ls_size, true, s_bytes, monitor);
+                    if cfg!(feature = "verbose") {
+                        tree.print();
+                    }
                 } else {
-                    params_canonical.push((ls_index, ls_size));
+                    // Already considered Canonical Factor.
                 }
             }
         }
-
-        // LSs that come from Canonical Factors (already sorted)
-        for &(ls_index, ls_size) in &params_canonical {
-            tree.add(ls_index, ls_size, false, s_bytes, monitor);
-            if cfg!(feature = "verbose") {
-                tree.print();
-            }
-        }
-        params_canonical.clear();
-
-        // LSs that come from Custom Factors (to sort)
-        for &(ls_index, ls_size) in &params_custom {
-            tree.add(ls_index, ls_size, true, s_bytes, monitor);
-            if cfg!(feature = "verbose") {
-                tree.print();
-            }
-        }
-        params_custom.clear();
     }
 
     tree
@@ -117,7 +110,7 @@ impl<'a> Tree<'a> {
 pub struct TreeNode<'a> {
     pub suffix_len: usize,
     pub rankings: Vec<usize>,
-    pub children: Vec<(&'a PrefixTrieString, TreeNode<'a>)>,
+    pub children: Vec<(&'a PrefixTreeString, TreeNode<'a>)>,
 }
 impl<'a> TreeNode<'a> {
     pub fn new(suffix_len: usize) -> Self {
@@ -312,8 +305,8 @@ impl<'a> TreeNode<'a> {
 }
 
 // STRING ABSTRACTION
-type PrefixTrieString = [u8];
-pub fn get_string_clone(str_type: &PrefixTrieString) -> String {
+type PrefixTreeString = [u8];
+pub fn get_string_clone(str_type: &PrefixTreeString) -> String {
     // TODO: Needs cloning
     let cloned_vec = str_type.to_vec();
     String::from_utf8(cloned_vec).unwrap()

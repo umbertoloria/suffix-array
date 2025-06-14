@@ -29,7 +29,7 @@ pub fn get_custom_factors_and_more_using_chunk_size(
         for i in 0..icfl_indexes.len() {
             let curr_icfl_factor_index = icfl_indexes[i];
 
-            // Curr  ICFL Factor Size
+            // Curr ICFL Factor Size
             let curr_icfl_factor_size = if i < icfl_indexes.len() - 1 {
                 icfl_indexes[i + 1]
             } else {
