@@ -1,0 +1,17 @@
+CANONICAL |         16
+CANONICAL |          2
+CANONICAL |          3
+CANONICAL |          9
+CANONICAL |         15
+CANONICAL |          1
+CANONICAL |          8
+CANONICAL |         14
+CANONICAL |          0
+CANONICAL |          7
+CANONICAL |         13
+CANONICAL |          6
+CANONICAL |         12
+CANONICAL |          5
+CANONICAL |         11
+CANONICAL |          4
+CANONICAL |         10

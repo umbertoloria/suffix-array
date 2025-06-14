@@ -1,0 +1,17 @@
+CANONICAL |         16
+CANONICAL |          2
+CANONICAL |          3
+CANONICAL |          9
+CUSTOM    |          6
+CUSTOM    |         10
+CUSTOM    |         13
+CANONICAL |         15
+CANONICAL |          1
+CANONICAL |          8
+CUSTOM    |          5
+CUSTOM    |         12
+CANONICAL |         14
+CANONICAL |          0
+CANONICAL |          7
+CUSTOM    |          4
+CUSTOM    |         11
