@@ -1,5 +1,7 @@
 #![allow(warnings)]
 
+use crate::suffix_array::suite::full_suite;
+
 mod extra;
 mod factorization;
 mod files;
@@ -17,7 +19,7 @@ fn main() {
     // Chunk Size Interval
     let chunk_size_vec_000 = create_chunk_size_interval_and_none(2, 7);
     let chunk_size_vec_001 = create_chunk_size_interval_and_none(2, 8);
-    let chunk_size_vec_002_mini = create_chunk_size_interval_and_none(2, 24);
+    let chunk_size_vec_002m = create_chunk_size_interval_and_none(2, 24);
     let chunk_size_vec_70 = merge_chunk_size_intervals(
         create_chunk_size_interval(2, 9),
         merge_chunk_size_intervals(
@@ -71,7 +73,7 @@ fn main() {
 
     // full_suite("000", &chunk_size_vec_000, 25, 10, le, lf, lts, dp);
     // full_suite("001", &chunk_size_vec_001, 25, 10, le, lf, lts, dp);
-    // full_suite("002_mini", &chunk_size_vec_002_mini, 30, 10, le, lf, lts, dp);
+    // full_suite("002_mini", &chunk_size_vec_002m, 30, 10, le, lf, lts, dp);
     // full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false, dp);
     /*full_suite(
         "002_70",

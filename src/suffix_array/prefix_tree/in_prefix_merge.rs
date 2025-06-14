@@ -1,4 +1,3 @@
-use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::prefix_tree::rules::rules_safe;
 use crate::suffix_array::prefix_tree::tree::{Tree, TreeNode};
@@ -9,7 +8,6 @@ pub struct IPMergeParams<'a> {
     pub icfl_indexes: &'a Vec<usize>,
     pub idx_to_is_custom: &'a Vec<bool>,
     pub idx_to_icfl_factor: &'a Vec<usize>,
-    pub compare_cache: &'a mut CompareCache,
 }
 
 impl<'a> Tree<'a> {

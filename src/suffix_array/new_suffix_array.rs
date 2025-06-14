@@ -7,7 +7,6 @@ use crate::files::paths::{
     get_path_for_project_timing_file_json, get_path_for_project_tree_file,
 };
 use crate::suffix_array::chunking::get_custom_factors_and_more_using_chunk_size;
-use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
@@ -105,13 +104,11 @@ pub fn compute_innovative_suffix_array(
 
     // SUFFIX ARRAY
     monitor.p3_sa.start();
-    let mut compare_cache = CompareCache::new();
     let mut ip_merge_params = IPMergeParams {
         str,
         icfl_indexes: &icfl_indexes,
         idx_to_is_custom: &idx_to_is_custom,
         idx_to_icfl_factor: &idx_to_icfl_factor,
-        compare_cache: &mut compare_cache,
     };
     let suffix_array = tree.in_prefix_merge_and_common_prefix_partition(
         str_length,

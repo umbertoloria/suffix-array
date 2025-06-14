@@ -93,7 +93,6 @@ pub fn full_suite(
     let mut chunk_size_and_phase_micros_list = Vec::new();
     let mut i = 0;
     for &chunk_size in chunk_size_vec {
-        let chunk_size_or_zero = chunk_size.unwrap_or(0);
         let sum_micros = &sum_innovative_micros_vec[i];
         let micros = (
             (sum_micros.0 as f32 / num_attempts as f32) as u64,

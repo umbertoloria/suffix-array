@@ -1,4 +1,3 @@
-use crate::suffix_array::compare_cache::CompareCache;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::prefix_tree::in_prefix_merge::IPMergeParams;
 
@@ -19,7 +18,6 @@ pub fn rules_safe(
             ip_merge_params.icfl_indexes,
             ip_merge_params.idx_to_is_custom,
             ip_merge_params.idx_to_icfl_factor,
-            ip_merge_params.compare_cache,
             monitor,
         )
     } else {
@@ -38,7 +36,6 @@ pub fn rules_safe(
             ip_merge_params.icfl_indexes,
             ip_merge_params.idx_to_is_custom,
             ip_merge_params.idx_to_icfl_factor,
-            ip_merge_params.compare_cache,
             monitor,
         );
         if given != oracle {
@@ -60,7 +57,6 @@ fn rules(
     icfl_indexes: &Vec<usize>,
     idx_to_is_custom: &Vec<bool>,
     idx_to_icfl_factor: &Vec<usize>,
-    compare_cache: &mut CompareCache,
     monitor: &mut Monitor,
 ) -> bool {
     // Return values:
@@ -69,19 +65,11 @@ fn rules(
     if idx_to_is_custom[parent_ls_index] && idx_to_is_custom[child_ls_index] {
         monitor.new_compare_of_two_ls_in_custom_factors();
         monitor.new_compare_using_actual_string_compare();
-        return compare_cache.compare_1_before_2(
-            //
+        return perform_gs_comparison_a_before_b(
             str,
             child_ls_index + child_ls_size,
             parent_ls_index + child_ls_size,
         );
-        /*let cmp1 = &str[y + child_offset..];
-        let cmp2 = &str[x + child_offset..];
-        if cmp1 < cmp2 {
-            true
-        } else {
-            false
-        }*/
     }
 
     let last_icfl_index = icfl_indexes[icfl_indexes.len() - 1];
@@ -97,19 +85,11 @@ fn rules(
             }
         } else {
             monitor.new_compare_using_actual_string_compare();
-            compare_cache.compare_1_before_2(
-                //
+            perform_gs_comparison_a_before_b(
                 str,
                 child_ls_index + child_ls_size,
                 parent_ls_index + child_ls_size,
             )
-            /*let cmp1 = &str[y + child_offset..];
-            let cmp2 = &str[x + child_offset..];
-            if cmp1 < cmp2 {
-                true
-            } else {
-                false
-            }*/
         };
     }
 
@@ -124,19 +104,11 @@ fn rules(
             }
         } else {
             monitor.new_compare_using_actual_string_compare();
-            compare_cache.compare_1_before_2(
-                //
+            perform_gs_comparison_a_before_b(
                 str,
                 child_ls_index + child_ls_size,
                 parent_ls_index + child_ls_size,
             )
-            /*let cmp1 = &str[y + child_offset..];
-            let cmp2 = &str[x + child_offset..];
-            if cmp1 < cmp2 {
-                true
-            } else {
-                false
-            }*/
         };
     }
 
@@ -152,39 +124,34 @@ fn rules(
             false
         } else if child_ls_index >= last_icfl_index {
             monitor.new_compare_using_actual_string_compare();
-            compare_cache.compare_1_before_2(
-                //
+            perform_gs_comparison_a_before_b(
                 str,
                 child_ls_index + child_ls_size,
                 parent_ls_index + child_ls_size,
             )
-            /*let cmp1 = &str[y + child_offset..];
-            let cmp2 = &str[x + child_offset..];
-            if cmp1 < cmp2 {
-                true
-            } else {
-                false
-            }*/
         } else {
             if parent_ls_index > child_ls_index {
                 monitor.new_compare_using_rules();
                 true
             } else {
                 monitor.new_compare_using_actual_string_compare();
-                compare_cache.compare_1_before_2(
-                    //
+                perform_gs_comparison_a_before_b(
                     str,
                     child_ls_index + child_ls_size,
                     parent_ls_index + child_ls_size,
                 )
-                /*let cmp1 = &str[y + child_offset..];
-                let cmp2 = &str[x + child_offset..];
-                if cmp1 < cmp2 {
-                    true
-                } else {
-                    false
-                }*/
             }
         }
+    }
+}
+
+pub fn perform_gs_comparison_a_before_b(str: &str, ls_index_1: usize, ls_index_2: usize) -> bool {
+    // println!(" -> *** comparing {} with {}", ls_index_1, ls_index_2);
+    let cmp1 = &str[ls_index_1..];
+    let cmp2 = &str[ls_index_2..];
+    if cmp1 < cmp2 {
+        true
+    } else {
+        false
     }
 }

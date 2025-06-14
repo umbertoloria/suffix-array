@@ -1,6 +1,5 @@
 pub mod chunking;
 pub mod classic_suffix_array;
-pub mod compare_cache;
 pub mod log_execution_info;
 pub mod log_execution_outcome;
 pub mod monitor;
