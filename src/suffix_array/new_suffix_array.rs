@@ -63,13 +63,7 @@ pub fn compute_innovative_suffix_array(
 
     // TREE
     monitor.p2_tree.start();
-    let mut tree = create_tree(
-        s_bytes,
-        &factor_indexes,
-        &icfl_indexes,
-        &idx_to_is_custom,
-        &mut monitor,
-    );
+    let mut tree = create_tree(s_bytes, &icfl_indexes, chunk_size, &mut monitor);
     monitor.p2_tree.stop();
     if cfg!(feature = "verbose") {
         println!("Before SUFFIX ARRAY PHASE");

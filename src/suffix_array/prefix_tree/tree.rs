@@ -7,13 +7,18 @@ use std::rc::Rc;
 
 pub fn create_tree<'a>(
     s_bytes: &'a [u8],
-    factor_indexes: &Vec<usize>,
     icfl_indexes: &Vec<usize>,
-    idx_to_is_custom: &Vec<bool>,
+    chunk_size: Option<usize>,
     monitor: &mut Monitor,
 ) -> Tree<'a> {
     let str_length = s_bytes.len();
-    let max_factor_size = get_max_factor_size(&factor_indexes, str_length);
+    let mut max_factor_size = get_max_factor_size(&icfl_indexes, str_length);
+    if let Some(chunk_size) = chunk_size {
+        if chunk_size < max_factor_size {
+            max_factor_size = chunk_size;
+        }
+    }
+    let chunk_size_real = chunk_size.unwrap_or(0);
     let last_icfl_factor_size = str_length - icfl_indexes[icfl_indexes.len() - 1];
 
     let mut tree = Tree::new();
@@ -44,19 +49,52 @@ pub fn create_tree<'a>(
             }
         }
 
-        // All Custom Factors from first to second-last
-        for i_factor in 0..factor_indexes.len() - 1 {
-            let curr_factor_size = factor_indexes[i_factor + 1] - factor_indexes[i_factor];
-            if ls_size <= curr_factor_size {
-                let ls_index = factor_indexes[i_factor + 1] - ls_size;
-                let is_custom_ls = idx_to_is_custom[ls_index];
-                if is_custom_ls {
-                    tree.add(ls_index, ls_size, true, s_bytes, monitor);
-                    if cfg!(feature = "verbose") {
-                        tree.print();
-                    }
+        if ls_size <= chunk_size_real {
+            // Custom Factorization is active.
+            for i_factor in 0..icfl_indexes.len() {
+                let curr_icfl_factor_index = icfl_indexes[i_factor];
+
+                // Curr ICFL Factor Size
+                let curr_icfl_factor_size = if i_factor < icfl_indexes.len() - 1 {
+                    icfl_indexes[i_factor + 1]
                 } else {
-                    // Already considered Canonical Factor.
+                    str_length
+                } - curr_icfl_factor_index;
+
+                if curr_icfl_factor_size < ls_size {
+                    continue;
+                }
+
+                /// let remaining_space_for_chunking = curr_icfl_factor_size - chunk_size_real;
+                // Updating "factor_indexes"
+                // Es. on the 2nd factor "B": curr_icfl_factor_index=3, curr_icfl_factor_size=1
+                if curr_icfl_factor_size > chunk_size_real {
+                    let first_chunk_index_offset = curr_icfl_factor_size % chunk_size_real;
+                    let mut curr_cust_fact_index =
+                        curr_icfl_factor_index + first_chunk_index_offset;
+                    if first_chunk_index_offset > 0 {
+                        // Example: ICFL Factor is "DCAABCA", Chunk Size is 4, so Custom Factors
+                        // are "DCA" and "ABCA". In this case, First Chunk Index Offset = 3, since
+                        // the first Custom Factor has Length < Chunk Size.
+                        if ls_size <= first_chunk_index_offset {
+                            let ls_index = curr_cust_fact_index - ls_size;
+                            tree.add(ls_index, ls_size, true, s_bytes, monitor);
+                            if cfg!(feature = "verbose") {
+                                tree.print();
+                            }
+                        }
+                    }
+                    // Avoid "last_cust_fact_index" because all its LSs are LSs of ICFL Factors.
+                    let last_cust_fact_index =
+                        curr_icfl_factor_index + curr_icfl_factor_size - chunk_size_real;
+                    while curr_cust_fact_index < last_cust_fact_index {
+                        let ls_index = curr_cust_fact_index + chunk_size_real - ls_size;
+                        tree.add(ls_index, ls_size, true, s_bytes, monitor);
+                        if cfg!(feature = "verbose") {
+                            tree.print();
+                        }
+                        curr_cust_fact_index += chunk_size_real;
+                    }
                 }
             }
         }
