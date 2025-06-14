@@ -151,6 +151,7 @@ pub struct ExecutionOutcome {
     pub compares_using_strcmp: usize,
     pub compares_ls: usize,
     pub compares_gs: usize,
+    pub prefix_tree_add: String,
 }
 impl ExecutionOutcome {
     pub fn new() -> Self {
@@ -161,6 +162,7 @@ impl ExecutionOutcome {
             compares_using_strcmp: 0,
             compares_ls: 0,
             compares_gs: 0,
+            prefix_tree_add: String::new(),
         }
     }
     pub fn monitor_new_local_suffix_compare(&mut self) {
@@ -168,5 +170,12 @@ impl ExecutionOutcome {
     }
     pub fn monitor_new_global_suffix_compare(&mut self) {
         self.compares_gs += 1;
+    }
+    pub fn monitor_update_rankings(&mut self, ls_index: usize, is_custom: bool) {
+        self.prefix_tree_add.push_str(&format!(
+            "{} | {:10}\n",
+            if is_custom { "CUSTOM   " } else { "CANONICAL" },
+            ls_index,
+        ));
     }
 }

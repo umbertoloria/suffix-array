@@ -3,8 +3,9 @@ use crate::factorization::logging::log_factorization;
 use crate::files::paths::{
     get_path_for_project_factorization_file, get_path_for_project_folder,
     get_path_for_project_full_tree_file, get_path_for_project_mini_tree_file,
-    get_path_for_project_outcome_file_json, get_path_for_project_suffix_array_file,
-    get_path_for_project_timing_file_json, get_path_for_project_tree_file,
+    get_path_for_project_outcome_file_json, get_path_for_project_prefix_tree_add_file,
+    get_path_for_project_suffix_array_file, get_path_for_project_timing_file_json,
+    get_path_for_project_tree_file,
 };
 use crate::suffix_array::chunking::get_custom_factors_and_more_using_chunk_size;
 use crate::suffix_array::compare_cache::CompareCache;
@@ -12,7 +13,7 @@ use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
 use crate::suffix_array::prefix_tree::in_prefix_merge::IPMergeParams;
-use crate::suffix_array::prefix_tree::logging::{log_tree, TreeLogMode};
+use crate::suffix_array::prefix_tree::logging::{log_prefix_tree_add, log_tree, TreeLogMode};
 use crate::suffix_array::prefix_tree::tree::create_tree;
 use crate::suffix_array::suffix_array::suffix_array_logger::{
     log_suffix_array, make_sure_directory_exist,
@@ -141,6 +142,12 @@ pub fn compute_innovative_suffix_array(
         dump_json_in_file(
             &execution_outcome_file_format,
             get_path_for_project_outcome_file_json(fasta_file_name, chunk_size_or_zero),
+        );
+
+        // Prefix Tree Add logs
+        log_prefix_tree_add(
+            &execution_info.execution_outcome.prefix_tree_add,
+            get_path_for_project_prefix_tree_add_file(fasta_file_name, chunk_size_or_zero),
         );
 
         // Execution Timing JSON file

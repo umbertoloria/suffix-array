@@ -1,5 +1,7 @@
 #![allow(warnings)]
 
+use crate::suffix_array::suite::full_suite;
+
 mod extra;
 mod factorization;
 mod files;

@@ -58,3 +58,9 @@ fn log_tree_recursive(
         log_tree_recursive(child_node, &child_label, mode, file, level + 1);
     }
 }
+
+pub fn log_prefix_tree_add(content: &str, filepath: String) {
+    let mut file = File::create(filepath).expect("Unable to create file");
+    file.write(content.as_bytes()).expect("Unable to write");
+    file.flush().expect("Unable to flush file");
+}

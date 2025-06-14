@@ -284,6 +284,10 @@ impl<'a> TreeNode<'a> {
         s_bytes: &[u8],
         monitor: &mut Monitor,
     ) {
+        monitor
+            .execution_outcome
+            .monitor_update_rankings(ls_index, is_custom_ls);
+
         if is_custom_ls {
             let custom_gs = &s_bytes[ls_index..];
             let idx = self.rankings.partition_point(|&gs_index| {
