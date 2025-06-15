@@ -35,7 +35,6 @@ fn log_tree_recursive(
         "{}{} <{}>",
         " ".repeat(level),
         node_label,
-        // node_id, // Avoid showing Node ID.
         "",
     );
     let rankings = &node.rankings;

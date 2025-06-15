@@ -14,7 +14,6 @@ impl<'a> Tree<'a> {
         monitor: &mut Monitor,
     ) -> Vec<usize> {
         let mut suffix_array = Vec::with_capacity(str_length);
-
         for (_, child_node) in &self.root.children {
             // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
             self.get_common_prefix_partition(
@@ -28,7 +27,6 @@ impl<'a> Tree<'a> {
                 &mut suffix_array,
             );
         }
-
         suffix_array
     }
     fn get_common_prefix_partition(
@@ -86,8 +84,7 @@ impl<'a> Tree<'a> {
                 }
 
                 suffix_array.extend(portion_to_insert);
-                // result_cpp.extend(portion_to_insert);
-                // position = min_father;
+                // position = min_father; // Here useless but meaningful.
             }
             position = max_father;
 
@@ -130,7 +127,6 @@ impl<'a> Tree<'a> {
             }
 
             suffix_array.extend(portion_to_insert);
-            // result_cpp.extend(portion_to_insert);
             // position = self_rankings.len(); // Here useless but meaningful.
         }
     }
@@ -139,7 +135,7 @@ impl<'a> Tree<'a> {
         self_ls_size: usize,
         self_rankings: &Vec<usize>,
         parent_rankings: &Vec<usize>,
-        parent_left_position: usize,
+        parent_rankings_i_from: usize,
         str: &str,
         icfl_indexes: &Vec<usize>,
         idx_to_is_custom: &Vec<bool>,
@@ -151,13 +147,12 @@ impl<'a> Tree<'a> {
         Option<Vec<usize>>, // New Self Node's Rankings
     ) {
         // Compare This Node's Rankings with Parent Node's Rankings.
-        let self_first_ls_index = self_rankings[0]; // Take first or another one, whatever.
-        let self_ls = &str[self_first_ls_index..self_first_ls_index + self_ls_size];
+        let self_ls = &str[self_rankings[0]..self_rankings[0] + self_ls_size];
 
         // Note: Binary Search tried before, not much of an improvement :_(
 
         // IN-PREFIX MERGE RANKINGS
-        let mut i_parent = parent_left_position;
+        let mut i_parent = parent_rankings_i_from;
         while i_parent < parent_rankings.len() {
             let curr_parent_ls_index = parent_rankings[i_parent];
             let curr_parent_ls = &str
@@ -183,12 +178,12 @@ impl<'a> Tree<'a> {
             let max_father = i_parent;
 
             if cfg!(feature = "verbose") {
-                let parent_left = &parent_rankings[parent_left_position..min_father];
+                let parent_left = &parent_rankings[parent_rankings_i_from..min_father];
                 let parent_window = &parent_rankings[min_father..max_father];
                 let parent_right = &parent_rankings[max_father..];
                 println!(
                     "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    " ".repeat(self_ls_size), &parent_rankings[parent_left_position..],
+                    " ".repeat(self_ls_size), &parent_rankings[parent_rankings_i_from..],
                     self_rankings, parent_left, parent_window, parent_right,
                 );
             }
@@ -223,12 +218,12 @@ impl<'a> Tree<'a> {
             let max_father = min_father;
 
             if cfg!(feature = "verbose") {
-                let parent_left = &parent_rankings[parent_left_position..min_father];
+                let parent_left = &parent_rankings[parent_rankings_i_from..min_father];
                 let parent_window = &parent_rankings[min_father..max_father];
                 let parent_right = &parent_rankings[max_father..];
                 println!(
                     "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                    " ".repeat(self_ls_size), &parent_rankings[parent_left_position..],
+                    " ".repeat(self_ls_size), &parent_rankings[parent_rankings_i_from..],
                     self_rankings, parent_left, parent_window, parent_right,
                 );
             }
@@ -266,12 +261,12 @@ impl<'a> Tree<'a> {
         // - starts from "i_parent", included, and
         // - ends with "max_father", excluded.
         if cfg!(feature = "verbose") {
-            let parent_left = &parent_rankings[parent_left_position..min_father];
+            let parent_left = &parent_rankings[parent_rankings_i_from..min_father];
             let parent_window = &parent_rankings[min_father..max_father];
             let parent_right = &parent_rankings[max_father..];
             println!(
                 "{}# In-prefix merge: Parent Rankings={:?}, Self Rankings={:?} -> {:?} smaller, {:?} equal, {:?} greater",
-                " ".repeat(self_ls_size), &parent_rankings[parent_left_position..],
+                " ".repeat(self_ls_size), &parent_rankings[parent_rankings_i_from..],
                 self_rankings, parent_left, parent_window, parent_right,
             );
         }
