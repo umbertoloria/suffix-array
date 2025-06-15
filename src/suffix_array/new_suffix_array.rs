@@ -10,7 +10,6 @@ use crate::suffix_array::chunking::get_custom_factors_and_more_using_chunk_size;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
-use crate::suffix_array::prefix_tree::in_prefix_merge::IPMergeParams;
 use crate::suffix_array::prefix_tree::logging::{log_tree, TreeLogMode};
 use crate::suffix_array::prefix_tree::tree::create_tree;
 use crate::suffix_array::suffix_array::suffix_array_logger::{
@@ -104,15 +103,12 @@ pub fn compute_innovative_suffix_array(
 
     // SUFFIX ARRAY
     monitor.p3_sa.start();
-    let mut ip_merge_params = IPMergeParams {
-        str,
-        icfl_indexes: &icfl_indexes,
-        idx_to_is_custom: &idx_to_is_custom,
-        idx_to_icfl_factor: &idx_to_icfl_factor,
-    };
-    let suffix_array = tree.in_prefix_merge_and_common_prefix_partition(
+    let suffix_array = tree.compute_suffix_array(
         str_length,
-        &mut ip_merge_params,
+        str,
+        &icfl_indexes,
+        &idx_to_is_custom,
+        &idx_to_icfl_factor,
         &mut monitor,
     );
     monitor.p3_sa.stop();

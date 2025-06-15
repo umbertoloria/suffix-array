@@ -3,28 +3,27 @@ use crate::suffix_array::prefix_tree::rules::rules_safe;
 use crate::suffix_array::prefix_tree::tree::{Tree, TreeNode};
 use std::cell::Ref;
 
-pub struct IPMergeParams<'a> {
-    pub str: &'a str,
-    pub icfl_indexes: &'a Vec<usize>,
-    pub idx_to_is_custom: &'a Vec<bool>,
-    pub idx_to_icfl_factor: &'a Vec<usize>,
-}
-
 impl<'a> Tree<'a> {
-    pub fn in_prefix_merge_and_common_prefix_partition(
+    pub fn compute_suffix_array(
         &self,
         str_length: usize,
-        ip_merge_params: &mut IPMergeParams,
+        str: &str,
+        icfl_indexes: &Vec<usize>,
+        idx_to_is_custom: &Vec<bool>,
+        idx_to_icfl_factor: &Vec<usize>,
         monitor: &mut Monitor,
     ) -> Vec<usize> {
         let mut suffix_array = Vec::with_capacity(str_length);
 
         for (_, child_node) in &self.root.children {
             // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
-            self.in_prefix_merge_and_get_common_prefix_partition(
+            self.get_common_prefix_partition(
                 child_node,
                 &child_node.rankings,
-                ip_merge_params,
+                str,
+                icfl_indexes,
+                idx_to_is_custom,
+                idx_to_icfl_factor,
                 monitor,
                 &mut suffix_array,
             );
@@ -32,11 +31,14 @@ impl<'a> Tree<'a> {
 
         suffix_array
     }
-    fn in_prefix_merge_and_get_common_prefix_partition(
+    fn get_common_prefix_partition(
         &self,
         self_node: &TreeNode<'a>,
         self_rankings: &Vec<usize>,
-        ip_merge_params: &mut IPMergeParams,
+        str: &str,
+        icfl_indexes: &Vec<usize>,
+        idx_to_is_custom: &Vec<bool>,
+        idx_to_icfl_factor: &Vec<usize>,
         monitor: &mut Monitor,
         suffix_array: &mut Vec<usize>,
     ) {
@@ -57,12 +59,15 @@ impl<'a> Tree<'a> {
                 min_father,
                 max_father,
                 child_new_rankings,
-            ) = self.in_prefix_merge_get_min_max_and_new_rankings(
+            ) = self.calculate_windows_for_in_prefix_merge(
                 child_node.suffix_len,
                 &child_node.rankings,
                 self_rankings, // As Parent Node's Rankings.
                 position,
-                ip_merge_params,
+                str,
+                icfl_indexes,
+                idx_to_is_custom,
+                idx_to_icfl_factor,
                 monitor,
             );
 
@@ -88,18 +93,24 @@ impl<'a> Tree<'a> {
 
             // SELF COMMON PREFIX PARTITION: Child Node's Rankings
             if let Some(child_new_rankings) = child_new_rankings {
-                self.in_prefix_merge_and_get_common_prefix_partition(
+                self.get_common_prefix_partition(
                     &child_node,
                     &child_new_rankings,
-                    ip_merge_params,
+                    str,
+                    icfl_indexes,
+                    idx_to_is_custom,
+                    idx_to_icfl_factor,
                     monitor,
                     suffix_array,
                 );
             } else {
-                self.in_prefix_merge_and_get_common_prefix_partition(
+                self.get_common_prefix_partition(
                     &child_node,
                     &child_node.rankings,
-                    ip_merge_params,
+                    str,
+                    icfl_indexes,
+                    idx_to_is_custom,
+                    idx_to_icfl_factor,
                     monitor,
                     suffix_array,
                 );
@@ -123,21 +134,22 @@ impl<'a> Tree<'a> {
             // position = self_rankings.len(); // Here useless but meaningful.
         }
     }
-    fn in_prefix_merge_get_min_max_and_new_rankings(
+    fn calculate_windows_for_in_prefix_merge(
         &self,
         self_ls_size: usize,
         self_rankings: &Vec<usize>,
         parent_rankings: &Vec<usize>,
         parent_left_position: usize,
-        ip_merge_params: &mut IPMergeParams,
+        str: &str,
+        icfl_indexes: &Vec<usize>,
+        idx_to_is_custom: &Vec<bool>,
+        idx_to_icfl_factor: &Vec<usize>,
         monitor: &mut Monitor,
     ) -> (
         usize,              // Min Father (incl.)
         usize,              // Max Father (excl.)
         Option<Vec<usize>>, // New Self Node's Rankings
     ) {
-        let str = ip_merge_params.str;
-
         // Compare This Node's Rankings with Parent Node's Rankings.
         let self_first_ls_index = self_rankings[0]; // Take first or another one, whatever.
         let self_ls = &str[self_first_ls_index..self_first_ls_index + self_ls_size];
@@ -274,10 +286,10 @@ impl<'a> Tree<'a> {
                 curr_parent_ls_index,
                 curr_this_ls_index,
                 self_ls_size,
-                &ip_merge_params.str,
-                &ip_merge_params.icfl_indexes,
-                &ip_merge_params.idx_to_is_custom,
-                &ip_merge_params.idx_to_icfl_factor,
+                str,
+                icfl_indexes,
+                idx_to_is_custom,
+                idx_to_icfl_factor,
                 monitor,
                 false,
             );
