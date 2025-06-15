@@ -1,11 +1,13 @@
 use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_tree::in_prefix_merge::IPMergeParams;
 
 pub fn rules_safe(
     parent_ls_index: usize,
     child_ls_index: usize,
     child_ls_size: usize,
-    ip_merge_params: &mut IPMergeParams,
+    str: &str,
+    icfl_indexes: &Vec<usize>,
+    idx_to_is_custom: &Vec<bool>,
+    idx_to_icfl_factor: &Vec<usize>,
     monitor: &mut Monitor,
     slow_check: bool,
 ) -> bool {
@@ -14,15 +16,15 @@ pub fn rules_safe(
             parent_ls_index,
             child_ls_index,
             child_ls_size,
-            ip_merge_params.str,
-            ip_merge_params.icfl_indexes,
-            ip_merge_params.idx_to_is_custom,
-            ip_merge_params.idx_to_icfl_factor,
+            str,
+            icfl_indexes,
+            idx_to_is_custom,
+            idx_to_icfl_factor,
             monitor,
         )
     } else {
-        let parent_ls = &ip_merge_params.str[parent_ls_index + child_ls_size..];
-        let child_ls = &ip_merge_params.str[child_ls_index + child_ls_size..];
+        let parent_ls = &str[parent_ls_index + child_ls_size..];
+        let child_ls = &str[child_ls_index + child_ls_size..];
         let mut oracle = if parent_ls < child_ls {
             false // Father first.
         } else {
@@ -32,10 +34,10 @@ pub fn rules_safe(
             parent_ls_index,
             child_ls_index,
             child_ls_size,
-            ip_merge_params.str,
-            ip_merge_params.icfl_indexes,
-            ip_merge_params.idx_to_is_custom,
-            ip_merge_params.idx_to_icfl_factor,
+            str,
+            icfl_indexes,
+            idx_to_is_custom,
+            idx_to_icfl_factor,
             monitor,
         );
         if given != oracle {

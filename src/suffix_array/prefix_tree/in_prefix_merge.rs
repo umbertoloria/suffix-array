@@ -274,7 +274,10 @@ impl<'a> Tree<'a> {
                 curr_parent_ls_index,
                 curr_this_ls_index,
                 self_ls_size,
-                ip_merge_params,
+                &ip_merge_params.str,
+                &ip_merge_params.icfl_indexes,
+                &ip_merge_params.idx_to_is_custom,
+                &ip_merge_params.idx_to_icfl_factor,
                 monitor,
                 false,
             );
