@@ -26,7 +26,7 @@ pub fn rules_safe(
         let parent_ls = &str[parent_ls_index + child_ls_size..];
         let child_ls = &str[child_ls_index + child_ls_size..];
         let mut oracle = if parent_ls < child_ls {
-            false // Father first.
+            false // Parent first.
         } else {
             true // Child first.
         };
