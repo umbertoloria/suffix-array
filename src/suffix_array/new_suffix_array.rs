@@ -1,3 +1,4 @@
+use crate::factorization::custom_factorization::get_custom_factors_and_more_using_chunk_size;
 use crate::factorization::icfl::get_icfl_indexes;
 use crate::factorization::logging::log_factorization;
 use crate::files::paths::{
@@ -6,7 +7,6 @@ use crate::files::paths::{
     get_path_for_project_outcome_file_json, get_path_for_project_suffix_array_file,
     get_path_for_project_timing_file_json, get_path_for_project_tree_file,
 };
-use crate::suffix_array::chunking::get_custom_factors_and_more_using_chunk_size;
 use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
 use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
 use crate::suffix_array::monitor::{ExecutionInfo, Monitor};

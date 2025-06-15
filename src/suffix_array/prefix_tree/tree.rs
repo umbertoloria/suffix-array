@@ -1,4 +1,4 @@
-use crate::suffix_array::chunking::get_max_factor_size;
+use crate::factorization::get_max_factor_size;
 use crate::suffix_array::monitor::Monitor;
 use crate::suffix_array::prefix_tree::print::get_string_clone;
 use std::cell::RefCell;
