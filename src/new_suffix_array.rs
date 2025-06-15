@@ -65,7 +65,6 @@ pub fn compute_innovative_suffix_array(
         &factor_indexes,
         &icfl_indexes,
         &idx_to_is_custom,
-        &mut monitor,
     );
     monitor.p2_tree.stop();
 
@@ -110,7 +109,6 @@ pub fn compute_innovative_suffix_array(
         &icfl_indexes,
         &idx_to_is_custom,
         &idx_to_icfl_factor,
-        &mut monitor,
     );
     monitor.p3_sa.stop();
     monitor.whole_duration.stop();

@@ -1,5 +1,4 @@
-use crate::prefix_tree::monitor::Monitor;
-use crate::prefix_tree::rules::rules_safe;
+use crate::prefix_tree::rules::rules;
 use crate::prefix_tree::tree::{Tree, TreeNode};
 
 impl<'a> Tree<'a> {
@@ -9,7 +8,6 @@ impl<'a> Tree<'a> {
         icfl_indexes: &Vec<usize>,
         idx_to_is_custom: &Vec<bool>,
         idx_to_icfl_factor: &Vec<usize>,
-        monitor: &mut Monitor,
     ) -> Vec<usize> {
         let mut suffix_array = Vec::with_capacity(str.len());
         for (_, child_node) in &self.root.children {
@@ -21,7 +19,6 @@ impl<'a> Tree<'a> {
                 icfl_indexes,
                 idx_to_is_custom,
                 idx_to_icfl_factor,
-                monitor,
                 &mut suffix_array,
             );
         }
@@ -35,7 +32,6 @@ impl<'a> Tree<'a> {
         icfl_indexes: &Vec<usize>,
         idx_to_is_custom: &Vec<bool>,
         idx_to_icfl_factor: &Vec<usize>,
-        monitor: &mut Monitor,
         suffix_array: &mut Vec<usize>,
     ) {
         let mut position = 0;
@@ -54,9 +50,7 @@ impl<'a> Tree<'a> {
                 icfl_indexes,
                 idx_to_is_custom,
                 idx_to_icfl_factor,
-                monitor,
             );
-
             // SELF CPP: Self Rankings from left to Child WIN-MIN.
             if position < win_min {
                 let portion_to_insert = &self_rks[position..win_min];
@@ -64,7 +58,6 @@ impl<'a> Tree<'a> {
                 // position = win_min; // Here useless but meaningful.
             }
             position = win_max;
-
             // SELF CPP: Child Rankings
             if let Some(child_new_rankings) = child_new_rankings {
                 self.get_common_prefix_partition(
@@ -74,7 +67,6 @@ impl<'a> Tree<'a> {
                     icfl_indexes,
                     idx_to_is_custom,
                     idx_to_icfl_factor,
-                    monitor,
                     suffix_array,
                 );
             } else {
@@ -85,12 +77,10 @@ impl<'a> Tree<'a> {
                     icfl_indexes,
                     idx_to_is_custom,
                     idx_to_icfl_factor,
-                    monitor,
                     suffix_array,
                 );
             };
         }
-
         // SELF CPP: Self Rankings left
         if position < self_rks.len() {
             let portion_to_insert = &self_rks[position..];
@@ -108,22 +98,17 @@ impl<'a> Tree<'a> {
         icfl_indexes: &Vec<usize>,
         idx_to_is_custom: &Vec<bool>,
         idx_to_icfl_factor: &Vec<usize>,
-        monitor: &mut Monitor,
     ) -> (
         usize,              // Win. Min (incl.)
         usize,              // Win. Max (excl.)
         Option<Vec<usize>>, // New Self Node's Rankings
     ) {
         let self_ls = &str[self_rks[0]..self_rks[0] + self_ls_size];
-
-        // Note: Binary Search tried before, not much of an improvement :_(
-
         let mut i_parent = parent_rks_i_from;
         while i_parent < parent_rks.len() {
             let curr_parent_ls_index = parent_rks[i_parent];
             let curr_parent_ls = &str
                 [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
-            // Safety is required here: "usize::min".
             if curr_parent_ls >= self_ls {
                 // Found a Parent LS that is >= Self LS.
                 break;
@@ -137,26 +122,22 @@ impl<'a> Tree<'a> {
             let win_max = i_parent;
             return (win_min, win_max, None);
         }
-
         // Curr. Parent LS is the first >= Self LS.
         let curr_parent_ls_index = parent_rks[i_parent];
         let curr_parent_ls =
             &str[curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
-        // Safety is optional here: "usize::min".
         if curr_parent_ls > self_ls {
             // Curr. Parent LS is the first > Self LS.
             // There is no Parent LS = Self LS, so min=max.
             let win_max = win_min;
             return (win_min, win_max, None);
         }
-
         // Curr. Parent LS is the first = Self LS.
         i_parent += 1;
         while i_parent < parent_rks.len() {
             let curr_parent_ls_index = parent_rks[i_parent];
             let curr_parent_ls = &str
                 [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
-            // Safety is optional here: "usize::min".
             if curr_parent_ls > self_ls {
                 // Found a Parent LS that is > Self LS.
                 break;
@@ -169,14 +150,12 @@ impl<'a> Tree<'a> {
         // The Window for Comparing Rankings using "RULES":
         // * starts from "i_parent" (included);
         // * ends with "win_max" (excluded).
-
-        // TODO: Avoid using auxiliary memory for Rankings
         let mut new_self_rks = Vec::new();
         let mut j_self = 0;
         while i_parent < win_max && j_self < self_rks.len() {
             let curr_parent_ls_index = parent_rks[i_parent];
             let curr_self_ls_index = self_rks[j_self];
-            let result_rules = rules_safe(
+            let result_rules = rules(
                 curr_parent_ls_index,
                 curr_self_ls_index,
                 self_ls_size,
@@ -184,8 +163,6 @@ impl<'a> Tree<'a> {
                 icfl_indexes,
                 idx_to_is_custom,
                 idx_to_icfl_factor,
-                monitor,
-                false,
             );
             if !result_rules {
                 new_self_rks.push(curr_parent_ls_index);
@@ -205,7 +182,6 @@ impl<'a> Tree<'a> {
             new_self_rks.push(curr_parent_ls_index);
             i_parent += 1;
         }
-
         (win_min, win_max, Some(new_self_rks))
     }
 }

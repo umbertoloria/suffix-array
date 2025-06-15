@@ -20,7 +20,6 @@ pub fn rules_safe(
             icfl_indexes,
             idx_to_is_custom,
             idx_to_icfl_factor,
-            monitor,
         )
     } else {
         let parent_ls = &str[parent_ls_index + child_ls_size..];
@@ -38,7 +37,6 @@ pub fn rules_safe(
             icfl_indexes,
             idx_to_is_custom,
             idx_to_icfl_factor,
-            monitor,
         );
         if given != oracle {
             println!(
@@ -51,7 +49,7 @@ pub fn rules_safe(
         oracle
     }
 }
-fn rules(
+pub fn rules(
     parent_ls_index: usize,
     child_ls_index: usize,
     child_ls_size: usize,
@@ -59,7 +57,6 @@ fn rules(
     icfl_indexes: &Vec<usize>,
     idx_to_is_custom: &Vec<bool>,
     idx_to_icfl_factor: &Vec<usize>,
-    monitor: &mut Monitor,
 ) -> bool {
     // Return values:
     //  FALSE => GS Parent < GS Child;
@@ -134,7 +131,6 @@ fn rules(
 }
 
 pub fn perform_gs_comparison_a_before_b(str: &str, ls_index_1: usize, ls_index_2: usize) -> bool {
-    // println!(" -> *** comparing {} with {}", ls_index_1, ls_index_2);
     let cmp1 = &str[ls_index_1..];
     let cmp2 = &str[ls_index_2..];
     if cmp1 < cmp2 {

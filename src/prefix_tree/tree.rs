@@ -1,13 +1,10 @@
 use crate::factorization::get_max_factor_size;
-use crate::prefix_tree::monitor::Monitor;
-use crate::prefix_tree::print::get_string_clone;
 
 pub fn create_tree<'a>(
     str: &'a [char],
     factor_indexes: &Vec<usize>,
     icfl_indexes: &Vec<usize>,
     idx_to_is_custom: &Vec<bool>,
-    monitor: &mut Monitor,
 ) -> Tree<'a> {
     let str_length = str.len();
     let max_factor_size = get_max_factor_size(&factor_indexes, str_length);
@@ -23,7 +20,7 @@ pub fn create_tree<'a>(
         // LSs from Canonical Factors (last ICFL Factor)
         if ls_size <= last_icfl_factor_size {
             let ls_index = str_length - ls_size;
-            tree.add(ls_index, ls_size, false, str, monitor);
+            tree.add(ls_index, ls_size, false, str);
         }
         // LSs from Canonical Factors (from first to second-last ICFL Factors)
         for i in 0..icfl_indexes.len() - 1 {
@@ -31,7 +28,7 @@ pub fn create_tree<'a>(
             let curr_icfl_factor_size = next_icfl_factor_idx - icfl_indexes[i];
             if ls_size <= curr_icfl_factor_size {
                 let ls_index = next_icfl_factor_idx - ls_size;
-                tree.add(ls_index, ls_size, false, str, monitor);
+                tree.add(ls_index, ls_size, false, str);
             }
         }
         // LSs from Custom Factors
@@ -40,7 +37,7 @@ pub fn create_tree<'a>(
             if ls_size <= curr_factor_size {
                 let ls_index = factor_indexes[i + 1] - ls_size;
                 if idx_to_is_custom[ls_index] {
-                    tree.add(ls_index, ls_size, true, str, monitor);
+                    tree.add(ls_index, ls_size, true, str);
                 }
                 // Else: Canonical Factor, already considered.
             }
@@ -59,16 +56,8 @@ impl<'a> Tree<'a> {
             root: TreeNode::new(0),
         }
     }
-    pub fn add(
-        &mut self,
-        ls_index: usize,
-        ls_size: usize,
-        is_custom_ls: bool,
-        str: &'a [char],
-        monitor: &mut Monitor,
-    ) {
-        self.root
-            .add(ls_index, ls_size, 0, is_custom_ls, str, monitor);
+    pub fn add(&mut self, ls_index: usize, ls_size: usize, is_custom_ls: bool, str: &'a [char]) {
+        self.root.add(ls_index, ls_size, 0, is_custom_ls, str);
     }
 }
 
@@ -92,10 +81,9 @@ impl<'a> TreeNode<'a> {
         i_char: usize,
         is_custom_ls: bool,
         str: &'a [char],
-        monitor: &mut Monitor,
     ) {
         if i_char == ls_size {
-            self.update_rankings(ls_index, is_custom_ls, str, monitor);
+            self.update_rankings(ls_index, is_custom_ls, str);
             return;
         }
 
@@ -110,7 +98,6 @@ impl<'a> TreeNode<'a> {
             let mid_str = *mid_str;
 
             // Comparing "Mid. Str." with "Rest of LS".
-            // TODO: Monitor string compare
             let mut i = 0;
             while i < rest_of_ls.len() && i < mid_str.len() {
                 if rest_of_ls[i] != mid_str[i] {
@@ -129,23 +116,17 @@ impl<'a> TreeNode<'a> {
             } else {
                 // The case of "rest_of_ls" being prefix of "mid_str" is ignored.
                 // Is up to the caller never to cause this case.
-                mid_node.add(ls_index, ls_size, i_char + i, is_custom_ls, str, monitor);
+                mid_node.add(ls_index, ls_size, i_char + i, is_custom_ls, str);
                 return;
             }
         }
         if p >= q {
             let mut new_node = TreeNode::new(ls_size);
-            new_node.update_rankings(ls_index, is_custom_ls, str, monitor);
+            new_node.update_rankings(ls_index, is_custom_ls, str);
             self.children.insert(p, (rest_of_ls, new_node));
         }
     }
-    fn update_rankings(
-        &mut self,
-        ls_index: usize,
-        is_custom_ls: bool,
-        str: &[char],
-        monitor: &mut Monitor,
-    ) {
+    fn update_rankings(&mut self, ls_index: usize, is_custom_ls: bool, str: &[char]) {
         if is_custom_ls {
             let custom_gs = &str[ls_index..];
             let idx = self.rankings.partition_point(|&gs_index| {
