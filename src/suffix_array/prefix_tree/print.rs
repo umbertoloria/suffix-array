@@ -21,8 +21,7 @@ impl<'a> Tree<'a> {
     }
 }
 
-pub fn get_string_clone(str_type: &[u8]) -> String {
+pub fn get_string_clone(str_type: &[char]) -> String {
     // TODO: Needs cloning
-    let cloned_vec = str_type.to_vec();
-    String::from_utf8(cloned_vec).unwrap()
+    String::from_iter(str_type)
 }

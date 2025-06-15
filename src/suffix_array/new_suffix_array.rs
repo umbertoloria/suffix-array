@@ -61,8 +61,9 @@ pub fn compute_innovative_suffix_array(
 
     // TREE
     monitor.p2_tree.start();
+    let str_chars = str.chars().collect::<Vec<_>>();
     let mut tree = create_tree(
-        s_bytes,
+        &str_chars,
         &factor_indexes,
         &icfl_indexes,
         &idx_to_is_custom,

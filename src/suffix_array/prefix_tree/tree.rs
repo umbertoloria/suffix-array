@@ -7,13 +7,13 @@ use std::io::Write;
 use std::rc::Rc;
 
 pub fn create_tree<'a>(
-    s_bytes: &'a [u8],
+    str: &'a [char],
     factor_indexes: &Vec<usize>,
     icfl_indexes: &Vec<usize>,
     idx_to_is_custom: &Vec<bool>,
     monitor: &mut Monitor,
 ) -> Tree<'a> {
-    let str_length = s_bytes.len();
+    let str_length = str.len();
     let max_factor_size = get_max_factor_size(&factor_indexes, str_length);
     let last_icfl_factor_size = str_length - icfl_indexes[icfl_indexes.len() - 1];
 
@@ -27,7 +27,7 @@ pub fn create_tree<'a>(
         // LSs from Canonical Factors (last ICFL Factor)
         if ls_size <= last_icfl_factor_size {
             let ls_index = str_length - ls_size;
-            tree.add(ls_index, ls_size, false, s_bytes, monitor);
+            tree.add(ls_index, ls_size, false, str, monitor);
             if cfg!(feature = "verbose") {
                 tree.print();
             }
@@ -38,7 +38,7 @@ pub fn create_tree<'a>(
             let curr_icfl_factor_size = next_icfl_factor_idx - icfl_indexes[i];
             if ls_size <= curr_icfl_factor_size {
                 let ls_index = next_icfl_factor_idx - ls_size;
-                tree.add(ls_index, ls_size, false, s_bytes, monitor);
+                tree.add(ls_index, ls_size, false, str, monitor);
                 if cfg!(feature = "verbose") {
                     tree.print();
                 }
@@ -50,7 +50,7 @@ pub fn create_tree<'a>(
             if ls_size <= curr_factor_size {
                 let ls_index = factor_indexes[i + 1] - ls_size;
                 if idx_to_is_custom[ls_index] {
-                    tree.add(ls_index, ls_size, true, s_bytes, monitor);
+                    tree.add(ls_index, ls_size, true, str, monitor);
                     if cfg!(feature = "verbose") {
                         tree.print();
                     }
@@ -77,18 +77,18 @@ impl<'a> Tree<'a> {
         ls_index: usize,
         ls_size: usize,
         is_custom_ls: bool,
-        s_bytes: &'a [u8],
+        str: &'a [char],
         monitor: &mut Monitor,
     ) {
         self.root
-            .add(ls_index, ls_size, 0, is_custom_ls, s_bytes, monitor);
+            .add(ls_index, ls_size, 0, is_custom_ls, str, monitor);
     }
 }
 
 pub struct TreeNode<'a> {
     pub suffix_len: usize,
     pub rankings: Vec<usize>,
-    pub children: Vec<(&'a [u8], TreeNode<'a>)>,
+    pub children: Vec<(&'a [char], TreeNode<'a>)>,
 }
 impl<'a> TreeNode<'a> {
     pub fn new(suffix_len: usize) -> Self {
@@ -104,18 +104,18 @@ impl<'a> TreeNode<'a> {
         ls_size: usize,
         i_char: usize,
         is_custom_ls: bool,
-        s_bytes: &'a [u8],
+        str: &'a [char],
         monitor: &mut Monitor,
     ) {
         if i_char == ls_size {
             if cfg!(feature = "verbose") {
                 println!("   -> Populating node id=? with new ranking {ls_index}");
             }
-            self.update_rankings(ls_index, is_custom_ls, s_bytes, monitor);
+            self.update_rankings(ls_index, is_custom_ls, str, monitor);
             return;
         }
 
-        let rest_of_ls = &s_bytes[ls_index + i_char..ls_index + ls_size];
+        let rest_of_ls = &str[ls_index + i_char..ls_index + ls_size];
 
         if cfg!(feature = "verbose") {
             println!(
@@ -159,14 +159,7 @@ impl<'a> TreeNode<'a> {
                 // Due to how this Tree structure is used, all the code commented below can be
                 // simplified in this code here. Still, it's kept for further explanation.
 
-                mid_node.add(
-                    ls_index,
-                    ls_size,
-                    i_char + i,
-                    is_custom_ls,
-                    s_bytes,
-                    monitor,
-                );
+                mid_node.add(ls_index, ls_size, i_char + i, is_custom_ls, str, monitor);
                 return;
 
                 /*
@@ -236,7 +229,7 @@ impl<'a> TreeNode<'a> {
         }
         if p >= q {
             let mut new_node = TreeNode::new(ls_size);
-            new_node.update_rankings(ls_index, is_custom_ls, s_bytes, monitor);
+            new_node.update_rankings(ls_index, is_custom_ls, str, monitor);
             self.children.insert(p, (rest_of_ls, new_node));
 
             if cfg!(feature = "verbose") {
@@ -259,13 +252,13 @@ impl<'a> TreeNode<'a> {
         &mut self,
         ls_index: usize,
         is_custom_ls: bool,
-        s_bytes: &[u8],
+        str: &[char],
         monitor: &mut Monitor,
     ) {
         if is_custom_ls {
-            let custom_gs = &s_bytes[ls_index..];
+            let custom_gs = &str[ls_index..];
             let idx = self.rankings.partition_point(|&gs_index| {
-                let gs = &s_bytes[gs_index..];
+                let gs = &str[gs_index..];
 
                 // TODO: Monitor string compare
                 monitor
