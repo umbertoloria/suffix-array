@@ -49,8 +49,7 @@ pub fn create_tree<'a>(
             let curr_factor_size = factor_indexes[i_factor + 1] - factor_indexes[i_factor];
             if ls_size <= curr_factor_size {
                 let ls_index = factor_indexes[i_factor + 1] - ls_size;
-                let is_custom_ls = idx_to_is_custom[ls_index];
-                if is_custom_ls {
+                if idx_to_is_custom[ls_index] {
                     tree.add(ls_index, ls_size, true, s_bytes, monitor);
                     if cfg!(feature = "verbose") {
                         tree.print();

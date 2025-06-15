@@ -14,13 +14,19 @@ pub fn get_custom_factors_and_more_using_chunk_size(
     str_length: usize,
 ) -> (Vec<usize>, Vec<bool>, Vec<usize>) {
     // From string "AAA|B|CAABCA|DCAABCA"
-    // Es. ICFL=[0, 3, 4, 10]
+    //              ^   ^ ^      ^
+    //        ICFL=[0,  3,4,     10]
     //  str_length = 17
     //  chunk_size = 3
-
-    // Custom Vec:  [Source Char Index] => True if it's part of the last Custom Factor of an
-    //                                     ICFL Factor, so it's a Local Suffix of ICFL Factor.
-    // Factor List: [Source Char Index] => ICFL Factor Index of that
+    // Idx. 2 Is Custom  = [Char Index] => True if it's in the
+    //                                     Last Custom Factor of
+    //                                     an ICFL Factor.
+    // Idx. 2 ICFL Fact. = [Char Index] => ICFL Factor Index of it
+    // Returns:
+    //   factor_indexes = [0, 3, 4, 7, 10, 11, 14]
+    //                        (A,A,A,B,C,A,A,B,C,A,D,C,A,A,B,C,A)
+    //   idx_to_is_custom   = [0,0,0,0,1,1,1,0,0,0,1,1,1,1,0,0,0]
+    //   idx_to_icfl_factor = [0,0,0,1,2,2,2,2,2,2,3,3,3,3,3,3,3]
     let mut factor_indexes = Vec::new();
     let mut idx_to_is_custom = Vec::with_capacity(str_length);
     let mut idx_to_icfl_factor = Vec::with_capacity(str_length);
@@ -37,38 +43,36 @@ pub fn get_custom_factors_and_more_using_chunk_size(
             } - curr_icfl_factor_index;
 
             // Updating "factor_indexes"
-            // Es. on the 2nd factor "B": curr_icfl_factor_index=3, curr_icfl_factor_size=1
             if curr_icfl_factor_size < chunk_size {
-                // Es. on the 2nd factor "B": no space to perform chunking
+                // ICFL Factor can't be split.
+                // For example: ICFL Factor "B".
                 factor_indexes.push(curr_icfl_factor_index);
             } else {
-                let first_chunk_index_offset = curr_icfl_factor_size % chunk_size;
-                if first_chunk_index_offset > 0 {
-                    // If factor was "DCAABCA" then we would have first_chunk_index_offset=1 (since
-                    // "cur_factor_size"=7 and "chunk_size"=3). So the index of this factor is not a
-                    // chunk, and it has to be added as factor "manually".
+                // ICFL Factor can be split.
+                // For example: ICFL Factor "D|CAA|BCA".
+                let smaller_cf_size = curr_icfl_factor_size % chunk_size;
+                if smaller_cf_size > 0 {
+                    // Here the first Custom Factor is smaller.
+                    // For example: "D" of "D|CAA|BCA".
                     factor_indexes.push(curr_icfl_factor_index);
-                } else {
-                    // If factor was "CAABCA" then we would have first_chunk_index_offset=0 (since
-                    // "cur_factor_size"=6 and "chunk_size"=3). So the index of this factor is also the
-                    // index of a chunk, so it'll be considered in the while statement below.
                 }
-                let mut cur_chunk_index = curr_icfl_factor_index + first_chunk_index_offset;
-                while cur_chunk_index < curr_icfl_factor_index + curr_icfl_factor_size {
-                    factor_indexes.push(cur_chunk_index);
-                    cur_chunk_index += chunk_size;
+                let mut curr_cf_idx = curr_icfl_factor_index + smaller_cf_size;
+                while curr_cf_idx < curr_icfl_factor_index + curr_icfl_factor_size {
+                    // Here all Custom Factor of size Chunk Size.
+                    factor_indexes.push(curr_cf_idx);
+                    curr_cf_idx += chunk_size;
                 }
             }
 
             // Updating "idx_to_is_custom"
-            let mut remaining_chars_in_icfl_factor = curr_icfl_factor_size;
-            while remaining_chars_in_icfl_factor > chunk_size {
+            let mut chars_left_in_icfl_factor = curr_icfl_factor_size;
+            while chars_left_in_icfl_factor > chunk_size {
                 idx_to_is_custom.push(true);
-                remaining_chars_in_icfl_factor -= 1;
+                chars_left_in_icfl_factor -= 1;
             }
-            while remaining_chars_in_icfl_factor > 0 {
+            while chars_left_in_icfl_factor > 0 {
                 idx_to_is_custom.push(false);
-                remaining_chars_in_icfl_factor -= 1;
+                chars_left_in_icfl_factor -= 1;
             }
 
             // Updating "idx_to_icfl_factor"
