@@ -39,8 +39,8 @@ pub fn compute_innovative_suffix_array(
     monitor.p1_fact.start();
     // ICFL Factorization
     let str_length = str.len();
-    let s_bytes = str.as_bytes();
-    let icfl_indexes = get_icfl_indexes(s_bytes);
+    let str_chars = str.chars().collect::<Vec<_>>();
+    let icfl_indexes = get_icfl_indexes(&str_chars);
     // Custom Factorization
     let (
         //
@@ -61,7 +61,6 @@ pub fn compute_innovative_suffix_array(
 
     // TREE
     monitor.p2_tree.start();
-    let str_chars = str.chars().collect::<Vec<_>>();
     let mut tree = create_tree(
         &str_chars,
         &factor_indexes,

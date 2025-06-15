@@ -19,7 +19,7 @@ pub fn full_suite(
     println!("\n\nCOMPUTING SUITE ON FILE: \"{}\"\n", fasta_file_name);
 
     // READING FILE
-    let src_str = &get_fasta_content(get_path_in_generated_folder(fasta_file_name));
+    let str = &get_fasta_content(get_path_in_generated_folder(fasta_file_name));
 
     // SUMS FOR MEAN
     let mut sum_classic_micros = 0;
@@ -33,7 +33,7 @@ pub fn full_suite(
         println!(" > NUM ATTEMPT: {}/{}", i_attempt, num_attempts);
 
         // CLASSIC SUFFIX ARRAY
-        let classic_suffix_array_computation = compute_classic_suffix_array(src_str);
+        let classic_suffix_array_computation = compute_classic_suffix_array(str);
         let classic_suffix_array = classic_suffix_array_computation.suffix_array;
         sum_classic_micros += classic_suffix_array_computation.duration.as_micros() as u64;
 
@@ -42,7 +42,7 @@ pub fn full_suite(
         for &chunk_size in chunk_size_vec {
             let innovative_suffix_array_computation = compute_innovative_suffix_array(
                 fasta_file_name,
-                src_str,
+                str,
                 chunk_size,
                 log_execution,
                 log_fact,
