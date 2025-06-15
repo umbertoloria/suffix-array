@@ -1,4 +1,4 @@
-use crate::suffix_array::monitor::ExecutionTiming;
+use crate::prefix_tree::monitor::ExecutionTiming;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 

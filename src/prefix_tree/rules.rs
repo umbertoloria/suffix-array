@@ -1,4 +1,4 @@
-use crate::suffix_array::monitor::Monitor;
+use crate::prefix_tree::monitor::Monitor;
 
 pub fn rules_safe(
     parent_ls_index: usize,

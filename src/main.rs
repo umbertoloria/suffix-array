@@ -1,12 +1,15 @@
 #![allow(warnings)]
 
-use crate::suffix_array::suite::full_suite;
+use suite::full_suite;
 
 mod extra;
 mod factorization;
 mod files;
+mod new_suffix_array;
 mod plot;
+mod prefix_tree;
 mod suffix_array;
+mod suite;
 
 fn main() {
     // TODO: Control this main with CLI Interface with Arguments
@@ -72,7 +75,7 @@ fn main() {
     // full_suite("000", &chunk_size_vec_000, 25, 10, le, lf, lts, dp);
     // full_suite("001", &chunk_size_vec_001, 25, 10, le, lf, lts, dp);
     // full_suite("002_mini", &chunk_size_vec_002m, 30, 10, le, lf, lts, dp);
-    // full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false, dp);
+    full_suite("002_70", &chunk_size_vec_70, 200_000, 10, le, lf, false, dp);
     /*full_suite(
         "002_70",
         &vec![Some(6), Some(56_137)],

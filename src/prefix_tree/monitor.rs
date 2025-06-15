@@ -1,4 +1,4 @@
-use crate::suffix_array::log_execution_info::round_int_100;
+use crate::prefix_tree::log_execution_info::round_int_100;
 use std::time::{Duration, Instant};
 
 #[derive(Debug)]

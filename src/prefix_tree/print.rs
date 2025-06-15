@@ -1,4 +1,4 @@
-use crate::suffix_array::prefix_tree::tree::{Tree, TreeNode};
+use crate::prefix_tree::tree::{Tree, TreeNode};
 
 impl<'a> Tree<'a> {
     pub fn print(&self) {

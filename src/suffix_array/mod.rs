@@ -1,9 +1,3 @@
 pub mod classic_suffix_array;
-pub mod log_execution_info;
-pub mod log_execution_outcome;
-pub mod monitor;
-pub mod new_suffix_array;
-pub mod prefix_tree;
+pub mod logger;
 pub mod sorter;
-pub mod suffix_array;
-pub mod suite;

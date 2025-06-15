@@ -1,6 +1,6 @@
-use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_tree::rules::rules_safe;
-use crate::suffix_array::prefix_tree::tree::{Tree, TreeNode};
+use crate::prefix_tree::monitor::Monitor;
+use crate::prefix_tree::rules::rules_safe;
+use crate::prefix_tree::tree::{Tree, TreeNode};
 use std::cell::Ref;
 
 impl<'a> Tree<'a> {

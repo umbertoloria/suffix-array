@@ -1,6 +1,6 @@
 use crate::factorization::get_max_factor_size;
-use crate::suffix_array::monitor::Monitor;
-use crate::suffix_array::prefix_tree::print::get_string_clone;
+use crate::prefix_tree::monitor::Monitor;
+use crate::prefix_tree::print::get_string_clone;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::Write;

@@ -1,4 +1,4 @@
-use crate::suffix_array::monitor::ExecutionOutcome;
+use crate::prefix_tree::monitor::ExecutionOutcome;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

@@ -8,14 +8,12 @@ use crate::files::paths::{
     get_path_for_project_outcome_file_json, get_path_for_project_suffix_array_file,
     get_path_for_project_timing_file_json, get_path_for_project_tree_file,
 };
-use crate::suffix_array::log_execution_info::ExecutionInfoFileFormat;
-use crate::suffix_array::log_execution_outcome::ExecutionOutcomeFileFormat;
-use crate::suffix_array::monitor::{ExecutionInfo, Monitor};
-use crate::suffix_array::prefix_tree::logging::{log_tree, TreeLogMode};
-use crate::suffix_array::prefix_tree::tree::create_tree;
-use crate::suffix_array::suffix_array::suffix_array_logger::{
-    log_suffix_array, make_sure_directory_exist,
-};
+use crate::prefix_tree::log_execution_info::ExecutionInfoFileFormat;
+use crate::prefix_tree::log_execution_outcome::ExecutionOutcomeFileFormat;
+use crate::prefix_tree::logging::{log_tree, TreeLogMode};
+use crate::prefix_tree::monitor::{ExecutionInfo, Monitor};
+use crate::prefix_tree::tree::create_tree;
+use crate::suffix_array::logger::{log_suffix_array, make_sure_directory_exist};
 
 // INNOVATIVE SUFFIX ARRAY
 pub struct InnovativeSuffixArrayComputationResults {
