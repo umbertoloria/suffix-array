@@ -32,7 +32,7 @@ impl<'a> Tree<'a> {
     fn get_common_prefix_partition(
         &self,
         self_node: &TreeNode<'a>,
-        self_rankings: &Vec<usize>,
+        self_rks: &Vec<usize>,
         str: &str,
         icfl_indexes: &Vec<usize>,
         idx_to_is_custom: &Vec<bool>,
@@ -46,21 +46,20 @@ impl<'a> Tree<'a> {
             println!(
                 "{}> CPP node: {:?}",
                 "=".repeat(self_node.suffix_len),
-                self_rankings,
+                self_rks,
             );
         }
 
         for (_, child_node) in &self_node.children {
-            // CHILD NODE: Window for Comparing Rankings using "RULES"
             let (
                 //
-                min_father,
-                max_father,
+                win_min,
+                win_max,
                 child_new_rankings,
-            ) = self.calculate_windows_for_in_prefix_merge(
+            ) = self.calculate_windows_and_child_shared_rankings(
                 child_node.suffix_len,
                 &child_node.rankings,
-                self_rankings, // As Parent Node's Rankings.
+                self_rks, // As Parent Node's Rankings.
                 position,
                 str,
                 icfl_indexes,
@@ -69,11 +68,9 @@ impl<'a> Tree<'a> {
                 monitor,
             );
 
-            // SELF COMMON PREFIX PARTITION: Self Node's Rankings from left to Min Father
-            if position < min_father {
-                // There are some Self Node's Rankings from "position" to "min_father".
-
-                let portion_to_insert = &self_rankings[position..min_father];
+            // SELF CPP: Self Rankings from left to Child WIN-MIN.
+            if position < win_min {
+                let portion_to_insert = &self_rks[position..win_min];
 
                 if cfg!(feature = "verbose") {
                     println!(
@@ -86,9 +83,9 @@ impl<'a> Tree<'a> {
                 suffix_array.extend(portion_to_insert);
                 // position = min_father; // Here useless but meaningful.
             }
-            position = max_father;
+            position = win_max;
 
-            // SELF COMMON PREFIX PARTITION: Child Node's Rankings
+            // SELF CPP: Child Rankings
             if let Some(child_new_rankings) = child_new_rankings {
                 self.get_common_prefix_partition(
                     &child_node,
@@ -114,9 +111,9 @@ impl<'a> Tree<'a> {
             };
         }
 
-        // SELF COMMON PREFIX PARTITION: Self Node's Rankings remained
-        if position < self_rankings.len() {
-            let portion_to_insert = &self_rankings[position..];
+        // SELF CPP: Self Rankings left
+        if position < self_rks.len() {
+            let portion_to_insert = &self_rks[position..];
 
             if cfg!(feature = "verbose") {
                 println!(
@@ -127,10 +124,10 @@ impl<'a> Tree<'a> {
             }
 
             suffix_array.extend(portion_to_insert);
-            // position = self_rankings.len(); // Here useless but meaningful.
+            // position = self_rks.len(); // Here useless but meaningful.
         }
     }
-    fn calculate_windows_for_in_prefix_merge(
+    fn calculate_windows_and_child_shared_rankings(
         &self,
         self_ls_size: usize,
         self_rks: &Vec<usize>,
@@ -157,15 +154,15 @@ impl<'a> Tree<'a> {
             let curr_parent_ls_index = parent_rks[i_parent];
             let curr_parent_ls = &str
                 [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
-            // Safety is required here: "..curr_parent_ls_index + self_ls_size"
+            // Safety is required here: "usize::min".
 
             // TODO: Monitor string compare
             monitor.execution_outcome.monitor_new_local_suffix_compare();
 
             if curr_parent_ls < self_ls {
-                // Ok. All Parent Rankings from left to here have LSs that are < than Curr LS.
+                // Until now, Parent LSs are < Self LS.
             } else {
-                // Found a Parent LS that is >= Curr LS.
+                // Found a Parent LS that is >= Self LS.
                 break;
             }
             i_parent += 1;
@@ -173,8 +170,7 @@ impl<'a> Tree<'a> {
         let min_father = i_parent;
 
         if min_father >= parent_rks.len() {
-            // Here, all LSs in Parent Rankings are < than Curr LS.
-
+            // All Parent LSs are < Self LS.
             let max_father = i_parent;
 
             if cfg!(feature = "verbose") {
@@ -191,30 +187,19 @@ impl<'a> Tree<'a> {
             return (min_father, max_father, None);
         }
 
-        // From here, we have a Min Father value. So it's true that there is at least one
-        // Parent Ranking that have LS that is >= than Curr LS.
-
-        // If Curr Parent Ranking has LS that is > than Curr LS then Max Father = Min Father. So
-        // there would be no Window for Comparing Rankings using "RULES", since from here on all
-        // Parent Rankings would have LSs that are > than Curr LS.
-
-        // If Curr Parent Ranking has LS that is = to Curr LS then we'll use Max Father to define
-        // a Window for Comparing Rankings using "RULES".
+        // Curr. Parent LS is the first >= Self LS.
 
         let curr_parent_ls_index = parent_rks[i_parent];
         let curr_parent_ls =
             &str[curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
-        // Seems like safety is optional here: "..curr_parent_ls_index + self_ls_size"
+        // Safety is optional here: "usize::min".
 
         // TODO: Monitor string compare
         monitor.execution_outcome.monitor_new_local_suffix_compare();
 
-        if curr_parent_ls == self_ls {
-            // Go further.
-        } else {
-            // Here, there aren't Parent LSs that are = to Curr LS, so Max Father = Min Father.
-            // There's no Window for Comparing Rankings using "RULES".
-
+        if curr_parent_ls > self_ls {
+            // Curr. Parent LS is the first > Self LS.
+            // There is no Parent LS = Self LS, so min=max.
             let max_father = min_father;
 
             if cfg!(feature = "verbose") {
@@ -231,35 +216,32 @@ impl<'a> Tree<'a> {
             return (min_father, max_father, None);
         }
 
-        // Assuming "curr_parent_ls == this_ls".
+        // Curr. Parent LS is the first = Self LS.
 
-        // There is at least one Parent Ranking that is = to Curr LS. This means that there is a
-        // Window for Comparing Rankings using "RULES" to create. So now we are looking for the
-        // Max Father for closing this Window.
         i_parent += 1;
         while i_parent < parent_rks.len() {
             let curr_parent_ls_index = parent_rks[i_parent];
             let curr_parent_ls = &str
                 [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
-            // Seems like safety is optional here: "..curr_parent_ls_index + self_ls_size"
+            // Safety is optional here: "usize::min".
 
             // TODO: Monitor string compare
             monitor.execution_outcome.monitor_new_local_suffix_compare();
 
             if curr_parent_ls == self_ls {
-                // Ok. This Parent Ranking is = to Curr LS as well, so the Window is not closed yet.
+                // Until now, Parent LSs are <= Self LS (before < now =).
             } else {
-                // Found a Parent LS that is > Curr LS.
+                // Found a Parent LS that is > Self LS.
                 break;
             }
             i_parent += 1;
         }
         let max_father = i_parent;
         i_parent = min_father;
+        // The Window for Comparing Rankings using "RULES":
+        // * starts from "i_parent" (included);
+        // * ends with "max_father" (excluded).
 
-        // Now, the Window for Comparing Rankings using "RULES" is the following:
-        // - starts from "i_parent", included, and
-        // - ends with "max_father", excluded.
         if cfg!(feature = "verbose") {
             let parent_left = &parent_rks[parent_rks_i_from..min_father];
             let parent_window = &parent_rks[min_father..max_father];
@@ -292,7 +274,7 @@ impl<'a> Tree<'a> {
                 if cfg!(feature = "verbose") {
                     let curr_parent_ls =
                         &str[curr_parent_ls_index..curr_parent_ls_index + self_ls_size];
-                    // Seems like safety is optional here: "..usize::min"
+                    // Safety is optional here: "usize::min".
                     let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + self_ls_size];
                     println!(
                         "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: father wins",
@@ -306,7 +288,7 @@ impl<'a> Tree<'a> {
                 if cfg!(feature = "verbose") {
                     let curr_parent_ls =
                         &str[curr_parent_ls_index..curr_parent_ls_index + self_ls_size];
-                    // Seems like safety is optional here: "..usize::min"
+                    // Safety is optional here: "usize::min".
                     let curr_this_ls = &str[curr_this_ls_index..curr_this_ls_index + self_ls_size];
                     println!(
                         "{}/ compare father=\"{}\" [{}] <-> child=\"{}\" [{}], child.suff.len={}: child wins",
