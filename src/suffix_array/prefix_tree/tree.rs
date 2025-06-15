@@ -1,5 +1,6 @@
 use crate::suffix_array::chunking::get_max_factor_size;
 use crate::suffix_array::monitor::Monitor;
+use crate::suffix_array::prefix_tree::print::get_string_clone;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::Write;
@@ -53,9 +54,8 @@ pub fn create_tree<'a>(
                     if cfg!(feature = "verbose") {
                         tree.print();
                     }
-                } else {
-                    // Canonical Factor: already considered.
                 }
+                // Else: Canonical Factor, already considered.
             }
         }
     }
@@ -83,32 +83,12 @@ impl<'a> Tree<'a> {
         self.root
             .add(ls_index, ls_size, 0, is_custom_ls, s_bytes, monitor);
     }
-
-    // PRINT
-    pub fn print(&self) {
-        self.print_node(&self.root, 0, "");
-    }
-    fn print_node(&self, self_node: &TreeNode<'a>, tabs_offset: usize, self_label: &str) {
-        println!(
-            "{}|{:2}: \"{}\" {}",
-            "\t".repeat(tabs_offset),
-            tabs_offset,
-            self_label,
-            format!("{:?}", self_node.rankings),
-        );
-        for (child_node_prefix, child_node) in &self_node.children {
-            let child_node_prefix = *child_node_prefix;
-            let prefix_str = get_string_clone(child_node_prefix);
-            let child_node_label = format!("{}{}", self_label, prefix_str);
-            self.print_node(child_node, tabs_offset + 1, &child_node_label);
-        }
-    }
 }
 
 pub struct TreeNode<'a> {
     pub suffix_len: usize,
     pub rankings: Vec<usize>,
-    pub children: Vec<(&'a PrefixTreeString, TreeNode<'a>)>,
+    pub children: Vec<(&'a [u8], TreeNode<'a>)>,
 }
 impl<'a> TreeNode<'a> {
     pub fn new(suffix_len: usize) -> Self {
@@ -300,12 +280,4 @@ impl<'a> TreeNode<'a> {
             self.rankings.push(ls_index);
         }
     }
-}
-
-// STRING ABSTRACTION
-type PrefixTreeString = [u8];
-pub fn get_string_clone(str_type: &PrefixTreeString) -> String {
-    // TODO: Needs cloning
-    let cloned_vec = str_type.to_vec();
-    String::from_utf8(cloned_vec).unwrap()
 }

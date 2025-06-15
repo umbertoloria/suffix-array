@@ -1,4 +1,5 @@
-use crate::suffix_array::prefix_tree::tree::{get_string_clone, Tree, TreeNode};
+use crate::suffix_array::prefix_tree::print::get_string_clone;
+use crate::suffix_array::prefix_tree::tree::{Tree, TreeNode};
 use std::fs::File;
 use std::io::Write;
 
