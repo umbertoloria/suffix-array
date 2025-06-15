@@ -5,14 +5,13 @@ use crate::prefix_tree::tree::{Tree, TreeNode};
 impl<'a> Tree<'a> {
     pub fn compute_suffix_array(
         &self,
-        str_length: usize,
         str: &str,
         icfl_indexes: &Vec<usize>,
         idx_to_is_custom: &Vec<bool>,
         idx_to_icfl_factor: &Vec<usize>,
         monitor: &mut Monitor,
     ) -> Vec<usize> {
-        let mut suffix_array = Vec::with_capacity(str_length);
+        let mut suffix_array = Vec::with_capacity(str.len());
         for (_, child_node) in &self.root.children {
             // Visiting from all First Layer Nodes to all Leafs (avoiding Root Node).
             self.get_common_prefix_partition(
@@ -168,12 +167,10 @@ impl<'a> Tree<'a> {
                 // Found a Parent LS that is >= Self LS.
                 break;
             }
-
             // Until now, Parent LSs are < Self LS.
             i_parent += 1;
         }
         let win_min = i_parent;
-
         if win_min >= parent_rks.len() {
             // All Parent LSs are < Self LS.
             let win_max = i_parent;
@@ -193,8 +190,8 @@ impl<'a> Tree<'a> {
 
             return (win_min, win_max, None);
         }
-        // Curr. Parent LS is the first >= Self LS.
 
+        // Curr. Parent LS is the first >= Self LS.
         let curr_parent_ls_index = parent_rks[i_parent];
         let curr_parent_ls =
             &str[curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
@@ -227,7 +224,6 @@ impl<'a> Tree<'a> {
         }
 
         // Curr. Parent LS is the first = Self LS.
-
         i_parent += 1;
         while i_parent < parent_rks.len() {
             let curr_parent_ls_index = parent_rks[i_parent];
@@ -244,7 +240,6 @@ impl<'a> Tree<'a> {
                 // Found a Parent LS that is > Self LS.
                 break;
             }
-
             // Until now, Parent LSs are <= Self LS (before < now =).
             i_parent += 1;
         }

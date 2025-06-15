@@ -35,7 +35,6 @@ pub fn compute_innovative_suffix_array(
     // FACTORIZATION
     monitor.p1_fact.start();
     // ICFL Factorization
-    let str_length = str.len();
     let str_chars = str.chars().collect::<Vec<_>>();
     let icfl_indexes = get_icfl_indexes(&str_chars);
     // Custom Factorization
@@ -44,7 +43,7 @@ pub fn compute_innovative_suffix_array(
         factor_indexes,
         idx_to_is_custom,
         idx_to_icfl_factor,
-    ) = get_custom_factors_and_more_using_chunk_size(&icfl_indexes, chunk_size, str_length);
+    ) = get_custom_factors_and_more_using_chunk_size(&icfl_indexes, chunk_size, str.len());
     monitor.p1_fact.stop();
 
     // + Extra
@@ -75,7 +74,6 @@ pub fn compute_innovative_suffix_array(
         println!("Before SUFFIX ARRAY PHASE");
         print_for_human_like_debug(
             str,
-            str_length,
             &icfl_indexes,
             &factor_indexes,
             &idx_to_icfl_factor,
@@ -108,7 +106,6 @@ pub fn compute_innovative_suffix_array(
     // SUFFIX ARRAY
     monitor.p3_sa.start();
     let suffix_array = tree.compute_suffix_array(
-        str_length,
         str,
         &icfl_indexes,
         &idx_to_is_custom,
@@ -158,7 +155,6 @@ pub fn compute_innovative_suffix_array(
 }
 fn print_for_human_like_debug(
     str: &str,
-    str_length: usize,
     icfl_indexes: &Vec<usize>,
     factor_indexes: &Vec<usize>,
     idx_to_icfl_factor: &Vec<usize>,
@@ -166,35 +162,35 @@ fn print_for_human_like_debug(
     // depths: &Vec<usize>,
 ) {
     // CHAR INDEXES
-    for i in 0..str_length {
+    for i in 0..str.len() {
         print!(" {:2} ", i);
     }
     println!();
     // CHARS
-    for i in 0..str_length {
+    for i in 0..str.len() {
         print!("  {} ", &str[i..i + 1]);
     }
     println!();
     // IDX TO ICFL FACTOR
-    for i in 0..str_length {
+    for i in 0..str.len() {
         print!(" {:2} ", idx_to_icfl_factor[i]);
     }
     println!("   <= IDX TO ICFL FACTOR {:?}", icfl_indexes);
     let mut i = 0;
 
-    print_indexes_list(&icfl_indexes, str_length);
+    print_indexes_list(&icfl_indexes, str.len());
     println!("<= ICFL FACTOR INDEXES {:?}", icfl_indexes);
-    print_indexes_list(&factor_indexes, str_length);
+    print_indexes_list(&factor_indexes, str.len());
     println!("<= FACTOR INDEXES {:?}", factor_indexes);
 
     // IDX TO IS CUSTOM FACTOR
     i = 0;
-    while i < str_length {
+    while i < str.len() {
         print!("  {} ", if idx_to_is_custom[i] { "x" } else { " " });
         i += 1;
     }
     println!("   <= IDX TO IS CUSTOM FACTOR");
-    /*for i in 0..str_length {
+    /*for i in 0..str.len() {
         print!(" {:2} ", depths[i]);
     }
     println!("   <= DEPTHS");*/
