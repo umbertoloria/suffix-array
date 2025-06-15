@@ -19,10 +19,11 @@ pub fn create_tree<'a>(
     let mut tree = Tree::new();
 
     for ls_size in 1..=max_factor_size {
-        // Every iteration looks for all Custom Factors whose length is <= "ls_size" and, if there
-        // exist, takes their Local Suffixes of "ls_size" length.
+        // Looking for LSs with length "ls_size":
+        // * first, LSs from Canonical Factors (sorted);
+        // * then, LSs from Custom Factors.
 
-        // Last ICFL Factor
+        // LSs from Canonical Factors (last ICFL Factor)
         if ls_size <= last_icfl_factor_size {
             let ls_index = str_length - ls_size;
             tree.add(ls_index, ls_size, false, s_bytes, monitor);
@@ -30,32 +31,30 @@ pub fn create_tree<'a>(
                 tree.print();
             }
         }
-
-        // All ICFL Factors from first to second-last
-        for i_factor in 0..icfl_indexes.len() - 1 {
-            let next_icfl_factor_index = icfl_indexes[i_factor + 1];
-            let curr_icfl_factor_size = next_icfl_factor_index - icfl_indexes[i_factor];
+        // LSs from Canonical Factors (from first to second-last ICFL Factors)
+        for i in 0..icfl_indexes.len() - 1 {
+            let next_icfl_factor_idx = icfl_indexes[i + 1];
+            let curr_icfl_factor_size = next_icfl_factor_idx - icfl_indexes[i];
             if ls_size <= curr_icfl_factor_size {
-                let ls_index = next_icfl_factor_index - ls_size;
+                let ls_index = next_icfl_factor_idx - ls_size;
                 tree.add(ls_index, ls_size, false, s_bytes, monitor);
                 if cfg!(feature = "verbose") {
                     tree.print();
                 }
             }
         }
-
-        // All Custom Factors from first to second-last
-        for i_factor in 0..factor_indexes.len() - 1 {
-            let curr_factor_size = factor_indexes[i_factor + 1] - factor_indexes[i_factor];
+        // LSs from Custom Factors
+        for i in 0..factor_indexes.len() - 1 {
+            let curr_factor_size = factor_indexes[i + 1] - factor_indexes[i];
             if ls_size <= curr_factor_size {
-                let ls_index = factor_indexes[i_factor + 1] - ls_size;
+                let ls_index = factor_indexes[i + 1] - ls_size;
                 if idx_to_is_custom[ls_index] {
                     tree.add(ls_index, ls_size, true, s_bytes, monitor);
                     if cfg!(feature = "verbose") {
                         tree.print();
                     }
                 } else {
-                    // Already considered Canonical Factor.
+                    // Canonical Factor: already considered.
                 }
             }
         }
