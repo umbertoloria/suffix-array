@@ -105,6 +105,7 @@ pub fn compute_innovative_suffix_array(
     // SUFFIX ARRAY
     monitor.p3_sa.start();
     let suffix_array = tree.compute_suffix_array(
+        //
         str,
         &icfl_indexes,
         &idx_to_is_custom,
@@ -151,6 +152,35 @@ pub fn compute_innovative_suffix_array(
         execution_info,
     }
 }
+
+pub fn pt_saca_cf(str: &str, chunk_size: Option<usize>) -> Vec<usize> {
+    // FACTORIZATION
+    // ICFL Factorization
+    let str_chars = str.chars().collect::<Vec<_>>();
+    let icfl_indexes = get_icfl_indexes(&str_chars);
+    // Custom Factorization
+    let (
+        //
+        factor_indexes,
+        idx_to_is_custom,
+        idx_to_icfl_factor,
+    ) = get_custom_factors_and_more_using_chunk_size(&icfl_indexes, chunk_size, str.len());
+
+    // TREE
+    let mut tree = create_tree(
+        &str_chars,
+        &factor_indexes,
+        &icfl_indexes,
+        &idx_to_is_custom,
+    );
+
+    // SUFFIX ARRAY
+    let suffix_array =
+        tree.compute_suffix_array(str, &icfl_indexes, &idx_to_is_custom, &idx_to_icfl_factor);
+
+    suffix_array
+}
+
 fn print_for_human_like_debug(
     str: &str,
     icfl_indexes: &Vec<usize>,
