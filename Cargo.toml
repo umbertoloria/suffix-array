@@ -1,5 +1,5 @@
 [package]
-name = "suffix-array"
+name = "ptsaca"
 version = "0.1.0"
 edition = "2021"
 
