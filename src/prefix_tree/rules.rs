@@ -65,8 +65,10 @@ fn rules(
     //  FALSE => GS Parent < GS Child;
     //  TRUE  => GS Child < GS Parent.
     if idx_to_is_custom[parent_ls_index] && idx_to_is_custom[child_ls_index] {
+        // + Extra
         monitor.new_compare_of_two_ls_in_custom_factors();
         monitor.new_compare_using_actual_string_compare();
+        // - Extra
         return perform_gs_comparison_a_before_b(
             str,
             child_ls_index + child_ls_size,
@@ -77,16 +79,22 @@ fn rules(
     let last_icfl_index = icfl_indexes[icfl_indexes.len() - 1];
 
     if idx_to_is_custom[parent_ls_index] {
+        // + Extra
         monitor.new_compare_one_ls_in_custom_factor();
+        // - Extra
         return if idx_to_icfl_factor[parent_ls_index] <= idx_to_icfl_factor[child_ls_index] {
+            // + Extra
             monitor.new_compare_using_rules();
+            // - Extra
             if child_ls_index >= last_icfl_index {
                 true
             } else {
                 false
             }
         } else {
+            // + Extra
             monitor.new_compare_using_actual_string_compare();
+            // - Extra
             perform_gs_comparison_a_before_b(
                 str,
                 child_ls_index + child_ls_size,
@@ -96,16 +104,22 @@ fn rules(
     }
 
     if idx_to_is_custom[child_ls_index] {
+        // + Extra
         monitor.new_compare_one_ls_in_custom_factor();
+        // - Extra
         return if idx_to_icfl_factor[child_ls_index] <= idx_to_icfl_factor[parent_ls_index] {
+            // + Extra
             monitor.new_compare_using_rules();
+            // - Extra
             if parent_ls_index >= last_icfl_index {
                 false
             } else {
                 true
             }
         } else {
+            // + Extra
             monitor.new_compare_using_actual_string_compare();
+            // - Extra
             perform_gs_comparison_a_before_b(
                 str,
                 child_ls_index + child_ls_size,
@@ -115,17 +129,25 @@ fn rules(
     }
 
     if parent_ls_index >= last_icfl_index && child_ls_index >= last_icfl_index {
+        // + Extra
         monitor.new_compare_using_rules();
+        // - Extra
         false
     } else if idx_to_icfl_factor[parent_ls_index] == idx_to_icfl_factor[child_ls_index] {
+        // + Extra
         monitor.new_compare_using_rules();
+        // - Extra
         true
     } else {
         if parent_ls_index >= last_icfl_index {
+            // + Extra
             monitor.new_compare_using_rules();
+            // - Extra
             false
         } else if child_ls_index >= last_icfl_index {
+            // + Extra
             monitor.new_compare_using_actual_string_compare();
+            // - Extra
             perform_gs_comparison_a_before_b(
                 str,
                 child_ls_index + child_ls_size,
@@ -133,10 +155,14 @@ fn rules(
             )
         } else {
             if parent_ls_index > child_ls_index {
+                // + Extra
                 monitor.new_compare_using_rules();
+                // - Extra
                 true
             } else {
+                // + Extra
                 monitor.new_compare_using_actual_string_compare();
+                // - Extra
                 perform_gs_comparison_a_before_b(
                     str,
                     child_ls_index + child_ls_size,

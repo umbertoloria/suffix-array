@@ -46,6 +46,8 @@ pub fn compute_innovative_suffix_array(
         idx_to_icfl_factor,
     ) = get_custom_factors_and_more_using_chunk_size(&icfl_indexes, chunk_size, str_length);
     monitor.p1_fact.stop();
+
+    // + Extra
     if log_fact {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
         log_factorization(
@@ -55,6 +57,7 @@ pub fn compute_innovative_suffix_array(
             get_path_for_project_factorization_file(fasta_file_name, chunk_size_or_zero),
         );
     }
+    // - Extra
 
     // TREE
     monitor.p2_tree.start();
@@ -66,6 +69,8 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
     );
     monitor.p2_tree.stop();
+
+    // + Extra
     if cfg!(feature = "verbose") {
         println!("Before SUFFIX ARRAY PHASE");
         print_for_human_like_debug(
@@ -98,6 +103,7 @@ pub fn compute_innovative_suffix_array(
             get_path_for_project_mini_tree_file(fasta_file_name, chunk_size_or_zero),
         );
     }
+    // - Extra
 
     // SUFFIX ARRAY
     monitor.p3_sa.start();
@@ -110,6 +116,9 @@ pub fn compute_innovative_suffix_array(
         &mut monitor,
     );
     monitor.p3_sa.stop();
+    monitor.whole_duration.stop();
+
+    // + Extra
     if cfg!(feature = "verbose") {
         println!("After SUFFIX ARRAY PHASE");
         tree.print();
@@ -120,9 +129,6 @@ pub fn compute_innovative_suffix_array(
             get_path_for_project_suffix_array_file(fasta_file_name, chunk_size_or_zero),
         );
     }
-
-    monitor.whole_duration.stop();
-
     let execution_info = monitor.transform_info_execution_info();
     if log_execution {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
@@ -142,8 +148,8 @@ pub fn compute_innovative_suffix_array(
             get_path_for_project_timing_file_json(fasta_file_name, chunk_size_or_zero),
         );
     }
-
     // println!("Total time: {}", duration.as_secs_f32());
+    // - Extra
 
     InnovativeSuffixArrayComputationResults {
         suffix_array,

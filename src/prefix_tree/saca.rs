@@ -1,7 +1,6 @@
 use crate::prefix_tree::monitor::Monitor;
 use crate::prefix_tree::rules::rules_safe;
 use crate::prefix_tree::tree::{Tree, TreeNode};
-use std::cell::Ref;
 
 impl<'a> Tree<'a> {
     pub fn compute_suffix_array(
@@ -42,6 +41,7 @@ impl<'a> Tree<'a> {
     ) {
         let mut position = 0;
 
+        // + Extra
         if cfg!(feature = "verbose") {
             println!(
                 "{}> CPP node: {:?}",
@@ -49,6 +49,7 @@ impl<'a> Tree<'a> {
                 self_rks,
             );
         }
+        // - Extra
 
         for (_, child_node) in &self_node.children {
             let (
@@ -72,6 +73,7 @@ impl<'a> Tree<'a> {
             if position < win_min {
                 let portion_to_insert = &self_rks[position..win_min];
 
+                // + Extra
                 if cfg!(feature = "verbose") {
                     println!(
                         "{}. SA insert: {:?}",
@@ -79,6 +81,7 @@ impl<'a> Tree<'a> {
                         portion_to_insert,
                     );
                 }
+                // - Extra
 
                 suffix_array.extend(portion_to_insert);
                 // position = win_min; // Here useless but meaningful.
@@ -115,6 +118,7 @@ impl<'a> Tree<'a> {
         if position < self_rks.len() {
             let portion_to_insert = &self_rks[position..];
 
+            // + Extra
             if cfg!(feature = "verbose") {
                 println!(
                     "{}. SA insert: {:?}",
@@ -122,6 +126,7 @@ impl<'a> Tree<'a> {
                     portion_to_insert,
                 );
             }
+            // - Extra
 
             suffix_array.extend(portion_to_insert);
             // position = self_rks.len(); // Here useless but meaningful.
@@ -147,7 +152,6 @@ impl<'a> Tree<'a> {
 
         // Note: Binary Search tried before, not much of an improvement :_(
 
-        // IN-PREFIX MERGE RANKINGS
         let mut i_parent = parent_rks_i_from;
         while i_parent < parent_rks.len() {
             let curr_parent_ls_index = parent_rks[i_parent];
@@ -155,8 +159,10 @@ impl<'a> Tree<'a> {
                 [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
             // Safety is required here: "usize::min".
 
+            // + Extra
             // TODO: Monitor string compare
             monitor.execution_outcome.monitor_new_local_suffix_compare();
+            // - Extra
 
             if curr_parent_ls >= self_ls {
                 // Found a Parent LS that is >= Self LS.
@@ -172,6 +178,7 @@ impl<'a> Tree<'a> {
             // All Parent LSs are < Self LS.
             let win_max = i_parent;
 
+            // + Extra
             if cfg!(feature = "verbose") {
                 let parent_left = &parent_rks[parent_rks_i_from..win_min];
                 let parent_window = &parent_rks[win_min..win_max];
@@ -182,6 +189,7 @@ impl<'a> Tree<'a> {
                     self_rks, parent_left, parent_window, parent_right,
                 );
             }
+            // - Extra
 
             return (win_min, win_max, None);
         }
@@ -192,14 +200,17 @@ impl<'a> Tree<'a> {
             &str[curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
         // Safety is optional here: "usize::min".
 
+        // + Extra
         // TODO: Monitor string compare
         monitor.execution_outcome.monitor_new_local_suffix_compare();
+        // - Extra
 
         if curr_parent_ls > self_ls {
             // Curr. Parent LS is the first > Self LS.
             // There is no Parent LS = Self LS, so min=max.
             let win_max = win_min;
 
+            // + Extra
             if cfg!(feature = "verbose") {
                 let parent_left = &parent_rks[parent_rks_i_from..win_min];
                 let parent_window = &parent_rks[win_min..win_max];
@@ -210,6 +221,7 @@ impl<'a> Tree<'a> {
                     self_rks, parent_left, parent_window, parent_right,
                 );
             }
+            // - Extra
 
             return (win_min, win_max, None);
         }
@@ -223,8 +235,10 @@ impl<'a> Tree<'a> {
                 [curr_parent_ls_index..usize::min(curr_parent_ls_index + self_ls_size, str.len())];
             // Safety is optional here: "usize::min".
 
+            // + Extra
             // TODO: Monitor string compare
             monitor.execution_outcome.monitor_new_local_suffix_compare();
+            // - Extra
 
             if curr_parent_ls > self_ls {
                 // Found a Parent LS that is > Self LS.
@@ -240,6 +254,7 @@ impl<'a> Tree<'a> {
         // * starts from "i_parent" (included);
         // * ends with "win_max" (excluded).
 
+        // + Extra
         if cfg!(feature = "verbose") {
             let parent_left = &parent_rks[parent_rks_i_from..win_min];
             let parent_window = &parent_rks[win_min..win_max];
@@ -250,6 +265,7 @@ impl<'a> Tree<'a> {
                 self_rks, parent_left, parent_window, parent_right,
             );
         }
+        // - Extra
 
         // TODO: Avoid using auxiliary memory for Rankings
         let mut new_self_rks = Vec::new();
@@ -269,6 +285,7 @@ impl<'a> Tree<'a> {
                 false,
             );
             if !result_rules {
+                // + Extra
                 if cfg!(feature = "verbose") {
                     let curr_parent_ls =
                         &str[curr_parent_ls_index..curr_parent_ls_index + self_ls_size];
@@ -280,9 +297,12 @@ impl<'a> Tree<'a> {
                         curr_self_ls, curr_self_ls_index, self_ls_size,
                     );
                 }
+                // - Extra
+
                 new_self_rks.push(curr_parent_ls_index);
                 i_parent += 1;
             } else {
+                // + Extra
                 if cfg!(feature = "verbose") {
                     let curr_parent_ls =
                         &str[curr_parent_ls_index..curr_parent_ls_index + self_ls_size];
@@ -294,10 +314,14 @@ impl<'a> Tree<'a> {
                         curr_self_ls, curr_self_ls_index, self_ls_size,
                     );
                 }
+                // - Extra
+
                 new_self_rks.push(curr_self_ls_index);
                 j_self += 1;
             }
         }
+
+        // + Extra
         if cfg!(feature = "verbose") {
             if j_self >= self_rks.len() {
                 println!(
@@ -306,8 +330,12 @@ impl<'a> Tree<'a> {
                 );
             }
         }
+        // - Extra
+
         while j_self < self_rks.len() {
             let curr_self_ls_index = self_rks[j_self];
+
+            // + Extra
             if cfg!(feature = "verbose") {
                 println!(
                     "{}/ adding   child=\"{}\" [{}], child.suff.len={}",
@@ -317,11 +345,15 @@ impl<'a> Tree<'a> {
                     self_ls_size,
                 );
             }
+            // - Extra
+
             new_self_rks.push(curr_self_ls_index);
             j_self += 1;
         }
         while i_parent < win_max {
             let curr_parent_ls_index = parent_rks[i_parent];
+
+            // + Extra
             if cfg!(feature = "verbose") {
                 println!(
                     "{}/ adding  parent=\"{}\" [{}], parent.suff.len={}",
@@ -331,6 +363,8 @@ impl<'a> Tree<'a> {
                     self_ls_size,
                 );
             }
+            // - Extra
+
             new_self_rks.push(curr_parent_ls_index);
             i_parent += 1;
         }
