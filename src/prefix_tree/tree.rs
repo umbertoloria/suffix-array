@@ -24,12 +24,6 @@ pub fn create_tree<'a>(
         if ls_size <= last_icfl_factor_size {
             let ls_index = str_length - ls_size;
             tree.add(ls_index, ls_size, false, str, monitor);
-
-            // + Extra
-            if cfg!(feature = "verbose") {
-                tree.print();
-            }
-            // - Extra
         }
         // LSs from Canonical Factors (from first to second-last ICFL Factors)
         for i in 0..icfl_indexes.len() - 1 {
@@ -38,12 +32,6 @@ pub fn create_tree<'a>(
             if ls_size <= curr_icfl_factor_size {
                 let ls_index = next_icfl_factor_idx - ls_size;
                 tree.add(ls_index, ls_size, false, str, monitor);
-
-                // + Extra
-                if cfg!(feature = "verbose") {
-                    tree.print();
-                }
-                // - Extra
             }
         }
         // LSs from Custom Factors
@@ -53,12 +41,6 @@ pub fn create_tree<'a>(
                 let ls_index = factor_indexes[i + 1] - ls_size;
                 if idx_to_is_custom[ls_index] {
                     tree.add(ls_index, ls_size, true, str, monitor);
-
-                    // + Extra
-                    if cfg!(feature = "verbose") {
-                        tree.print();
-                    }
-                    // - Extra
                 }
                 // Else: Canonical Factor, already considered.
             }
@@ -113,39 +95,17 @@ impl<'a> TreeNode<'a> {
         monitor: &mut Monitor,
     ) {
         if i_char == ls_size {
-            // + Extra
-            if cfg!(feature = "verbose") {
-                println!("   -> Populating node id=? with new ranking {ls_index}");
-            }
-            // - Extra
-
             self.update_rankings(ls_index, is_custom_ls, str, monitor);
             return;
         }
 
         let rest_of_ls = &str[ls_index + i_char..ls_index + ls_size];
 
-        // + Extra
-        if cfg!(feature = "verbose") {
-            println!(
-                " -> i_char={i_char} on REST={}, i_node=_, ls_index={ls_index}",
-                get_string_clone(rest_of_ls),
-            );
-        }
-        // - Extra
-
         // Binary Search
         let mut p = 0;
         let mut q = self.children.len();
         while p < q {
             let mid = (q + p) / 2;
-
-            // + Extra
-            if cfg!(feature = "verbose") {
-                println!("   -> Binary Search: considering Mid Index={mid}");
-            }
-            // - Extra
-
             let (mid_str, mid_node) = &mut self.children[mid];
             let mid_str = *mid_str;
 
@@ -159,12 +119,6 @@ impl<'a> TreeNode<'a> {
                 i += 1;
             }
             if i < rest_of_ls.len() && i < mid_str.len() {
-                // + Extra
-                if cfg!(feature = "verbose") {
-                    println!("     -> try another element");
-                }
-                // - Extra
-
                 // Strings are different.
                 if rest_of_ls[i] < mid_str[i] {
                     q = mid;
@@ -183,23 +137,6 @@ impl<'a> TreeNode<'a> {
             let mut new_node = TreeNode::new(ls_size);
             new_node.update_rankings(ls_index, is_custom_ls, str, monitor);
             self.children.insert(p, (rest_of_ls, new_node));
-
-            // + Extra
-            if cfg!(feature = "verbose") {
-                let rest_of_ls_str = get_string_clone(rest_of_ls);
-                if self.children.len() == 1 {
-                    println!(
-                        "   -> was empty, new node id=_ with prefix={} and ranking {}",
-                        rest_of_ls_str, ls_index,
-                    );
-                } else {
-                    println!(
-                        "   -> found index p={p}, new node id=_ with prefix={} and ranking {}",
-                        rest_of_ls_str, ls_index,
-                    );
-                }
-            }
-            // - Extra
         }
     }
     fn update_rankings(
@@ -213,14 +150,6 @@ impl<'a> TreeNode<'a> {
             let custom_gs = &str[ls_index..];
             let idx = self.rankings.partition_point(|&gs_index| {
                 let gs = &str[gs_index..];
-
-                // + Extra
-                // TODO: Monitor string compare
-                monitor
-                    .execution_outcome
-                    .monitor_new_global_suffix_compare();
-                // - Extra
-
                 gs <= custom_gs
             });
             self.rankings.insert(idx, ls_index);
