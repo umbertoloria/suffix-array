@@ -1,5 +1,4 @@
 use crate::prefix_tree::monitor::Monitor;
-use std::process::exit;
 
 pub fn rules_safe(
     parent_ls_index: usize,
@@ -186,37 +185,52 @@ pub fn perform_gs_comparison_a_before_b(str: &str, ls_index_1: usize, ls_index_2
 }
 
 pub fn compatibility_property_icfl_a_before_b(
-    ls_a_index: usize,
-    ls_b_index: usize,
+    ls1_idx: usize,
+    ls2_idx: usize,
     str: &[char],
     icfl_indexes: &Vec<usize>,
     idx_to_icfl_factor: &Vec<usize>,
 ) -> bool {
-    // FIXME
-    let ls_a_icfl_factor_idx = idx_to_icfl_factor[ls_a_index];
-    let ls_a_end_excl = if ls_a_icfl_factor_idx < icfl_indexes.len() - 1 {
-        icfl_indexes[ls_a_icfl_factor_idx + 1]
+    let ls1_icfl_factor_idx = idx_to_icfl_factor[ls1_idx];
+    let ls1_end_excl = if ls1_icfl_factor_idx < icfl_indexes.len() - 1 {
+        icfl_indexes[ls1_icfl_factor_idx + 1]
     } else {
         str.len()
     };
-    let ls_a = &str[ls_a_index..ls_a_end_excl];
+    let ls1 = &str[ls1_idx..ls1_end_excl];
 
-    let ls_b_icfl_factor_idx = idx_to_icfl_factor[ls_b_index];
-    let ls_b_end_excl = if ls_b_icfl_factor_idx < icfl_indexes.len() - 1 {
-        icfl_indexes[ls_b_icfl_factor_idx + 1]
+    let ls2_icfl_factor_idx = idx_to_icfl_factor[ls2_idx];
+    let ls2_end_excl = if ls2_icfl_factor_idx < icfl_indexes.len() - 1 {
+        icfl_indexes[ls2_icfl_factor_idx + 1]
     } else {
         str.len()
     };
-    let ls_b = &str[ls_b_index..ls_b_end_excl];
+    let ls2 = &str[ls2_idx..ls2_end_excl];
 
-    // println!("Comparing: A={ls_a:?}\tB={ls_b:?}");
+    // println!("Comparing: A={ls1:?}\tB={ls2:?}");
 
-    // FIXME: Assuming "ls_a_index" and "ls_b_index" are different
-    let test = ls_a < ls_b;
-    let oracle = &str[ls_a_index..] < &str[ls_b_index..];
-    if oracle != test {
-        println!(" > FAILED");
+    // FIXME: works only with LSs of last ICFL factor
+    /*if ls1_end_excl != str.len() || ls2_end_excl != str.len() {
+        println!("WTF");
         exit(0x0100);
+    }*/
+
+    let mut i = 0;
+    while i < ls1.len() && i < ls2.len() {
+        if ls1[i] < ls2[i] {
+            // ls1 < ls2
+            return true;
+        } else if ls1[i] > ls2[i] {
+            // ls1 > ls2
+            return false;
+        }
+        i += 1;
     }
-    test
+    if i < ls1.len() {
+        // "ls2" prefix of "ls1": ls1 > ls2.
+        return false;
+    }
+    // FIXME: Assuming "ls_a_index" and "ls_b_index" are different
+    // "ls1" prefix of "ls2": ls1 < ls2.
+    true
 }
