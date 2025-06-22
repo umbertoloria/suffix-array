@@ -9,17 +9,18 @@ pub enum TreeLogMode {
     FullTree,
     MiniTree,
 }
-pub fn log_tree(tree: &Tree, mode: TreeLogMode, filepath: String) {
+pub fn log_tree(tree: &Tree, mode: TreeLogMode, filepath: String, str: &[char]) {
     let mut file = File::create(filepath).expect("Unable to create file");
     // Logging from all First Layer Nodes to all Leafs (avoiding Root Node).
-    for (child_node_prefix, child_node) in &tree.root.children {
-        let child_node_prefix = *child_node_prefix;
+    for (child_node_label_pq, child_node) in &tree.root.children {
+        let (child_node_label_p, child_node_label_q) = *child_node_label_pq;
+        let child_node_label = &str[child_node_label_p..child_node_label_q];
         let child_label = match mode {
-            TreeLogMode::Tree => format!("{}", get_string_clone(child_node_prefix)),
-            TreeLogMode::FullTree => format!("{}", get_string_clone(child_node_prefix)),
-            TreeLogMode::MiniTree => format!("\"{:6}\"", child_node_prefix.len()),
+            TreeLogMode::Tree => format!("{}", get_string_clone(child_node_label)),
+            TreeLogMode::FullTree => format!("{}", get_string_clone(child_node_label)),
+            TreeLogMode::MiniTree => format!("\"{:6}\"", child_node_label.len()),
         };
-        log_tree_recursive(&child_node, &child_label, mode, &mut file, 0);
+        log_tree_recursive(&child_node, &child_label, mode, &mut file, 0, str);
     }
     file.flush().expect("Unable to flush file");
 }
@@ -29,6 +30,7 @@ fn log_tree_recursive(
     mode: TreeLogMode,
     file: &mut File,
     level: usize,
+    str: &[char],
 ) {
     let mut line = format!(
         //
@@ -46,15 +48,16 @@ fn log_tree_recursive(
     line.push_str(&format!("{}]", rankings[rankings.len() - 1]));
     line.push_str("\n");
     file.write(line.as_bytes()).expect("Unable to write line");
-    for (child_node_prefix, child_node) in &node.children {
-        let child_node_prefix = *child_node_prefix;
+    for (child_node_label_pq, child_node) in &node.children {
+        let (child_node_label_p, child_node_label_q) = *child_node_label_pq;
+        let child_node_label = &str[child_node_label_p..child_node_label_q];
         let child_label = match mode {
-            TreeLogMode::Tree => format!("{}", get_string_clone(child_node_prefix)),
+            TreeLogMode::Tree => format!("{}", get_string_clone(child_node_label)),
             TreeLogMode::FullTree => {
-                format!("{}{}", node_label, get_string_clone(child_node_prefix))
+                format!("{}{}", node_label, get_string_clone(child_node_label))
             }
-            TreeLogMode::MiniTree => format!("\"{:6}\"", child_node_prefix.len()),
+            TreeLogMode::MiniTree => format!("\"{:6}\"", child_node_label.len()),
         };
-        log_tree_recursive(child_node, &child_label, mode, file, level + 1);
+        log_tree_recursive(child_node, &child_label, mode, file, level + 1, str);
     }
 }

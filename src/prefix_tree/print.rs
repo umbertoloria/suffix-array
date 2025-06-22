@@ -1,10 +1,10 @@
 use crate::prefix_tree::tree::{Tree, TreeNode};
 
-impl<'a> Tree<'a> {
-    pub fn print(&self) {
-        self.print_node(&self.root, 0, "");
+impl Tree {
+    pub fn print(&self, str: &[char]) {
+        self.print_node(&self.root, 0, "", str);
     }
-    fn print_node(&self, self_node: &TreeNode<'a>, tabs_offset: usize, self_label: &str) {
+    fn print_node(&self, self_node: &TreeNode, tabs_offset: usize, self_label: &str, str: &[char]) {
         println!(
             "{}|{:2}: \"{}\" {}",
             "\t".repeat(tabs_offset),
@@ -12,11 +12,16 @@ impl<'a> Tree<'a> {
             self_label,
             format!("{:?}", self_node.rankings),
         );
-        for (child_node_prefix, child_node) in &self_node.children {
-            let child_node_prefix = *child_node_prefix;
-            let prefix_str = get_string_clone(child_node_prefix);
-            let child_node_label = format!("{}{}", self_label, prefix_str);
-            self.print_node(child_node, tabs_offset + 1, &child_node_label);
+        for (child_node_label_pq, child_node) in &self_node.children {
+            let (child_node_label_p, child_node_label_q) = *child_node_label_pq;
+            let child_node_label = &str[child_node_label_p..child_node_label_q];
+            let child_label = get_string_clone(child_node_label);
+            self.print_node(
+                child_node,
+                tabs_offset + 1,
+                &format!("{}{}", self_label, child_label),
+                str,
+            );
         }
     }
 }

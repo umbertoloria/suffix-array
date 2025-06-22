@@ -2,7 +2,7 @@ use crate::prefix_tree::monitor::Monitor;
 use crate::prefix_tree::rules::rules_safe;
 use crate::prefix_tree::tree::{Tree, TreeNode};
 
-impl<'a> Tree<'a> {
+impl Tree {
     pub fn compute_suffix_array(
         &self,
         str: &str,
@@ -29,7 +29,7 @@ impl<'a> Tree<'a> {
     }
     fn get_common_prefix_partition(
         &self,
-        self_node: &TreeNode<'a>,
+        self_node: &TreeNode,
         self_rks: &Vec<usize>,
         str: &str,
         icfl_indexes: &Vec<usize>,

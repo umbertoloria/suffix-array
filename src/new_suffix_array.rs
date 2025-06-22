@@ -79,7 +79,7 @@ pub fn compute_innovative_suffix_array(
             &idx_to_icfl_factor,
             &idx_to_is_custom,
         );
-        tree.print();
+        tree.print(&str_chars);
     }
     if log_trees_and_suffix_array {
         make_sure_directory_exist(get_path_for_project_folder(fasta_file_name));
@@ -88,17 +88,20 @@ pub fn compute_innovative_suffix_array(
             &tree,
             TreeLogMode::Tree,
             get_path_for_project_tree_file(fasta_file_name, chunk_size_or_zero),
+            &str_chars,
         );
         log_tree(
             &tree,
             TreeLogMode::FullTree,
             get_path_for_project_full_tree_file(fasta_file_name, chunk_size_or_zero),
+            &str_chars,
         );
         */
         log_tree(
             &tree,
             TreeLogMode::MiniTree,
             get_path_for_project_mini_tree_file(fasta_file_name, chunk_size_or_zero),
+            &str_chars,
         );
     }
     // - Extra
@@ -118,7 +121,7 @@ pub fn compute_innovative_suffix_array(
     // + Extra
     if cfg!(feature = "verbose") {
         println!("After SUFFIX ARRAY PHASE");
-        tree.print();
+        tree.print(&str_chars);
     }
     if log_trees_and_suffix_array {
         log_suffix_array(

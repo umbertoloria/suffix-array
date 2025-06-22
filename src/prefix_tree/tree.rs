@@ -2,13 +2,13 @@ use crate::factorization::get_max_factor_size;
 use crate::prefix_tree::monitor::Monitor;
 use crate::prefix_tree::print::get_string_clone;
 
-pub fn create_tree<'a>(
-    str: &'a [char],
+pub fn create_tree(
+    str: &[char],
     factor_indexes: &Vec<usize>,
     icfl_indexes: &Vec<usize>,
     idx_to_is_custom: &Vec<bool>,
     monitor: &mut Monitor,
-) -> Tree<'a> {
+) -> Tree {
     let str_length = str.len();
     let max_factor_size = get_max_factor_size(&factor_indexes, str_length);
     let last_icfl_factor_size = str_length - icfl_indexes[icfl_indexes.len() - 1];
@@ -27,7 +27,7 @@ pub fn create_tree<'a>(
 
             // + Extra
             if cfg!(feature = "verbose") {
-                tree.print();
+                tree.print(str);
             }
             // - Extra
         }
@@ -41,7 +41,7 @@ pub fn create_tree<'a>(
 
                 // + Extra
                 if cfg!(feature = "verbose") {
-                    tree.print();
+                    tree.print(str);
                 }
                 // - Extra
             }
@@ -56,7 +56,7 @@ pub fn create_tree<'a>(
 
                     // + Extra
                     if cfg!(feature = "verbose") {
-                        tree.print();
+                        tree.print(str);
                     }
                     // - Extra
                 }
@@ -68,10 +68,10 @@ pub fn create_tree<'a>(
     tree
 }
 
-pub struct Tree<'a> {
-    pub root: TreeNode<'a>,
+pub struct Tree {
+    pub root: TreeNode,
 }
-impl<'a> Tree<'a> {
+impl Tree {
     pub fn new() -> Self {
         Self {
             root: TreeNode::new(0),
@@ -82,7 +82,7 @@ impl<'a> Tree<'a> {
         ls_index: usize,
         ls_size: usize,
         is_custom_ls: bool,
-        str: &'a [char],
+        str: &[char],
         monitor: &mut Monitor,
     ) {
         self.root
@@ -90,12 +90,12 @@ impl<'a> Tree<'a> {
     }
 }
 
-pub struct TreeNode<'a> {
+pub struct TreeNode {
     pub suffix_len: usize,
     pub rankings: Vec<usize>,
-    pub children: Vec<(&'a [char], TreeNode<'a>)>,
+    pub children: Vec<((usize, usize), TreeNode)>,
 }
-impl<'a> TreeNode<'a> {
+impl TreeNode {
     pub fn new(suffix_len: usize) -> Self {
         Self {
             suffix_len,
@@ -109,7 +109,7 @@ impl<'a> TreeNode<'a> {
         ls_size: usize,
         i_char: usize,
         is_custom_ls: bool,
-        str: &'a [char],
+        str: &[char],
         monitor: &mut Monitor,
     ) {
         if i_char == ls_size {
@@ -123,7 +123,9 @@ impl<'a> TreeNode<'a> {
             return;
         }
 
-        let rest_of_ls = &str[ls_index + i_char..ls_index + ls_size];
+        let rest_of_ls_p = ls_index + i_char;
+        let rest_of_ls_q = ls_index + ls_size;
+        let rest_of_ls = &str[rest_of_ls_p..rest_of_ls_q];
 
         // + Extra
         if cfg!(feature = "verbose") {
@@ -146,19 +148,20 @@ impl<'a> TreeNode<'a> {
             }
             // - Extra
 
-            let (mid_str, mid_node) = &mut self.children[mid];
-            let mid_str = *mid_str;
+            let (mid_label_pq, mid_node) = &mut self.children[mid];
+            let (mid_label_p, mid_label_q) = *mid_label_pq;
+            let mid_label = &str[mid_label_p..mid_label_q];
 
-            // Comparing "Mid. Str." with "Rest of LS".
+            // Comparing "Mid. Label" with "Rest of LS".
             // TODO: Monitor string compare
             let mut i = 0;
-            while i < rest_of_ls.len() && i < mid_str.len() {
-                if rest_of_ls[i] != mid_str[i] {
+            while i < rest_of_ls.len() && i < mid_label.len() {
+                if rest_of_ls[i] != mid_label[i] {
                     break;
                 }
                 i += 1;
             }
-            if i < rest_of_ls.len() && i < mid_str.len() {
+            if i < rest_of_ls.len() && i < mid_label.len() {
                 // + Extra
                 if cfg!(feature = "verbose") {
                     println!("     -> try another element");
@@ -166,14 +169,14 @@ impl<'a> TreeNode<'a> {
                 // - Extra
 
                 // Strings are different.
-                if rest_of_ls[i] < mid_str[i] {
+                if rest_of_ls[i] < mid_label[i] {
                     q = mid;
                 } else {
-                    // Then it's "rest_of_ls[i] > mid_str[i]".
+                    // Then it's "rest_of_ls[i] > mid_label[i]".
                     p = mid + 1;
                 }
             } else {
-                // The case of "rest_of_ls" being prefix of "mid_str" is ignored.
+                // The case of "rest_of_ls" being prefix of "mid_label" is ignored.
                 // Is up to the caller never to cause this case.
                 mid_node.add(ls_index, ls_size, i_char + i, is_custom_ls, str, monitor);
                 return;
@@ -182,7 +185,8 @@ impl<'a> TreeNode<'a> {
         if p >= q {
             let mut new_node = TreeNode::new(ls_size);
             new_node.update_rankings(ls_index, is_custom_ls, str, monitor);
-            self.children.insert(p, (rest_of_ls, new_node));
+            self.children
+                .insert(p, ((rest_of_ls_p, rest_of_ls_q), new_node));
 
             // + Extra
             if cfg!(feature = "verbose") {
