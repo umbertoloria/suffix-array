@@ -1,3 +1,5 @@
+use std::collections::{BTreeMap, HashMap};
+use std::iter::Map;
 use crate::factorization::get_max_factor_size;
 use crate::prefix_tree::monitor::Monitor;
 use crate::prefix_tree::print::get_string_clone;
@@ -20,10 +22,20 @@ pub fn create_tree<'a>(
         // * first, LSs from Canonical Factors (sorted);
         // * then, LSs from Custom Factors.
 
+        let mut x: BTreeMap<&[char], (Vec<usize>,Vec<usize>)> = BTreeMap::new();
+
         // LSs from Canonical Factors (last ICFL Factor)
         if ls_size <= last_icfl_factor_size {
             let ls_index = str_length - ls_size;
-            tree.add(ls_index, ls_size, false, str, monitor);
+
+            let ls = &str[ls_index..ls_index+ls_size];
+            x.entry(ls).or_insert_with(|| (Vec::new(),Vec::new())).0.push(ls_index);
+            /*if let Some(xlist) = x.get_mut(ls) {
+                xlist.push(ls_index);
+            } else {
+                x.insert(ls, vec![ls_index]);
+            }*/
+            // tree.add(ls_index, ls_size, false, str, monitor);
 
             // + Extra
             if cfg!(feature = "verbose") {
@@ -37,7 +49,15 @@ pub fn create_tree<'a>(
             let curr_icfl_factor_size = next_icfl_factor_idx - icfl_indexes[i];
             if ls_size <= curr_icfl_factor_size {
                 let ls_index = next_icfl_factor_idx - ls_size;
-                tree.add(ls_index, ls_size, false, str, monitor);
+
+                let ls = &str[ls_index..ls_index+ls_size];
+                x.entry(ls).or_insert_with(|| (Vec::new(),Vec::new())).0.push(ls_index);
+                /*if let Some(xlist) = x.get_mut(ls) {
+                    xlist.push(ls_index);
+                } else {
+                    x.insert(ls, vec![ls_index]);
+                }*/
+                // tree.add(ls_index, ls_size, false, str, monitor);
 
                 // + Extra
                 if cfg!(feature = "verbose") {
@@ -46,13 +66,32 @@ pub fn create_tree<'a>(
                 // - Extra
             }
         }
+        /*for (ls, ls_indexes) in x { // FIXME
+            /*for ls_index in ls_indexes {
+                tree.add(ls_index, ls_size, false, str, monitor);
+            }*/
+            tree.add(&ls_indexes, ls_size, false, str, monitor);
+        }*/
+        /*for ls_indexes in x.values_mut() {
+            tree.add(&ls_indexes, ls_size, false, str, monitor);
+            ls_indexes.clear();
+        }*/
+
         // LSs from Custom Factors
         for i in 0..factor_indexes.len() - 1 {
             let curr_factor_size = factor_indexes[i + 1] - factor_indexes[i];
             if ls_size <= curr_factor_size {
                 let ls_index = factor_indexes[i + 1] - ls_size;
                 if idx_to_is_custom[ls_index] {
-                    tree.add(ls_index, ls_size, true, str, monitor);
+                    let ls = &str[ls_index..ls_index+ls_size];
+                    x.entry(ls).or_insert_with(|| (Vec::new(),Vec::new())).1.push(ls_index);
+                    /*if let Some(xlist) = x.get_mut(ls) {
+                        xlist.push(ls_index);
+                    } else {
+                        x.insert(ls, vec![ls_index]);
+                    }*/
+                    // tree.add(ls_index, ls_size, false, str, monitor);
+                    // tree.add(&vec![ls_index], ls_size, true, str, monitor);
 
                     // + Extra
                     if cfg!(feature = "verbose") {
@@ -63,6 +102,12 @@ pub fn create_tree<'a>(
                 // Else: Canonical Factor, already considered.
             }
         }
+        /*for (ls_indexes_canonical, ls_indexes_customs) in x.values_mut() {
+            if !ls_indexes.is_empty() {
+                tree.add(&ls_indexes, ls_size, true, str, monitor);
+                ls_indexes.clear();
+            }
+        }*/
     }
 
     tree
@@ -79,14 +124,14 @@ impl<'a> Tree<'a> {
     }
     pub fn add(
         &mut self,
-        ls_index: usize,
+        ls_indexes: &[usize],
         ls_size: usize,
         is_custom_ls: bool,
         str: &'a [char],
         monitor: &mut Monitor,
     ) {
         self.root
-            .add(ls_index, ls_size, 0, is_custom_ls, str, monitor);
+            .add(ls_indexes, ls_size, 0, is_custom_ls, str, monitor);
     }
 }
 
@@ -105,7 +150,7 @@ impl<'a> TreeNode<'a> {
     }
     fn add(
         &mut self,
-        ls_index: usize,
+        ls_indexes: &[usize],
         ls_size: usize,
         i_char: usize,
         is_custom_ls: bool,
@@ -115,22 +160,22 @@ impl<'a> TreeNode<'a> {
         if i_char == ls_size {
             // + Extra
             if cfg!(feature = "verbose") {
-                println!("   -> Populating node id=? with new ranking {ls_index}");
+                // println!("   -> Populating node id=? with new ranking {ls_index}");
             }
             // - Extra
 
-            self.update_rankings(ls_index, is_custom_ls, str, monitor);
+            self.update_rankings(ls_indexes, is_custom_ls, str, monitor);
             return;
         }
 
-        let rest_of_ls = &str[ls_index + i_char..ls_index + ls_size];
+        let rest_of_ls = &str[ls_indexes[0] + i_char..ls_indexes[0] + ls_size];
 
         // + Extra
         if cfg!(feature = "verbose") {
-            println!(
-                " -> i_char={i_char} on REST={}, i_node=_, ls_index={ls_index}",
-                get_string_clone(rest_of_ls),
-            );
+            // println!(
+            //     " -> i_char={i_char} on REST={}, i_node=_, ls_index={ls_index}",
+            //     get_string_clone(rest_of_ls),
+            // );
         }
         // - Extra
 
@@ -175,19 +220,19 @@ impl<'a> TreeNode<'a> {
             } else {
                 // The case of "rest_of_ls" being prefix of "mid_str" is ignored.
                 // Is up to the caller never to cause this case.
-                mid_node.add(ls_index, ls_size, i_char + i, is_custom_ls, str, monitor);
+                mid_node.add(ls_indexes, ls_size, i_char + i, is_custom_ls, str, monitor);
                 return;
             }
         }
         if p >= q {
             let mut new_node = TreeNode::new(ls_size);
-            new_node.update_rankings(ls_index, is_custom_ls, str, monitor);
+            new_node.update_rankings(ls_indexes, is_custom_ls, str, monitor);
             self.children.insert(p, (rest_of_ls, new_node));
 
             // + Extra
             if cfg!(feature = "verbose") {
                 let rest_of_ls_str = get_string_clone(rest_of_ls);
-                if self.children.len() == 1 {
+                /*if self.children.len() == 1 {
                     println!(
                         "   -> was empty, new node id=_ with prefix={} and ranking {}",
                         rest_of_ls_str, ls_index,
@@ -197,35 +242,37 @@ impl<'a> TreeNode<'a> {
                         "   -> found index p={p}, new node id=_ with prefix={} and ranking {}",
                         rest_of_ls_str, ls_index,
                     );
-                }
+                }*/
             }
             // - Extra
         }
     }
     fn update_rankings(
         &mut self,
-        ls_index: usize,
+        ls_indexes: &[usize],
         is_custom_ls: bool,
         str: &[char],
         monitor: &mut Monitor,
     ) {
-        if is_custom_ls {
-            let custom_gs = &str[ls_index..];
-            let idx = self.rankings.partition_point(|&gs_index| {
-                let gs = &str[gs_index..];
+        for &ls_index in ls_indexes {
+            if is_custom_ls {
+                let custom_gs = &str[ls_index..];
+                let idx = self.rankings.partition_point(|&gs_index| {
+                    let gs = &str[gs_index..];
 
-                // + Extra
-                // TODO: Monitor string compare
-                monitor
-                    .execution_outcome
-                    .monitor_new_global_suffix_compare();
-                // - Extra
+                    // + Extra
+                    // TODO: Monitor string compare
+                    monitor
+                        .execution_outcome
+                        .monitor_new_global_suffix_compare();
+                    // - Extra
 
-                gs <= custom_gs
-            });
-            self.rankings.insert(idx, ls_index);
-        } else {
-            self.rankings.push(ls_index);
+                    gs <= custom_gs
+                });
+                self.rankings.insert(idx, ls_index);
+            } else {
+                self.rankings.push(ls_index);
+            }
         }
     }
 }

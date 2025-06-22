@@ -1,6 +1,7 @@
 #![allow(warnings)]
 
 use suite::full_suite;
+use crate::extra::suites::factorization::main_factorization;
 
 mod extra;
 mod factorization;
@@ -15,7 +16,7 @@ fn main() {
     // TODO: Control this main with CLI Interface with Arguments
     // OLD SUITES
     // main_generation();
-    // main_factorization();
+    main_factorization();
 
     // Chunk Size Interval
     let chunk_size_vec_000 = create_chunk_size_interval_and_none(2, 7);
