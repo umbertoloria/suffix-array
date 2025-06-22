@@ -153,6 +153,8 @@ impl TreeNode {
             let mid_label = &str[mid_label_p..mid_label_q];
 
             // Comparing "Mid. Label" with "Rest of LS".
+            // The case of "Mid. Label" being a prefix of "Rest of LS" is excluded as precondition.
+
             // TODO: Monitor string compare
             let mut i = 0;
             while i < rest_of_ls.len() && i < mid_label.len() {
@@ -162,23 +164,37 @@ impl TreeNode {
                 i += 1;
             }
             if i < rest_of_ls.len() && i < mid_label.len() {
+                // Strings are different and "Rest of LS" is not prefix of "Mid. Label".
+
                 // + Extra
                 if cfg!(feature = "verbose") {
                     println!("     -> try another element");
                 }
                 // - Extra
 
-                // Strings are different.
                 if rest_of_ls[i] < mid_label[i] {
                     q = mid;
                 } else {
                     // Then it's "rest_of_ls[i] > mid_label[i]".
                     p = mid + 1;
                 }
+            } else if i == rest_of_ls.len() && i == mid_label.len() {
+                // Here "rest_of_ls == mid_label": node found!
+
+                // + Extra
+                if cfg!(feature = "verbose") {
+                    println!("   -> Populating node id=? with new ranking {ls_index}");
+                }
+                // - Extra
+
+                mid_node.update_rankings(ls_index, is_custom_ls, str, monitor);
+                return;
             } else {
-                // The case of "rest_of_ls" being prefix of "mid_label" is ignored.
-                // Is up to the caller never to cause this case.
+                // Here "mid_label prefix of rest_of_ls": continue on the next node...
                 mid_node.add(ls_index, ls_size, i_char + i, is_custom_ls, str, monitor);
+
+                // The case of "rest_of_ls" being prefix of "mid_label" is ignored, so it can never
+                // happen that "i < mid_label.len()": the caller should never cause this.
                 return;
             }
         }
