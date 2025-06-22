@@ -64,6 +64,7 @@ pub fn compute_innovative_suffix_array(
         &str_chars,
         &factor_indexes,
         &icfl_indexes,
+        &idx_to_icfl_factor,
         &idx_to_is_custom,
         &mut monitor,
     );

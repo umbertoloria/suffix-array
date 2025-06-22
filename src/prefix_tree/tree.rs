@@ -1,11 +1,14 @@
 use crate::factorization::get_max_factor_size;
 use crate::prefix_tree::monitor::Monitor;
 use crate::prefix_tree::print::get_string_clone;
+use crate::prefix_tree::rules::compatibility_property_icfl_a_before_b;
+use std::process::exit;
 
 pub fn create_tree(
     str: &[char],
     factor_indexes: &Vec<usize>,
     icfl_indexes: &Vec<usize>,
+    idx_to_icfl_factor: &Vec<usize>,
     idx_to_is_custom: &Vec<bool>,
     monitor: &mut Monitor,
 ) -> Tree {
@@ -23,7 +26,15 @@ pub fn create_tree(
         // LSs from Canonical Factors (last ICFL Factor)
         if ls_size <= last_icfl_factor_size {
             let ls_index = str_length - ls_size;
-            tree.add(ls_index, ls_size, false, str, monitor);
+            tree.add(
+                ls_index,
+                ls_size,
+                false,
+                str,
+                icfl_indexes,
+                idx_to_icfl_factor,
+                monitor,
+            );
 
             // + Extra
             if cfg!(feature = "verbose") {
@@ -37,7 +48,15 @@ pub fn create_tree(
             let curr_icfl_factor_size = next_icfl_factor_idx - icfl_indexes[i];
             if ls_size <= curr_icfl_factor_size {
                 let ls_index = next_icfl_factor_idx - ls_size;
-                tree.add(ls_index, ls_size, false, str, monitor);
+                tree.add(
+                    ls_index,
+                    ls_size,
+                    false,
+                    str,
+                    icfl_indexes,
+                    idx_to_icfl_factor,
+                    monitor,
+                );
 
                 // + Extra
                 if cfg!(feature = "verbose") {
@@ -52,7 +71,15 @@ pub fn create_tree(
             if ls_size <= curr_factor_size {
                 let ls_index = factor_indexes[i + 1] - ls_size;
                 if idx_to_is_custom[ls_index] {
-                    tree.add(ls_index, ls_size, true, str, monitor);
+                    tree.add(
+                        ls_index,
+                        ls_size,
+                        true,
+                        str,
+                        icfl_indexes,
+                        idx_to_icfl_factor,
+                        monitor,
+                    );
 
                     // + Extra
                     if cfg!(feature = "verbose") {
@@ -83,10 +110,20 @@ impl Tree {
         ls_size: usize,
         is_custom_ls: bool,
         str: &[char],
+        icfl_indexes: &Vec<usize>,
+        idx_to_icfl_factor: &Vec<usize>,
         monitor: &mut Monitor,
     ) {
-        self.root
-            .add(ls_index, ls_size, 0, is_custom_ls, str, monitor);
+        self.root.add(
+            ls_index,
+            ls_size,
+            0,
+            is_custom_ls,
+            str,
+            icfl_indexes,
+            idx_to_icfl_factor,
+            monitor,
+        );
     }
 }
 
@@ -110,6 +147,8 @@ impl TreeNode {
         i_char: usize,
         is_custom_ls: bool,
         str: &[char],
+        icfl_indexes: &Vec<usize>,
+        idx_to_icfl_factor: &Vec<usize>,
         monitor: &mut Monitor,
     ) {
         if i_char == ls_size {
@@ -155,6 +194,42 @@ impl TreeNode {
             // Comparing "Mid. Label" with "Rest of LS".
             // The case of "Mid. Label" being a prefix of "Rest of LS" is excluded as precondition.
 
+            let mut preview_rest_of_ls_before_mid_str = None;
+            if mid_label_q == str.len() {
+                if rest_of_ls_q == str.len() {
+                    /*if rest_of_ls_p < mid_str_p {
+                        // FIXME: è sempre così
+                        println!("WOW!");
+                    }*/
+                    // FIXME
+                    // println!("Inserting ls_index={ls_index}, i_char={i_char}");
+                    preview_rest_of_ls_before_mid_str = Some(
+                        //
+                        compatibility_property_icfl_a_before_b(
+                            rest_of_ls_p,
+                            mid_label_p,
+                            str,
+                            icfl_indexes,
+                            idx_to_icfl_factor,
+                        ),
+                    );
+                }
+            }
+            if let Some(preview_rest_of_ls_before_mid_str) = preview_rest_of_ls_before_mid_str {
+                // println!("COMPARING {rest_of_ls:?} with {mid_str:?}: wins {preview_rest_of_ls_before_mid_str}");
+
+                // Strings are different.
+                if preview_rest_of_ls_before_mid_str {
+                    q = mid;
+                    continue;
+                } else {
+                    // Then it's "rest_of_ls[i] > mid_str[i]".
+                    // FIXME: può esserci un prefix, che serve per andare giù nell'albero
+                    /*p = mid + 1;
+                    continue;*/
+                }
+            }
+
             // TODO: Monitor string compare
             let mut i = 0;
             while i < rest_of_ls.len() && i < mid_label.len() {
@@ -172,6 +247,16 @@ impl TreeNode {
                 }
                 // - Extra
 
+                if let Some(preview_rest_of_ls_before_mid_str) = preview_rest_of_ls_before_mid_str {
+                    // Strings are different.
+                    let curr_test = rest_of_ls[i] < mid_label[i];
+                    if preview_rest_of_ls_before_mid_str != curr_test {
+                        println!("OMG: preview={preview_rest_of_ls_before_mid_str} but curr_test={curr_test}");
+                        exit(0x0100);
+                        // } else {
+                        //     println!("OKOKOK");
+                    }
+                }
                 if rest_of_ls[i] < mid_label[i] {
                     q = mid;
                 } else {
@@ -191,7 +276,16 @@ impl TreeNode {
                 return;
             } else {
                 // Here "mid_label prefix of rest_of_ls": continue on the next node...
-                mid_node.add(ls_index, ls_size, i_char + i, is_custom_ls, str, monitor);
+                mid_node.add(
+                    ls_index,
+                    ls_size,
+                    i_char + i,
+                    is_custom_ls,
+                    str,
+                    icfl_indexes,
+                    idx_to_icfl_factor,
+                    monitor,
+                );
 
                 // The case of "rest_of_ls" being prefix of "mid_label" is ignored, so it can never
                 // happen that "i < mid_label.len()": the caller should never cause this.

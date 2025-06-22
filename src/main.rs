@@ -72,6 +72,7 @@ fn main() {
     let dp = true;
     // let dp = false;
 
+    // full_suite("000", &vec![None], 25, 1, false, false, false, false);
     // full_suite("000", &chunk_size_vec_000, 25, 10, le, lf, lts, dp);
     // full_suite("001", &chunk_size_vec_001, 25, 10, le, lf, lts, dp);
     // full_suite("002_mini", &chunk_size_vec_002m, 30, 10, le, lf, lts, dp);

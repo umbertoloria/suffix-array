@@ -1,4 +1,5 @@
 use crate::prefix_tree::monitor::Monitor;
+use std::process::exit;
 
 pub fn rules_safe(
     parent_ls_index: usize,
@@ -182,4 +183,40 @@ pub fn perform_gs_comparison_a_before_b(str: &str, ls_index_1: usize, ls_index_2
     } else {
         false
     }
+}
+
+pub fn compatibility_property_icfl_a_before_b(
+    ls_a_index: usize,
+    ls_b_index: usize,
+    str: &[char],
+    icfl_indexes: &Vec<usize>,
+    idx_to_icfl_factor: &Vec<usize>,
+) -> bool {
+    // FIXME
+    let ls_a_icfl_factor_idx = idx_to_icfl_factor[ls_a_index];
+    let ls_a_end_excl = if ls_a_icfl_factor_idx < icfl_indexes.len() - 1 {
+        icfl_indexes[ls_a_icfl_factor_idx + 1]
+    } else {
+        str.len()
+    };
+    let ls_a = &str[ls_a_index..ls_a_end_excl];
+
+    let ls_b_icfl_factor_idx = idx_to_icfl_factor[ls_b_index];
+    let ls_b_end_excl = if ls_b_icfl_factor_idx < icfl_indexes.len() - 1 {
+        icfl_indexes[ls_b_icfl_factor_idx + 1]
+    } else {
+        str.len()
+    };
+    let ls_b = &str[ls_b_index..ls_b_end_excl];
+
+    // println!("Comparing: A={ls_a:?}\tB={ls_b:?}");
+
+    // FIXME: Assuming "ls_a_index" and "ls_b_index" are different
+    let test = ls_a < ls_b;
+    let oracle = &str[ls_a_index..] < &str[ls_b_index..];
+    if oracle != test {
+        println!(" > FAILED");
+        exit(0x0100);
+    }
+    test
 }
