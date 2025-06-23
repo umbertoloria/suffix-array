@@ -19,7 +19,7 @@ fn main() {
 
     // Chunk Size Interval
     let chunk_size_vec_000 = create_chunk_size_interval_and_none(2, 7);
-    let chunk_size_vec_001 = create_chunk_size_interval_and_none(2, 8);
+    let chunk_size_vec_001 = create_chunk_size_interval_and_none(2, 2);
     let chunk_size_vec_002m = create_chunk_size_interval_and_none(2, 24);
     let chunk_size_vec_70 = merge_chunk_size_intervals(
         create_chunk_size_interval(2, 9),

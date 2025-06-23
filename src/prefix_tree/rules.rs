@@ -231,6 +231,10 @@ pub fn compatibility_property_icfl_a_before_b(
         return false;
     }
     // FIXME: Assuming "ls_a_index" and "ls_b_index" are different
-    // "ls1" prefix of "ls2": ls1 < ls2.
+    // "ls1" prefix of "ls2": ...
+    if ls1_icfl_factor_idx < icfl_indexes.len() - 1 {
+        // ls1 > ls2
+        return false;
+    }
     true
 }

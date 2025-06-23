@@ -196,25 +196,43 @@ impl TreeNode {
 
             let mut preview_rest_of_ls_before_mid_str = None;
             if mid_label_q == str.len() {
-                if rest_of_ls_q == str.len() {
-                    /*if rest_of_ls_p < mid_str_p {
-                        // FIXME: è sempre così
-                        println!("WOW!");
-                    }*/
-                    // FIXME
-                    // println!("Inserting ls_index={ls_index}, i_char={i_char}");
-                    preview_rest_of_ls_before_mid_str = Some(
-                        //
-                        compatibility_property_icfl_a_before_b(
-                            rest_of_ls_p,
-                            mid_label_p,
-                            str,
-                            icfl_indexes,
-                            idx_to_icfl_factor,
-                        ),
-                    );
-                }
+                // Assuming "rest_of_ls_p < mid_label_p".
+                /*if rest_of_ls_p >= mid_label_p {
+                    println!("Should never happen!");
+                    exit(0x0100);
+                }*/
+
+                // println!("Inserting ls_index={ls_index}, i_char={i_char}");
+
+                preview_rest_of_ls_before_mid_str = Some(
+                    //
+                    compatibility_property_icfl_a_before_b(
+                        rest_of_ls_p,
+                        mid_label_p,
+                        str,
+                        icfl_indexes,
+                        idx_to_icfl_factor,
+                    ),
+                );
+            } else {
+                // FIXME: approfondisci casi qui dentro...
+                println!("SKIP Inserting ls_index={ls_index} to ls_size={ls_size} (i_char={i_char}): mid_label_p={mid_label_p}/mid_label_q={mid_label_q}");
             }
+            /*if rest_of_ls_p < mid_label_p {
+                // FIXME: è sempre così
+                // println!("WOW!");
+                preview_rest_of_ls_before_mid_str = Some(
+                    //
+                    compatibility_property_icfl_a_before_b(
+                        rest_of_ls_p,
+                        mid_label_p,
+                        str,
+                        icfl_indexes,
+                        idx_to_icfl_factor,
+                    ),
+                );
+            }*/
+
             if let Some(preview_rest_of_ls_before_mid_str) = preview_rest_of_ls_before_mid_str {
                 // println!("COMPARING {rest_of_ls:?} with {mid_str:?}: wins {preview_rest_of_ls_before_mid_str}");
 
@@ -247,7 +265,7 @@ impl TreeNode {
                 }
                 // - Extra
 
-                if let Some(preview_rest_of_ls_before_mid_str) = preview_rest_of_ls_before_mid_str {
+                /*if let Some(preview_rest_of_ls_before_mid_str) = preview_rest_of_ls_before_mid_str {
                     // Strings are different.
                     let curr_test = rest_of_ls[i] < mid_label[i];
                     if preview_rest_of_ls_before_mid_str != curr_test {
@@ -256,7 +274,7 @@ impl TreeNode {
                         // } else {
                         //     println!("OKOKOK");
                     }
-                }
+                }*/
                 if rest_of_ls[i] < mid_label[i] {
                     q = mid;
                 } else {
